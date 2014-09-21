@@ -1,0 +1,149 @@
+module alto-service {
+  namespace "http://shixiao.org/alto-service";
+  prefix "alto";
+  description "Data Model for ALTO (RFC7285)";
+  revision 2014-09-22 {
+    description "Initial revision w/ endpoint properties";
+  }
+  
+  container map-service {
+    /* ref: Michaels yang file */
+  }
+  
+  grouping endpoint-address {
+    choice typed {
+      leaf UntypedEndpointAddr {
+        type union {
+          type string; // addr
+          type string; // endpoint-address-type
+        }
+      }
+      leaf TypedEndpointAddr {
+        type string {
+          pattern ".*:.*";
+        }
+      }
+    }
+    description 
+      "An endpoint is an application or host that is capable of 
+       communicating (sending and/or receiving messages) on a network. An 
+       endpoint is typically either a resource provider or a resource.";
+  }
+
+  /* TODO
+     typedef EndpointPrefix {
+     }
+     
+     typedef EndpointAddrGroup {
+     // TODO
+     }
+  */
+
+  grouping PID {
+    description
+      "Provider Defined Identifier";
+    leaf PIDName {
+      type string;
+    }
+    list endpoint-addresses {
+      uses endpoint-address;
+    }
+  }
+  
+  grouping network-location {
+    choice location-type {
+      case endpoint-addresses {
+        uses endpoint-addresses;
+      }
+      case PID {
+        uses PID;
+      }
+    }
+  }
+  
+  typedef endpoint-property-type {
+    type enumeration {
+      enum resource-specific;
+      enum global;
+    }
+  }
+  
+  // TODO: enforce these logic
+  // TODO: priv:
+  typedef endpoint-property {
+    type union {
+      /*
+        choice endpoint-property-type {
+        default global;
+        case resource-specific {
+        type string {
+        pattern "*.*";
+        // resource ID.global endpoint property name
+        }
+        }
+        case global {
+        type string;
+        }
+        }
+      */
+      type string; // endpoint-property-type: resource-specific or global
+      type enumeration {
+        enum pid;
+        enum network-location;
+        // other examples here
+      }
+      type string; // endpoint property value
+    }
+  }
+  
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint";
+    input {
+      list endpoints {
+        key "endpoint-address";
+        leaf endpoint-address {
+          type TypedEndpointAddr;
+        }
+      }
+      list properties {
+        leaf endpoint-property {
+          type endpoint-property;
+        }
+      }
+    }
+    
+    output {
+      list meta {
+        list dependent-vtags{
+          leaf resource-id {
+            type string;
+          }
+          leaf tag {
+            type string;
+          }
+        }
+      }
+      list endpoint-properties {
+        leaf pid {
+          type TypedEndpointAddr;
+        }
+        list properties {
+          leaf property {
+            type endpoint-property;
+          }
+        }
+      }
+    }
+  }
+  
+  rpc endpoint-cost-service {
+    /* ref: Michaels yang file; maybe as rpc */
+  }
+  
+  
+  rpc map-filtering-service {
+    /* TODO */
+  }
+  
+}
