@@ -11,11 +11,7 @@ module alto-service {
   }
   
   typedef endpoint-address {
-    type union {
-      type TypedEndpointAddr;
-      type UntypedEndpointAddr;
-      type EndpointAddrType;
-    }
+    type TypedEndpointAddr;
     description 
       "An endpoint is an application or host that is capable of 
        communicating (sending and/or receiving messages) on a network. An 
@@ -27,22 +23,8 @@ module alto-service {
       pattern ".*:.*";
     }
   }
-
-  typedef UntypedEndpointAddr {
-    type string;
-  }
-  typedef EndpointAddrType {
-    type string;
-  }
   
-  /* TODO
-     typedef EndpointPrefix {
-     }
-     
-     typedef EndpointAddrGroup {
-     // TODO
-     }
-  */
+  /* TODO: EndpointPrefix, EndpointAddrGroup */
 
   grouping PID {
     description
@@ -59,41 +41,33 @@ module alto-service {
     uses PID;
   }
   
-  typedef endpoint-property-type {
-    type enumeration {
-      enum resource-specific;
-      enum global;
-    }
-  }
-  
   // TODO: enforce these logic
   // TODO: priv:
-  typedef endpoint-property {
+  typedef endpoint-property-type {
     type union {
-      /*
-        choice endpoint-property-type {
-        default global;
-        case resource-specific {
-        type string {
-        pattern "*.*";
-        // resource ID.global endpoint property name
-        }
-        }
-        case global {
-        type string;
-        }
-        }
-      */
-      type string; // endpoint-property-type: resource-specific or global
-      type enumeration {
-        enum pid;
-        enum network-location;
-        // other examples here
-      }
-      type string; // endpoint property value
+      type resource-specific-endpoint-property-type;
+      type global-endpoint-property-type;
     }
   }
-  
+
+  typedef resource-specific-endpoint-property-type {
+    type string {
+      pattern ".*\..*"; // resource-id.property-type
+    }
+  }
+
+  typedef global-endpoint-property-type {
+    type enumeration {
+      enum pid;
+      enum network-location;
+      // other examples here
+    }
+  }
+
+  typedef endpoint-property-value {
+    type string;
+  }
+
   rpc endpoint-property-service {
     description
       "inquiries on properties of an endpoint";
@@ -103,7 +77,7 @@ module alto-service {
       }
       list properties {
         leaf endpoint-property {
-          type endpoint-property;
+          type endpoint-property-type;
         }
       }
     }
@@ -124,8 +98,14 @@ module alto-service {
           type endpoint-address;
         }
         list properties {
-          leaf property {
-            type endpoint-property;
+          leaf property-type {
+            type union {
+              type resource-specific-endpoint-property-type;
+              type global-endpoint-property-type;
+            }
+          }
+          leaf property-value {
+            type endpoint-property-value;
           }
         }
       }
