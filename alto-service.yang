@@ -23,24 +23,28 @@ module alto-service {
       pattern ".*:.*";
     }
   }
+
+  typedef endpoint-address-type {
+    type enumeration {
+      enum ipv4;
+      enum ipv6;
+      // other examples here;
+    }
+  }
   
   /* TODO: EndpointPrefix, EndpointAddrGroup */
 
-  grouping PID {
+  grouping pid {
     description
       "Provider Defined Identifier";
-    leaf PIDName {
+    leaf pid-name {
       type string;
     }
     leaf-list endpoint-addresses {
       type endpoint-address;
     }
   }
-  
-  grouping network-location {
-    uses PID;
-  }
-  
+
   // TODO: enforce these logic
   // TODO: priv:
   typedef endpoint-property-type {
@@ -116,8 +120,58 @@ module alto-service {
     /* ref: Michaels yang file; maybe as rpc */
   }
   
-  
-  rpc map-filtering-service {
+  rpc filtered-network-map-service {
+    description
+      "inquiries on filtered network map";
+    input {
+      container endpoints {
+        container srcs {
+          leaf-list endpoints {
+            type endpoint-address;
+          }
+          leaf-list address-types {
+            type endpoint-address-type;
+          }
+        }
+        container dsts {
+          leaf-list endpoints {
+            type endpoint-address;
+          }
+          leaf-list address-types {
+            type endpoint-address-type;
+          }
+        }
+      }
+    }
+    output {
+      container meta {
+        container vtag {
+          leaf resource-id {
+            type string;
+          }
+          leaf tag {
+            type string;
+          }
+        }
+      }
+      // restrict the returned pids
+      list network-map {
+        leaf pid {
+          type endpoint-address;
+        }
+        list neighbors {
+          leaf neighbor-address {
+            type endpoint-address;
+          }
+          leaf neighbor-address-type {
+            type endpoint-address-type;
+          }
+        }
+      }
+    }
+  }
+
+  rpc filtered-cost-map-service {
     /* TODO */
   }
   
