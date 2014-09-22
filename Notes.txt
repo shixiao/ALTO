@@ -1,0 +1,59 @@
+Questions:
+
+--what level of detail should the YANG model be, esp. restrictions on
+input and output, etc. (try to mimic RFC7223, RFC7277, etc.?)
+
+--push notifications for incremental updates--JSON vs. custom
+  structure. Which party is pushing to which party? Estimated
+  frequency?
+
+--
+
+===
+
+TODO:
+
+--filtered cost map service
+
+--multiple maps on a server
+
+--single cost type
+
+--start YANG model for ALTO i-d
+
+===
+
+1. Develop a YANG model for the ALTO base protocol
+
+    Outcome: Produce both a draft and a formal specification using a tool; identify issues, if any in either YANG or RESTCONF or ALTO;
+
+    Timeline: two weeks (Sept. 22 - Oct. 3).
+
+2. ALTO extension on incremental update and notification, by considering YANG or new model
+
+   Outcome: help with finishing the specification
+
+   Timeline: 1.5 weeks (Oct. 6 - Oct. 15)
+
+3. ALTO extension on CDNi
+
+  Outcome: help with finishing the ALTO CDNI service specification
+
+   Timeline: one week (Oct. 16 - Oct. 24)
+ 
+4. Submit all preceding drafts to IETF deadline on Oct. 27.
+
+5. Prepare for presentations, discussions, preliminary implementation, and extensions for IETF 91 at Honolulu
+
+     Timeline: two weeks (Oct. 28 - Nov. 7)
+
+6. Attending IETF 91
+
+   Timeline: Nov. 9 - Nov. 14
+
+7. Implementation of defined drafts in the Yale-network deployment of SDN and ALTO
+
+   Timeline: Nov. 17 - Dec. 19
+
+=====
+
