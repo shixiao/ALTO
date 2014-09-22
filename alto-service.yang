@@ -1,6 +1,15 @@
 module alto-service {
   namespace "http://shixiao.org/alto-service";
   prefix "alto";
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+
   description "Data Model for ALTO (RFC7285)";
   revision 2014-09-22 {
     description "Initial revision w/ endpoint properties";
@@ -11,7 +20,10 @@ module alto-service {
   }
   
   typedef endpoint-address {
-    type TypedEndpointAddr;
+    type union {
+      type TypedEndpointAddr;
+      type inet:ip-address;
+    }
     description 
       "An endpoint is an application or host that is capable of 
        communicating (sending and/or receiving messages) on a network. An 
@@ -20,7 +32,7 @@ module alto-service {
 
   typedef TypedEndpointAddr {
     type string {
-      pattern ".*:.*";
+      pattern ".*:.*"; // TODO: restrict the second half of the address
     }
   }
 
@@ -28,11 +40,29 @@ module alto-service {
     type enumeration {
       enum ipv4;
       enum ipv6;
+      enum MAC;
+      enum overlay-ID;
       // other examples here;
     }
   }
   
-  /* TODO: EndpointPrefix, EndpointAddrGroup */
+  typedef EndpointPrefix {
+    type inet:ip-prefix;
+  }
+  
+  grouping EndpointAddrGroup {
+    description
+      "An endpoint address group is defined as:
+       object-map {
+         AddressType -> EndpointPrefix<0..*>;
+       } EndpointAddrGroup;";
+    leaf AddressType {
+      type endpoint-address-type;
+    }
+    leaf-list EndpointPrefix {
+      type EndpointPrefix;
+    }
+  }
 
   grouping pid {
     description
@@ -172,7 +202,11 @@ module alto-service {
   }
 
   rpc filtered-cost-map-service {
-    /* TODO */
+    input {
+    }
+
+    output {
+    }
   }
   
 }
