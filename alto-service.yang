@@ -1,6 +1,10 @@
 module alto-service {
-  namespace "http://shixiao.org/alto-service";
-  prefix "alto";
+  yang-version 1;
+  
+  namespace "urn:TBD:params:xml:ns:yang:alto-service";
+  //replace with IANA namespace when assigned
+
+  prefix "as";
 
   import ietf-inet-types {
     prefix inet;
@@ -10,24 +14,27 @@ module alto-service {
     prefix yang;
   }
 
-  description "Data Model for ALTO (RFC7285)";
-  revision 2014-09-22 {
-    description "Initial revision w/ endpoint properties";
+  organization "TBD";
+  contact "WILL-BE-DEFINED-LATER";
+
+  description 
+    "This module defines a model for the ALTO service
+     based on draft-ietf-alto-protocol-27.";
+  
+  revision 2014-09-24 {
+    description "Initial revision. betw Michael and Xiao";
   }
   
-  container map-service {
-    /* ref: Michaels yang file */
-  }
-  
+  // Type definitions
+
   typedef endpoint-address {
     type union {
       type TypedEndpointAddr;
-      type inet:ip-address;
+      type inet:ipv4-address;
+      type inet:ipv6-address;
     }
-    description 
-      "An endpoint is an application or host that is capable of 
-       communicating (sending and/or receiving messages) on a network. An 
-       endpoint is typically either a resource provider or a resource.";
+    description
+      "Endpoint address, either IPv4 or Ipv6.";
   }
 
   typedef TypedEndpointAddr {
@@ -64,16 +71,98 @@ module alto-service {
     }
   }
 
-  grouping pid {
-    description
-      "Provider Defined Identifier";
-    leaf pid-name {
-      type string;
-    }
-    leaf-list endpoint-addresses {
+  grouping endpoint-addresses {
+    leaf-list endpoints {
       type endpoint-address;
+      description
+        "The leaf list identifies endpoints.";
     }
   }
+
+
+  typedef network-location {
+    type union {
+      type inet:ipv4-prefix;
+      type inet:ipv6-prefix;
+      type inet:ipv4-address; //no-zone?
+      type inet:ipv6-address;
+    }
+    description
+      "Network location, either IPv4 or Ipv6.";
+  }
+
+  grouping network-locations {
+    leaf-list locations {
+      type network-location;
+      description
+        "The leaf list identifies network locations.";
+    }
+  }
+
+  typedef pid-name {
+    type string {
+      length "1..64";
+    }
+    description
+      "Name for the PID.";
+  }
+
+  grouping pid-locations {
+    leaf name {
+      type pid-name;
+      description
+        "Name for the PID, must be unique.";
+    }
+    uses network-locations;
+    description
+      "PID representation.";
+  }
+
+
+  typedef cost-metric {
+    type enumeration {
+      enum routingcost {
+        value "0";
+        description
+          "Default metric.";
+      }
+    }
+    description
+      "Cost metric.";
+  }
+
+  typedef cost-mode {
+    type enumeration {
+      enum numerical {
+        value "0";
+        description
+          "Numerical cost mode.";
+      }
+      enum ordinal {
+        value "1";
+        description
+          "Ordinal cost mode.";
+      }
+    }
+    description
+      "Cost mode.";
+  }
+
+  grouping cost-type {
+    leaf cost-metric {
+      type cost-metric;
+      description
+        "Cost metric.";
+    }
+    leaf cost-mode {
+      type cost-mode;
+      description
+        "Cost mode.";
+    }
+    description
+      "Cost type.";
+  }
+
 
   // TODO: enforce these logic
   // TODO: priv:
@@ -92,7 +181,11 @@ module alto-service {
 
   typedef global-endpoint-property-type {
     type enumeration {
-      enum pid;
+      enum pid {
+        value "0";
+        description
+          "PID property.";
+      }
       enum network-location;
       // other examples here
     }
@@ -100,6 +193,185 @@ module alto-service {
 
   typedef endpoint-property-value {
     type string;
+  }
+
+
+  grouping version-tag {
+    leaf resource-id {
+      type string { // TODO: Reference?
+        length "1..64";
+      }
+      description
+        "Resource-ID.";
+    }
+    leaf tag {
+      type string {
+        length "1..64";
+      }
+      description
+        "Tag.";
+    }
+    description
+      "Version tag. Both resource-id and tag must be equal
+       byte-for-byte.";
+  }
+
+  grouping network-map {
+    container meta {
+      container vtag {
+        uses version-tag;
+        description
+          "Version tag.";
+      }
+      description
+        "Meta information.";
+    }
+    list pids {
+      uses pid-locations;
+      key "name";
+      description
+        "The list identifies the PID locations.";
+    }
+    description
+      "Network map.";
+  }
+
+  typedef alto-cost {
+    type decimal64 {
+      fraction-digits 6;
+    }
+    description
+      "ALTO costs, currently only integer values.";
+  }
+
+  grouping cost-map {
+    container meta {
+      container dependent-vtag {
+        uses version-tag;
+        description
+          "Dependent version tag.";
+      }
+      container cost-type {
+        uses cost-type;
+        description
+          "Cost type.";
+      }
+      description
+        "Meta information.";
+    }
+    list srcs {
+      leaf src {
+        type pid-name;
+        description
+          "Source PID.";
+      }
+      key "src";
+      list dsts {
+        leaf dst {
+          type pid-name;
+          description
+            "Destination PID.";
+        }
+        key "dst";
+        leaf cost {
+          type alto-cost;
+          description
+            "Cost from source to destination.";
+        }
+        description
+          "The list represents the inner part of the cost matrix.";
+      }         
+      description
+        "The list represents the outer part of the cost matrix.";
+    }
+    description
+      "Cost map.";
+  }
+
+
+  // Instances
+
+  container map-service {
+    config false;
+    container network-map { // TODO: Single network map 
+      uses network-map;
+      description
+        "Network map service (unfiltered).";
+    }
+    container cost-map { // TODO: Single cost map and cost type
+      uses cost-map;
+      description
+        "Cost map service (unfiltered).";
+    }
+    description
+      "Network and cost map service (unfiltered).";
+  }
+
+  // RPCs
+
+
+  rpc endpointcost {
+    input {
+      container cost-type {
+        uses cost-type;
+        description
+          "Cost type.";
+      }
+      container endpoints {
+        container srcs {
+          uses endpoint-addresses;
+          description
+            "Source endpoint addresses.";
+        }
+        container dsts {
+          uses endpoint-addresses;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          "Endpoint addresses.";
+      }
+    }
+    output {
+      container meta {
+        container cost-type {
+          uses cost-type;
+          description
+            "Cost type.";
+        }
+        description
+          "Meta information.";
+      }
+      container endpoint-cost-map {
+        list srcs {
+          leaf src {
+            type endpoint-address;
+            description
+              "Source endpoint address.";
+          }
+          key "src";
+          list dsts {
+            leaf dst {
+              type endpoint-address;
+              description
+                  "Destination endpoint address.";
+            }
+            key "dst";
+            leaf cost {
+              type alto-cost;
+                description
+                  "Cost from source to destination.";
+            }
+            description
+              "The list represents the inner part of the cost matrix.";
+          }
+          description
+            "The list represents the outer part of the cost matrix.";
+        }
+        description
+          "Endpoint-cost-map.";
+      }
+    }
   }
 
   rpc endpoint-property-service {
@@ -201,12 +473,12 @@ module alto-service {
     }
   }
 
+/*
   rpc filtered-cost-map-service {
     input {
     }
 
     output {
     }
-  }
-  
+  }*/
 }

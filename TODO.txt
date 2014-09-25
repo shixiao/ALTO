@@ -1,0 +1,10 @@
+resource-id restrictions
+RFC7285 section 10.2
+
+double check PIDName restrictions
+
+IRD: a used cost-type must exist
+
+inheritance
+e.g. meta field should have the same format, use augment feature of YANG to encode it.
+
