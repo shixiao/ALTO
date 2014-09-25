@@ -6,5 +6,18 @@ double check PIDName restrictions
 IRD: a used cost-type must exist
 
 inheritance
-e.g. meta field should have the same format, use augment feature of YANG to encode it.
+
+
+
+===Notes===
+1. TypedEndpointAddress (RFC7285, Sec. 10.4.1)
+"ipv4:127.0.0.1" as a whole string. It is very difficult to model using YANG: "Type:Addr" where the Addr is inet-ip-address type.
+
+Similar instances include "pid.endpoint-property-type" where the second half should be enum/restricted.
+
+2. meta field should have the same format, use augment feature of YANG to encode it.
+
+Issues: augment cannot remove data notes/structures; some meta fields require one vtag, some require a list of vtags (dependent-vtags).
+
+
 

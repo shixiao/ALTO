@@ -2,7 +2,7 @@ module alto-service {
   yang-version 1;
   
   namespace "urn:TBD:params:xml:ns:yang:alto-service";
-  //replace with IANA namespace when assigned
+  // replace with IANA namespace when assigned
 
   prefix "as";
 
@@ -10,6 +10,7 @@ module alto-service {
     prefix inet;
   }
 
+  // currently unused
   import ietf-yang-types {
     prefix yang;
   }
@@ -39,7 +40,9 @@ module alto-service {
 
   typedef TypedEndpointAddr {
     type string {
-      pattern ".*:.*"; // TODO: restrict the second half of the address
+      pattern ".*:.*";
+      // TODO: restrict the second half of the address. See TODO.txt
+      // for explanation of difficulty.
     }
   }
 
@@ -78,7 +81,6 @@ module alto-service {
         "The leaf list identifies endpoints.";
     }
   }
-
 
   typedef network-location {
     type union {
@@ -163,7 +165,6 @@ module alto-service {
       "Cost type.";
   }
 
-
   // TODO: enforce these logic
   // TODO: priv:
   typedef endpoint-property-type {
@@ -216,15 +217,31 @@ module alto-service {
        byte-for-byte.";
   }
 
+  grouping meta {
+    choice is-dependent {
+      // multiple vtags
+      case dependent {
+        list vtags {
+          uses version-tag;
+          description
+            "Version tags.";
+        }
+      }
+      case independent {
+        container vtag {
+          uses version-tag;
+          description
+            "Version tag.";
+        }
+      }
+    }
+    description
+      "Meta information.";
+  }
+
   grouping network-map {
     container meta {
-      container vtag {
-        uses version-tag;
-        description
-          "Version tag.";
-      }
-      description
-        "Meta information.";
+      uses meta;
     }
     list pids {
       uses pid-locations;
@@ -246,18 +263,12 @@ module alto-service {
 
   grouping cost-map {
     container meta {
-      container dependent-vtag {
-        uses version-tag;
-        description
-          "Dependent version tag.";
-      }
+      uses meta;
       container cost-type {
         uses cost-type;
         description
           "Cost type.";
       }
-      description
-        "Meta information.";
     }
     list srcs {
       leaf src {
@@ -309,8 +320,7 @@ module alto-service {
 
   // RPCs
 
-
-  rpc endpointcost {
+  rpc endpoint-cost-service {
     input {
       container cost-type {
         uses cost-type;
@@ -334,6 +344,7 @@ module alto-service {
     }
     output {
       container meta {
+        // TODO: use augment to show inheritance?
         container cost-type {
           uses cost-type;
           description
@@ -389,15 +400,8 @@ module alto-service {
     }
     
     output {
-      list meta {
-        list dependent-vtags{
-          leaf resource-id {
-            type string;
-          }
-          leaf tag {
-            type string;
-          }
-        }
+      container meta {
+        uses meta;
       }
       list endpoint-properties {
         leaf pid {
@@ -416,10 +420,6 @@ module alto-service {
         }
       }
     }
-  }
-  
-  rpc endpoint-cost-service {
-    /* ref: Michaels yang file; maybe as rpc */
   }
   
   rpc filtered-network-map-service {
@@ -447,19 +447,12 @@ module alto-service {
     }
     output {
       container meta {
-        container vtag {
-          leaf resource-id {
-            type string;
-          }
-          leaf tag {
-            type string;
-          }
-        }
+        uses meta;
       }
       // restrict the returned pids
       list network-map {
         leaf pid {
-          type endpoint-address;
+          type endpoint-address; // TODO: use leaf-ref
         }
         list neighbors {
           leaf neighbor-address {
