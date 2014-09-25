@@ -3,12 +3,11 @@ multiple maps on an ALTO server
 resource-id should be related to an ALTO network map within an ALTO server.
 (leaf-ref here? add after multi map support)
 
-for cost service/filtered-map service, use leaf-ref to restrict output pids
-
 IRD: a used cost-type must exist
 
 inheritance?
 
+capabilities?
 
 ===Notes===
 
@@ -26,5 +25,12 @@ to encode it.
 Issues: augment cannot remove data notes/structures; some meta fields
 require one vtag, some require a list of vtags (dependent-vtags).
 
+uses abc {
+    refine port {
+        default 80;
+    }
+}
 
-
+3. 
+for cost service/filtered-map service, use leaf-ref to restrict output pids
+//can't seem to reference an rpc node.
