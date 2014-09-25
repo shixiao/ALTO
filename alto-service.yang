@@ -86,7 +86,7 @@ module alto-service {
     type union {
       type inet:ipv4-prefix;
       type inet:ipv6-prefix;
-      type inet:ipv4-address; //no-zone?
+      type inet:ipv4-address;
       type inet:ipv6-address;
     }
     description
@@ -104,6 +104,10 @@ module alto-service {
   typedef pid-name {
     type string {
       length "1..64";
+      // RFC 7285, Section 10.1. Note: the '.' separator MUST NOT be
+      // used unless specifically indicated in RFC7285 or an extension
+      // document.
+      pattern "^[\w\-:@\.]*$";
     }
     description
       "Name for the PID.";
@@ -201,6 +205,7 @@ module alto-service {
     leaf resource-id {
       type string { // TODO: Reference?
         length "1..64";
+        pattern "^[\w\-:@\.]*$";
       }
       description
         "Resource-ID.";
