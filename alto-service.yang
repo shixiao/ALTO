@@ -200,14 +200,18 @@ module alto-service {
     type string;
   }
 
+  typedef resource-id {
+    type string { // TODO: Reference?
+      length "1..64";
+      pattern "^[\w\-:@\.]*$";
+    }
+    description
+      "Resource-ID.";
+  }
+
   grouping version-tag {
     leaf resource-id {
-      type string { // TODO: Reference?
-        length "1..64";
-        pattern "^[\w\-:@\.]*$";
-      }
-      description
-        "Resource-ID.";
+      type resource-id;
     }
     leaf tag {
       type string {
@@ -303,18 +307,28 @@ module alto-service {
       "Cost map.";
   }
 
-  
-
   // Instances
 
   container map-service {
     config false;
-    container network-map { // TODO: Single network map 
+    list network-map { // TODO: Single network map 
+      key "resource-id";
+      leaf resource-id {
+        type leafref {
+          path "../../../IRD/IRD-resource-entries/resource-id";
+        }
+      }
       uses network-map;
       description
         "Network map service (unfiltered).";
     }
-    container cost-map { // TODO: Single cost map and cost type
+    list cost-map { // TODO: Single cost map and cost type
+      key "resource-id";
+      leaf resource-id {
+        type leafref {
+          path "../../../IRD/IRD-resource-entries/resource-id";
+        }
+      }
       uses cost-map;
       description
         "Cost map service (unfiltered).";
@@ -323,7 +337,25 @@ module alto-service {
       "Network and cost map service (unfiltered).";
   }
 
-  
+  container IRD {
+    container IRD-resource-entries {
+      leaf resource-id {
+        type resource-id;
+      }
+      container IRD-resource-entry {
+        leaf uri {
+          type inet:uri;
+        }
+        leaf media-type {
+          type string {
+            // TODO: restrict more? RFC 7285, Sec. 14.1?
+            pattern "application/alto-*";
+          }
+        }
+        //TODO: optional entries: accepts/capabilities/uses
+      }
+    }
+  }
 
   // RPCs
   rpc endpoint-cost-service {
@@ -534,7 +566,6 @@ module alto-service {
     }
   }
 
-
   augment "/endpoint-cost-service/output/meta" {
     container cost-type {
       uses cost-type;
@@ -548,6 +579,54 @@ module alto-service {
       uses cost-type;
       description
         "Cost type.";
+    }
+  }
+
+  augment "/IRD-request/output/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+    leaf default-alto-network-map {
+      type leafref {
+        path "../../../../IRD/IRD-resource-entries/resource-id";
+      }
+    }
+  }
+
+
+  rpc IRD-request {
+    input {
+      // TODO: change this
+      leaf IRD-request {
+        type string;
+      }
+    }
+    output {
+      container meta {
+        uses meta;
+      }
+
+      list resources  {
+        key "resource-id";
+        leaf resource-id {
+          type leafref {
+            path "../../../../IRD/IRD-resource-entries/resource-id";
+          }
+        }
+        container resource {
+          leaf uri {
+            type inet:uri;
+          }
+          leaf media-type {
+            type string {
+              // TODO: restrict more? RFC 7285, Sec. 14.1?
+              pattern "application/alto-*";
+            }
+          }
+        }
+      }
     }
   }
 

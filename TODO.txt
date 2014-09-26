@@ -1,13 +1,12 @@
-multiple maps on an ALTO server
+default resource-id "my-default-network-map"
 
-resource-id should be related to an ALTO network map within an ALTO server.
-(leaf-ref here? add after multi map support)
+JSON map (the key can't be data node in YANG)
 
 IRD: a used cost-type must exist
 
 inheritance?
 
-capabilities?
+capabilities? and other optional entries
 
 ===Notes===
 
