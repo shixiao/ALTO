@@ -1,7 +1,7 @@
 module alto-service {
   yang-version 1;
   
-  namespace "urn:TBD:params:xml:ns:yang:alto-service";
+  namespace "urn:ietf:params:xml:ns:yang:alto-service";
   // replace with IANA namespace when assigned
 
   prefix "as";
@@ -486,12 +486,9 @@ module alto-service {
       // restrict the returned pids
       list network-map {
         leaf pid {
-          /*
-            type leafref {
-            path "../../../input";
-            }
-          */
           type endpoint-address;
+          description
+            "must be present in the input srcs or dsts";
         }
         list neighbors {
           leaf neighbor-address {
@@ -599,7 +596,7 @@ module alto-service {
   rpc IRD-request {
     input {
       // TODO: change this
-      leaf IRD-request {
+      leaf request {
         type string;
       }
     }
