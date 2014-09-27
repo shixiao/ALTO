@@ -132,6 +132,11 @@ module alto-service {
         description
           "Default metric.";
       }
+      enum hopcount {
+        value "1";
+        description
+        "Hopcount metric.";
+      }
     }
     description
       "Cost metric.";
@@ -580,7 +585,7 @@ module alto-service {
   }
 
   augment "/IRD-request/output/meta" {
-    container cost-type {
+    container cost-types {
       uses cost-type;
       description
         "Cost type.";

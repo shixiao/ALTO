@@ -6,7 +6,9 @@ IRD: a used cost-type must exist
 
 inheritance?
 
-capabilities? and other optional entries
+capabilities? and other optional 
+
+namespace issues during validation
 
 ===Notes===
 
