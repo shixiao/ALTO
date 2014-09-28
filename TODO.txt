@@ -4,8 +4,6 @@ JSON map (the key can't be data node in YANG)
 
 IRD: a used cost-type must exist
 
-inheritance?
-
 capabilities? and other optional 
 
 namespace issues during validation
@@ -32,6 +30,13 @@ uses abc {
     }
 }
 
-3. 
+3. restricting rpc reply
 for cost service/filtered-map service, use leaf-ref to restrict output pids
 //can't seem to reference an rpc node.
+
+reply from netmod: Can't do this in YANG. Specify in description.
+
+4. YANG-JSON encoding
+
+5. optional portions of YANG model
+

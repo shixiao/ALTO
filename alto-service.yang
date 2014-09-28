@@ -2,7 +2,7 @@ module alto-service {
   yang-version 1;
   
   namespace "urn:ietf:params:xml:ns:yang:alto-service";
-  // replace with IANA namespace when assigned
+  // TODO: replace with IANA namespace when assigned
 
   prefix "as";
 
@@ -10,10 +10,12 @@ module alto-service {
     prefix inet;
   }
 
+  /*
   // currently unused
   import ietf-yang-types {
     prefix yang;
   }
+  */
 
   organization "TBD";
   contact "WILL-BE-DEFINED-LATER";
@@ -22,11 +24,15 @@ module alto-service {
     "This module defines a model for the ALTO service
      based on draft-ietf-alto-protocol-27.";
   
+  revision 2014-09-27 {
+    description "v1. pending review";
+  }
+
   revision 2014-09-24 {
     description "Initial revision. betw Michael and Xiao";
   }
   
-  // Type definitions
+  /* Type definitions */
 
   typedef endpoint-address {
     type union {
@@ -35,15 +41,21 @@ module alto-service {
       type inet:ipv6-address;
     }
     description
-      "Endpoint address, either IPv4 or Ipv6.";
+      "Endpoint address, either IPv4 or Ipv6." +
+      "or TypedEndpointAddr, see below";
   }
 
   typedef TypedEndpointAddr {
     type string {
-      pattern ".*:.*";
-      // TODO: restrict the second half of the address. See TODO.txt
-      // for explanation of difficulty.
+      pattern "^[0-9a-zA-Z]+:.+$";
     }
+    description
+      "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
+      "= AddressType:EndpointAddr" +
+      "TODO: restrict both halves of the address. See TODO.txt for" +
+      "explanation of difficulty. The second half should extend the" +
+      "restrictions if the first half (AddressType is ipv4 or" +
+      "ipv6). Ref: RFC7285 10.4.2.";
   }
 
   typedef endpoint-address-type {
@@ -52,8 +64,11 @@ module alto-service {
       enum ipv6;
       enum MAC;
       enum overlay-ID;
-      // other examples here;
+      // put more options here;
     }
+    description
+      "If the address is not typed, it has an associated address type." +
+      "Ref: RFC7285 Sec 2.2.";
   }
   
   typedef EndpointPrefix {
@@ -99,18 +114,20 @@ module alto-service {
       description
         "The leaf list identifies network locations.";
     }
+    description
+      "This corresponds to the term __Network Location__ in RFC7285 Sec. 2.3";
   }
 
   typedef pid-name {
     type string {
       length "1..64";
-      // RFC 7285, Section 10.1. Note: the '.' separator MUST NOT be
-      // used unless specifically indicated in RFC7285 or an extension
-      // document.
       pattern "^[\w\-:@\.]*$";
     }
     description
-      "Name for the PID.";
+      "Name for the PID." +
+      "RFC7285, Section 10.1. Note: the '.' separator MUST NOT be" +
+      "used unless specifically indicated in RFC7285 or an extension" +
+      "document.";
   }
 
   grouping pid-locations {
@@ -121,7 +138,7 @@ module alto-service {
     }
     uses network-locations;
     description
-      "PID representation.";
+      "PID representation. RFC7285 Sec. 5.1.";
   }
 
 
@@ -130,7 +147,7 @@ module alto-service {
       enum routingcost {
         value "0";
         description
-          "Default metric.";
+          "Default metric. MUST support. RFC7285 Sec. 6.1.1.1.";
       }
       enum hopcount {
         value "1";
@@ -156,10 +173,13 @@ module alto-service {
       }
     }
     description
-      "Cost mode.";
+      "Cost mode. MUST support at least one of numerical and ordinal";
   }
 
   grouping cost-type {
+    leaf cost-type-name {
+      type string;
+    }
     leaf cost-metric {
       type cost-metric;
       description
@@ -206,7 +226,7 @@ module alto-service {
   }
 
   typedef resource-id {
-    type string { // TODO: Reference?
+    type string {
       length "1..64";
       pattern "^[\w\-:@\.]*$";
     }
@@ -274,6 +294,9 @@ module alto-service {
       "ALTO costs, currently only integer values.";
   }
 
+  feature cost-map-capabilities {
+  }
+
   grouping cost-map {
     container meta {
       uses meta;
@@ -307,6 +330,15 @@ module alto-service {
       }         
       description
         "The list represents the outer part of the cost matrix.";
+    }
+    container capabilities {
+      if-feature cost-map-capabilities;
+      leaf-list cost-type-names {
+        type leafref {
+          path "../../meta/cost-type/cost-type-name";
+        }
+      }
+      // TODO: model other CostMapCapabilities
     }
     description
       "Cost map.";
@@ -597,6 +629,8 @@ module alto-service {
     }
   }
 
+  feature IRD-request-accepts {
+  }
 
   rpc IRD-request {
     input {
@@ -623,8 +657,20 @@ module alto-service {
           }
           leaf media-type {
             type string {
-              // TODO: restrict more? RFC 7285, Sec. 14.1?
+              // TODO: restrict more? RFC 7285, Sec. 14.1
               pattern "application/alto-*";
+            }
+          }
+          leaf accepts {
+            if-feature IRD-request-accepts;
+            type string;
+          }
+          container capabilities {
+            if-feature cost-map-capabilities;
+            leaf-list cost-type-names {
+              type leafref {
+                path "/map-service/cost-map/capabilities/cost-type-names";
+              }
             }
           }
         }
