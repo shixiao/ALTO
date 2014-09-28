@@ -81,11 +81,14 @@ module alto-service {
        object-map {
          AddressType -> EndpointPrefix<0..*>;
        } EndpointAddrGroup;";
-    leaf AddressType {
-      type endpoint-address-type;
-    }
-    leaf-list EndpointPrefix {
-      type EndpointPrefix;
+    list endpoint-address-group {
+      key AddressType;
+      leaf AddressType {
+        type endpoint-address-type;
+      }
+      leaf-list EndpointPrefix {
+        type EndpointPrefix;
+      }
     }
   }
 
@@ -121,7 +124,7 @@ module alto-service {
   typedef pid-name {
     type string {
       length "1..64";
-      pattern "^[\w\-:@\.]*$";
+      pattern "^[\w\-:@\.]+$";
     }
     description
       "Name for the PID." +
@@ -130,33 +133,26 @@ module alto-service {
       "document.";
   }
 
-  grouping pid-locations {
-    leaf name {
-      type pid-name;
-      description
-        "Name for the PID, must be unique.";
-    }
-    uses network-locations;
-    description
-      "PID representation. RFC7285 Sec. 5.1.";
-  }
-
-
   typedef cost-metric {
-    type enumeration {
-      enum routingcost {
-        value "0";
-        description
+    type union {
+      type enumeration {
+        enum routingcost {
+          value "0";
+          description
           "Default metric. MUST support. RFC7285 Sec. 6.1.1.1.";
+        }
+        enum hopcount {
+          value "1";
+          description
+          "Hopcount metric.";
+        }
       }
-      enum hopcount {
-        value "1";
-        description
-        "Hopcount metric.";
+      type string {
+        pattern "^[\w\-:\.]+$";
       }
     }
     description
-      "Cost metric.";
+      "Cost metric. 'priv:' reserved for Private Use.";
   }
 
   typedef cost-mode {
@@ -190,46 +186,68 @@ module alto-service {
       description
         "Cost mode.";
     }
+    leaf description {
+      type string;
+      description
+        "Optional description field.";
+    }
     description
       "Cost type.";
   }
 
-  // TODO: enforce these logic
-  // TODO: priv:
   typedef endpoint-property-type {
-    type union {
-      type resource-specific-endpoint-property-type;
-      type global-endpoint-property-type;
-    }
-  }
-
-  typedef resource-specific-endpoint-property-type {
-    type string {
-      pattern ".*\..*"; // resource-id.property-type
-    }
-  }
-
-  typedef global-endpoint-property-type {
     type enumeration {
-      enum pid {
-        value "0";
-        description
-          "PID property.";
-      }
-      enum network-location;
-      // other examples here
+      enum resource-specific-endpoint-property;
+      enum global-endpoint-property;
     }
+    description
+      "Endpoint property type. RFC7285 Sec. 10.8.";
   }
 
-  typedef endpoint-property-value {
-    type string;
+  typedef resource-specific-endpoint-property {
+    type string {
+      length "3..97"; //len(resource-id) + 1 + len(global-property)
+      pattern "^[\w\-:@\.]+\.[\w\-:_]+$"; // resource-id.property
+    }
+    description
+      "Resource-specific endpoint property.";
+  }
+
+  typedef global-endpoint-property {
+    type union {
+      type enumeration {
+        enum pid {
+          value "0";
+          description "PID property.";
+        }
+        enum network-location {
+          value "1";
+          description
+            "Network location";
+        }
+        // other examples here
+      }
+      type string {
+        length "1..32";
+        pattern "^[\w\-:_]+$"; // '.' is not allowed.
+      }
+    }
+    description
+      "Global endpoint property. RFC7285 Sec. 10.8.2." +
+      "'priv:' for Private Use ";
+  }
+
+  typedef endpoint-property {
+    type union {
+      type resource-specific-endpoint-property;
+      type global-endpoint-property;
+    }
+    description
+      "Endpoint property (value). RFC7285 Sec. 10.8";
   }
 
   typedef resource-id {
-    type string {
-      length "1..64";
-      pattern "^[\w\-:@\.]*$";
-    }
+    type pid-name;
     description
       "Resource-ID.";
   }
@@ -251,7 +269,8 @@ module alto-service {
   }
 
   grouping meta {
-    choice is-dependent {
+    choice dependent {
+      mandatory true;
       // multiple vtags
       case dependent {
         list vtags {
@@ -272,15 +291,37 @@ module alto-service {
       "Meta information.";
   }
 
+  typedef media-type {
+    type union {
+      type string {
+        // TODO: restrict more? RFC 7285, Sec. 14.1?
+        pattern "application/alto-*";
+      }
+      type enumeration {
+        enum alto-directory+json;
+        enum alto-networkmap+json;
+        enum alto-networkmapfilter+json;
+        enum alto-costmap+json;
+        enum alto-costmapfilter+json;
+        enum alto-endpointprop+json;
+        enum alto-endpointpropparams+json;
+        enum alto-endpointcost+json;
+        enum alto-endpointcostparams+json;
+        enum alto-error+json;
+      }
+    }
+  }    
+      
   grouping network-map {
     container meta {
       uses meta;
     }
     list pids {
-      uses pid-locations;
-      key "name";
-      description
-        "The list identifies the PID locations.";
+      leaf pid {
+        type pid-name;
+      }
+      key "pid";
+      uses EndpointAddrGroup;
     }
     description
       "Network map.";
@@ -292,9 +333,6 @@ module alto-service {
     }
     description
       "ALTO costs, currently only integer values.";
-  }
-
-  feature cost-map-capabilities {
   }
 
   grouping cost-map {
@@ -331,24 +369,29 @@ module alto-service {
       description
         "The list represents the outer part of the cost matrix.";
     }
+    leaf accepts {
+      type media-type;
+    }
     container capabilities {
-      if-feature cost-map-capabilities;
       leaf-list cost-type-names {
         type leafref {
           path "../../meta/cost-type/cost-type-name";
         }
       }
-      // TODO: model other CostMapCapabilities
+      // TODO: model other CostMapCapabilities, if provided
+    }
+    leaf-list uses {
+      type resource-id;
     }
     description
       "Cost map.";
   }
 
-  // Instances
+  /* Instances */
 
   container map-service {
     config false;
-    list network-map { // TODO: Single network map 
+    list network-map {
       key "resource-id";
       leaf resource-id {
         type leafref {
@@ -359,7 +402,7 @@ module alto-service {
       description
         "Network map service (unfiltered).";
     }
-    list cost-map { // TODO: Single cost map and cost type
+    list cost-map {
       key "resource-id";
       leaf resource-id {
         type leafref {
@@ -384,12 +427,20 @@ module alto-service {
           type inet:uri;
         }
         leaf media-type {
-          type string {
-            // TODO: restrict more? RFC 7285, Sec. 14.1?
-            pattern "application/alto-*";
+          type media-type;
+        }
+        leaf accepts {
+          type media-type;
+        }
+        container capabilities {
+          list cost-type-names {
+            uses cost-type;
+            key cost-type-name;
           }
         }
-        //TODO: optional entries: accepts/capabilities/uses
+        leaf-list uses {
+          type resource-id;
+        }
       }
     }
   }
@@ -480,13 +531,10 @@ module alto-service {
         }
         list properties {
           leaf property-type {
-            type union {
-              type resource-specific-endpoint-property-type;
-              type global-endpoint-property-type;
-            }
+            type endpoint-property-type;
           }
-          leaf property-value {
-            type endpoint-property-value;
+          leaf property {
+            type endpoint-property;
           }
         }
       }
@@ -520,7 +568,6 @@ module alto-service {
       container meta {
         uses meta;
       }
-      // restrict the returned pids
       list network-map {
         leaf pid {
           type endpoint-address;
@@ -541,7 +588,7 @@ module alto-service {
 
   rpc filtered-endpoint-cost-service {
     input {
-      container cost-type {
+      container cost-types {
         uses cost-type;
         description
           "Cost type.";
@@ -629,9 +676,6 @@ module alto-service {
     }
   }
 
-  feature IRD-request-accepts {
-  }
-
   rpc IRD-request {
     input {
       // TODO: change this
@@ -643,12 +687,11 @@ module alto-service {
       container meta {
         uses meta;
       }
-
       list resources  {
         key "resource-id";
         leaf resource-id {
           type leafref {
-            path "../../../../IRD/IRD-resource-entries/resource-id";
+            path "/IRD/IRD-resource-entries/resource-id";
           }
         }
         container resource {
@@ -656,21 +699,21 @@ module alto-service {
             type inet:uri;
           }
           leaf media-type {
-            type string {
-              // TODO: restrict more? RFC 7285, Sec. 14.1
-              pattern "application/alto-*";
-            }
+            type media-type;
           }
           leaf accepts {
-            if-feature IRD-request-accepts;
-            type string;
+            type media-type;
           }
           container capabilities {
-            if-feature cost-map-capabilities;
             leaf-list cost-type-names {
               type leafref {
                 path "/map-service/cost-map/capabilities/cost-type-names";
               }
+            }
+          }
+          leaf-list uses {
+            type leafref {
+              path "/map-service/cost-map/uses";
             }
           }
         }
