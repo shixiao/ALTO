@@ -4,10 +4,6 @@ IRD: a used cost-type must exist
 
 namespace issues during rpc/rpc-reply validation
 
-11.2.3.4
-potential typo? JSONString cost-type-names<1..1>
-upper limit is 1?
-
 ===Notes===
 
 1. TypedEndpointAddress (RFC7285, Sec. 10.4.1).

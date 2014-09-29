@@ -23,8 +23,8 @@ module alto-service {
   description 
     "This module defines a model for the ALTO service
      based on draft-ietf-alto-protocol-27.";
-  
-  revision 2014-09-27 {
+
+  revision 2014-09-29 {
     description "v1. pending review";
   }
 
@@ -36,13 +36,13 @@ module alto-service {
 
   typedef endpoint-address {
     type union {
-      type TypedEndpointAddr;
       type inet:ipv4-address;
       type inet:ipv6-address;
+      // type TypedEndpointAddr;
     }
     description
       "Endpoint address, either IPv4 or Ipv6." +
-      "or TypedEndpointAddr, see below";
+      "or TypedEndpointAddr, see below.";
   }
 
   typedef TypedEndpointAddr {
@@ -77,10 +77,10 @@ module alto-service {
   
   grouping EndpointAddrGroup {
     description
-      "An endpoint address group is defined as:
-       object-map {
-         AddressType -> EndpointPrefix<0..*>;
-       } EndpointAddrGroup;";
+      "EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
+      " object-map {
+          AddressType -> EndpointPrefix<0..*>;
+        } EndpointAddrGroup;";
     list endpoint-address-group {
       key AddressType;
       leaf AddressType {
@@ -88,6 +88,16 @@ module alto-service {
       }
       leaf-list EndpointPrefix {
         type EndpointPrefix;
+      }
+      must
+        "AddressType != 'ipv4' or " +
+        "(AddressType == 'ipv4' and EndpointPrefix == 'inet:ipv4-prefix')" {
+        error-message "Invalid ipv4 address.";
+      }      
+      must
+        "AddressType != 'ipv6' or " +
+        "(AddressType == 'ipv6' and EndpointPrefix == 'inet:ipv6-prefix')" {
+        error-message "Invalid ipv6 address.";
       }
     }
   }
@@ -192,7 +202,12 @@ module alto-service {
         "Optional description field.";
     }
     description
-      "Cost type.";
+      "Cost type. RFC7285 Sec. 10.7." +
+      " object {
+          CostMetric cost-metric;
+          CostMode   cost-mode;
+          [JSONString description;]
+        } CostType;";
   }
 
   typedef endpoint-property-type {
@@ -265,7 +280,11 @@ module alto-service {
     }
     description
       "Version tag. Both resource-id and tag must be equal
-       byte-for-byte.";
+       byte-for-byte. RFC7285 Sec. 10.3." +
+      " object {
+          ResourceID resource-id;
+          JSONString tag;
+        } VersionTag;";
   }
 
   grouping meta {
@@ -288,7 +307,8 @@ module alto-service {
       }
     }
     description
-      "Meta information.";
+      "Meta information. RFC7285 Sec. 8.4.1." + 
+      "object-map { JSONString -> JSONValue } ResponseMeta;";
   }
 
   typedef media-type {
@@ -344,14 +364,14 @@ module alto-service {
           "Cost type.";
       }
     }
-    list srcs {
+    list CostMapData {
       leaf src {
         type pid-name;
         description
           "Source PID.";
       }
       key "src";
-      list dsts {
+      list DstCosts {
         leaf dst {
           type pid-name;
           description
@@ -364,10 +384,18 @@ module alto-service {
             "Cost from source to destination.";
         }
         description
-          "The list represents the inner part of the cost matrix.";
+          "The list represents the inner part of the cost matrix." +
+          "DstCosts. RFC7285 Sec. 11.2.3.6." +
+          " object-map {
+              PIDName -> JSONValue;
+            } DstCosts;";
       }         
       description
-        "The list represents the outer part of the cost matrix.";
+        "The list represents the outer part of the cost matrix." +
+        "CostMapData. RFC7285 Sec. 11.2.3.6." +
+        " object-map {
+            PIDName -> DstCosts;
+          } CostMapData;";
     }
     leaf accepts {
       type media-type;
@@ -377,14 +405,24 @@ module alto-service {
         type leafref {
           path "../../meta/cost-type/cost-type-name";
         }
+        min-elements 1;
+        max-elements 1;
       }
+      description
+        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
+        " object {
+            JSONString cost-type-names<1..1>;
+          } CostMapCapabilities;";
       // TODO: model other CostMapCapabilities, if provided
     }
     leaf-list uses {
       type resource-id;
     }
     description
-      "Cost map.";
+      "Cost map. RFC7285 Sec. 11.2.3.6." +
+      " object {
+          CostMapData cost-map;
+        } InfoResourceCostMap : ResponseEntityBase;";
   }
 
   /* Instances */
@@ -441,8 +479,27 @@ module alto-service {
         leaf-list uses {
           type resource-id;
         }
+        description
+          "IRDResourceEntry. RFC7285 9.2.2." +
+          " object {
+              JSONString      uri;
+              JSONString      media-type;
+              [JSONString     accepts;]
+              [Capabilities   capabilities;]
+              [ResourceID     uses<0..*>;]
+            } IRDResourceEntry;";
       }
+      description
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;";
     }
+    description
+      "InformationResourceDirectory. RFC7285 9.2.2." +
+      " object {
+          IRDResourceEntries resources;
+        } InfoResourceDirectory : ResponseEntityBase;";
   }
 
   // RPCs
@@ -511,33 +568,65 @@ module alto-service {
     description
       "inquiries on properties of an endpoint";
     input {
-      leaf-list endpoints {
-        type endpoint-address;
-      }
-      list properties {
-        leaf endpoint-property {
-          type endpoint-property-type;
+      container ReqEndpointProp {
+        leaf-list endpoints {
+          type endpoint-address;
+          min-elements 1;
         }
+        leaf-list properties {
+          type endpoint-property-type;
+          min-elements 1;
+        }
+        description
+          " object {
+              EndpointPropertyType  properties<1..*>;
+              TypedEndpointAddr     endpoints<1..*>;
+            } ReqEndpointProp;";
       }
     }
-    
     output {
       container meta {
         uses meta;
       }
       list endpoint-properties {
+        key pid;
         leaf pid {
           type endpoint-address;
         }
         list properties {
+          key property-type;
           leaf property-type {
             type endpoint-property-type;
           }
           leaf property {
             type endpoint-property;
           }
+          description
+            "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+            " object {
+                EndpointPropertyType -> JSONValue;
+              } EndpointProps;";
         }
+        description
+          "EndpointPropertyMapData. Sec. 11.4.1.6." +
+          " object-map {
+              TypedEndpointAddr -> EndpointProps;
+            } EndpointPropertyMapData;";
       }
+      leaf-list capabilities {
+        type endpoint-property-type;
+        min-elements 1;
+        description
+          "Sec. 11.4.1.4." +
+          " object {
+              EndpointPropertyType prop-types<1..*>;
+            } EndpointPropertyCapabilities;";
+      }
+      description
+        "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+        " object {
+            EndpointPropertyMapData endpoint-properties;
+          } InfoResourceEndpointProperties : ResponseEntityBase;";
     }
   }
   
@@ -545,23 +634,19 @@ module alto-service {
     description
       "inquiries on filtered network map";
     input {
-      container endpoints {
-        container srcs {
-          leaf-list endpoints {
-            type endpoint-address;
-          }
-          leaf-list address-types {
-            type endpoint-address-type;
-          }
+      container ReqFilteredNetworkMap {
+        leaf-list pids {
+          type endpoint-address;
         }
-        container dsts {
-          leaf-list endpoints {
-            type endpoint-address;
-          }
-          leaf-list address-types {
-            type endpoint-address-type;
-          }
+        leaf-list address-types {
+          type endpoint-address-type;
         }
+        description
+          "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+          " object {
+              PIDName pids<0..*>;
+              [AddressType address-types<0..*>;]
+            } ReqFilteredNetworkMap;";
       }
     }
     output {
@@ -588,26 +673,42 @@ module alto-service {
 
   rpc filtered-endpoint-cost-service {
     input {
-      container cost-types {
-        uses cost-type;
-        description
-          "Cost type.";
-      }
-      container endpoint-filters {
-        container srcs {
-          uses endpoint-addresses;
+      container ReqFilteredCostMap {
+        container cost-type {
+          uses cost-type;
           description
-            "Source endpoint addresses.";
+            "Cost type.";
         }
-        container dsts {
-          uses endpoint-addresses;
+        leaf-list constraints {
+          type string;
+        }
+        container pids {
+          container srcs {
+            uses endpoint-addresses;
+            description
+              "Source endpoint addresses.";
+          }
+          container dsts {
+            uses endpoint-addresses;
+            description
+              "Destination endpoint addresses.";
+          }
           description
-            "Destination endpoint addresses.";
+            "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+            " object {
+                PIDName srcs<0..*>;
+                PIDName dsts<0..*>;
+              } PIDFilter;";
         }
+        // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
         description
-          "Endpoint addresses.";
+          "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
+          " object {
+              CostType   cost-type;
+              [JSONString constraints<0..*>;]
+              [PIDFilter  pids;]
+            } ReqFilteredCostMap;";
       }
-      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
     }
     output {
       container meta {
@@ -615,15 +716,15 @@ module alto-service {
         description
           "Meta information.";
       }
-      container endpoint-cost-map {
-        list srcs {
+      container cost-map {
+        list CostMapData {
           leaf src {
             type endpoint-address;
             description
               "Source endpoint address.";
           }
           key "src";
-          list dsts {
+          list DstCosts {
             leaf dst {
               type endpoint-address;
               description
@@ -636,13 +737,39 @@ module alto-service {
                   "Cost from source to destination.";
             }
             description
-              "The list represents the inner part of the cost matrix.";
+              "The list represents the inner part of the cost matrix." +
+              "DstCosts. RFC7285 Sec. 11.2.3.6." +
+              " object-map {
+                  PIDName -> JSONValue;
+                } DstCosts;";
           }
           description
-            "The list represents the outer part of the cost matrix.";
+            "The list represents the outer part of the cost matrix." +
+            "CostMapData. RFC7285 Sec. 11.2.3.6." +
+            " object-map {
+                PIDName -> DstCosts;
+              } CostMapData;";
         }
         description
           "Endpoint-cost-map.";
+      }
+      container capabilities {
+        leaf-list cost-type-names {
+          type leafref {
+            path "../../meta/cost-type/cost-type-name";
+          }
+          min-elements 1;
+        }
+        leaf cost-constraints {
+          type boolean;
+        }
+        description
+          "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
+          " object {
+              JSONString cost-type-names<1..*>;
+              JSONBool cost-constraints;
+            } FilteredCostMapCapabilities;";
+      // TODO: model other CostMapCapabilities, if provided
       }
     }
   }
@@ -667,7 +794,8 @@ module alto-service {
     container cost-types {
       uses cost-type;
       description
-        "Cost type.";
+        "Cost type. RFC7285 Sec. 10.7" + 
+        "object-map { JSONString -> CostType; } IRDMetaCostTypes;";
     }
     leaf default-alto-network-map {
       type leafref {
