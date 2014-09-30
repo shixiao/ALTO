@@ -134,7 +134,7 @@ module alto-service {
   typedef pid-name {
     type string {
       length "1..64";
-      pattern "^[\w\-:@\.]+$";
+      pattern "^[0-9a-zA-Z_\-:@\.]+$";
     }
     description
       "Name for the PID." +
@@ -186,15 +186,15 @@ module alto-service {
     leaf cost-type-name {
       type string;
     }
-    leaf cost-metric {
-      type cost-metric;
-      description
-        "Cost metric.";
-    }
     leaf cost-mode {
       type cost-mode;
       description
         "Cost mode.";
+    }
+    leaf cost-metric {
+      type cost-metric;
+      description
+        "Cost metric.";
     }
     leaf description {
       type string;
@@ -315,7 +315,7 @@ module alto-service {
     type union {
       type string {
         // TODO: restrict more? RFC 7285, Sec. 14.1?
-        pattern "application/alto-*";
+        pattern "application/alto\-.*";
       }
       type enumeration {
         enum alto-directory+json;
@@ -415,6 +415,9 @@ module alto-service {
         }
         min-elements 1;
         max-elements 1;
+      }
+      leaf-list prop-types {
+        type endpoint-property;
       }
       description
         "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
@@ -828,7 +831,8 @@ module alto-service {
   }
 
   augment "/IRD-request/output/meta" {
-    container cost-types {
+    list cost-types {
+      key "cost-type-name";
       uses cost-type;
       description
         "Cost type. RFC7285 Sec. 9.2.2." + 
@@ -857,43 +861,49 @@ module alto-service {
       list resources  {
         key "resource-id";
         leaf resource-id {
-          type leafref {
+          /*type leafref {
             path "/IRD/IRD-resource-entries/resource-id";
+          }*/
+          type resource-id;
+        }
+        leaf uri {
+          type inet:uri;
+        }
+        leaf media-type {
+          type media-type;
+        }
+        leaf accepts {
+          type media-type;
+        }
+        container capabilities {
+          leaf cost-constraints {
+            type boolean;
+          }
+          leaf-list cost-type-names {
+            type leafref {
+              path "/map-service/cost-map/capabilities/cost-type-names";
+            }
+          }
+          leaf-list prop-types {
+            type leafref {
+              path "/map-service/cost-map/capabilities/prop-types";
+            }
           }
         }
-        container IRDResourceEntry {
-          leaf uri {
-            type inet:uri;
+        leaf-list uses {
+          type leafref {
+            path "/map-service/cost-map/uses";
           }
-          leaf media-type {
-            type media-type;
-          }
-          leaf accepts {
-            type media-type;
-          }
-          container capabilities {
-            leaf-list cost-type-names {
-              type leafref {
-                path "/map-service/cost-map/capabilities/cost-type-names";
-              }
-            }
-          }
-          leaf-list uses {
-            type leafref {
-              path "/map-service/cost-map/uses";
-            }
-          }
-          description
-          "IRDResourceEntry. RFC7285 9.2.2." +
-          " object {
-              JSONString      uri;
-              JSONString      media-type;
-              [JSONString     accepts;]
-              [Capabilities   capabilities;]
-              [ResourceID     uses<0..*>;]
-            } IRDResourceEntry;";
         }
         description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
         "IRDResourceEntries. RFC7285 9.2.2." +
         " object-map {
             ResourceID  -> IRDResourceEntry;
