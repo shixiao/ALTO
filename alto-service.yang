@@ -17,12 +17,12 @@ module alto-service {
   }
   */
 
-  organization "TBD";
+  organization "ALTO WG";
   contact "WILL-BE-DEFINED-LATER";
 
   description 
-    "This module defines a model for the ALTO service
-     based on draft-ietf-alto-protocol-27.";
+    "This module defines a model for the ALTO services
+     defined in RFC 7285.";
 
   revision 2014-09-29 {
     description "v1. pending review";
@@ -35,8 +35,10 @@ module alto-service {
   /* Type definitions */
 
   typedef endpoint-address {
-    type union {
-      type inet:ipv4-address;
+    type union {            
+      type inet:ipv4-address; /* yry: Will this generate ALTO format, 
+                                 which is based on Sec. 3.2.2 of 
+                                 http://www.ietf.org/rfc/rfc3986.txt? */
       type inet:ipv6-address;
       // type TypedEndpointAddr;
     }
@@ -75,13 +77,13 @@ module alto-service {
     type inet:ip-prefix;
   }
   
-  grouping EndpointAddrGroup {
+  grouping EndpointAddrGroup {     /* yry: naming convention, use Camel or -? */
     description
       "EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
       " object-map {
           AddressType -> EndpointPrefix<0..*>;
         } EndpointAddrGroup;";
-    list endpoint-address-group {
+    list endpoint-address-group {  /* yry: issue: json encoding will not generate map, but an array */
       key AddressType;
       leaf AddressType {
         type endpoint-address-type;
@@ -92,18 +94,19 @@ module alto-service {
       must
         "AddressType != 'ipv4' or " +
         "(AddressType = 'ipv4' and EndpointPrefix = 'inet:ipv4-prefix')" {
-        error-message "Invalid ipv4 address.";
+        error-message "Invalid ipv4 prefix.";
       }      
       must
         "AddressType != 'ipv6' or " +
         "(AddressType = 'ipv6' and EndpointPrefix = 'inet:ipv6-prefix')" {
-        error-message "Invalid ipv6 address.";
+        error-message "Invalid ipv6 prefix.";
       }
     }
   }
 
   grouping endpoint-addresses {
-    leaf-list endpoints {
+    leaf-list endpoints {  /* yry: Can the list be a mix of ipv4 and ipv6 addresses? 
+                              One possibility of typed branch is to define ipv4 addresses and ipv6 addresses. */
       type endpoint-address;
       description
         "The leaf list identifies endpoints.";
@@ -122,7 +125,7 @@ module alto-service {
   }
 
   grouping network-locations {
-    leaf-list locations {
+    leaf-list locations {    /* yry: this will allow a mixed type of addresses. */
       type network-location;
       description
         "The leaf list identifies network locations.";
@@ -147,7 +150,7 @@ module alto-service {
     type union {
       type enumeration {
         enum routingcost {
-          value "0";
+          value "0";    /* yry: what is the implication on encoding? */
           description
           "Default metric. MUST support. RFC7285 Sec. 6.1.1.1.";
         }
@@ -157,7 +160,7 @@ module alto-service {
           "Hopcount metric.";
         }
       }
-      type string {
+      type string {    /* yry: move the description below here? */
         pattern "[\w\-:\.]+";
       }
     }
@@ -182,7 +185,7 @@ module alto-service {
       "Cost mode. MUST support at least one of numerical and ordinal";
   }
 
-  grouping cost-type {
+  grouping cost-type {  /* yry: This is in IRD only, right? How about name cost-type-in-ird? */
     leaf cost-type-name {
       type string;
     }
@@ -196,7 +199,7 @@ module alto-service {
       description
         "Cost metric.";
     }
-    leaf description {
+    leaf description {  /* yry: How to indicate this is optional? */
       type string;
       description
         "Optional description field.";
@@ -223,6 +226,7 @@ module alto-service {
     type string {
       length "3..97"; //len(resource-id) + 1 + len(global-property)
       pattern "[\w\-:@\.]+\.[\w\-:_]+"; // resource-id.property
+                                        /* yry: is it possible to enforce reference to existence of id and prop? */
     }
     description
       "Resource-specific endpoint property.";
@@ -252,7 +256,7 @@ module alto-service {
       "'priv:' for Private Use ";
   }
 
-  typedef endpoint-property {
+  typedef endpoint-property {  /* yry: using endpoint-property-type? where is the value? */
     type union {
       type resource-specific-endpoint-property;
       type global-endpoint-property;
@@ -262,7 +266,8 @@ module alto-service {
   }
 
   typedef resource-id {
-    type pid-name;
+    type pid-name;         /* yry: they happen to use the same set of chars, not conceptually 
+                              it is not a type of pid-name? How about define a type for the type of "good" strings? */
     description
       "Resource-ID.";
   }
@@ -273,7 +278,7 @@ module alto-service {
     }
     leaf tag {
       type string {
-        length "1..64";
+        length "1..64";   /* yry: chars that can appear in a tag? */ 
       }
       description
         "Tag.";
@@ -315,7 +320,7 @@ module alto-service {
     type union {
       type string {
         // TODO: restrict more? RFC 7285, Sec. 14.1?
-        pattern "application/alto\-.*";
+        pattern "application/alto\-.*";   /* yry: it may not be always alto- */
       }
       type enumeration {
         enum alto-directory+json;
@@ -336,7 +341,8 @@ module alto-service {
     container meta {
       uses meta;
     }
-    list pids {
+    list pids {    /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
+                      How about define a derived type, which is complete?*/
       key "pid";
       leaf pid {
         type pid-name;
@@ -365,7 +371,7 @@ module alto-service {
 
   grouping cost-map {
     container meta {
-      uses meta;
+      uses meta;             /* yry: depended network map? */
       container cost-type {
         uses cost-type;
         description
@@ -405,7 +411,7 @@ module alto-service {
             PIDName -> DstCosts;
           } CostMapData;";
     }
-    leaf accepts {
+    leaf accepts { /* yry: ? mixed?*/
       type media-type;
     }
     container capabilities {
@@ -438,9 +444,9 @@ module alto-service {
 
   /* Instances */
 
-  container map-service {
+  container map-service {  
     config false;
-    list network-map {
+    list network-map {    /* yry: At least one network map? a default one? */
       key "resource-id";
       leaf resource-id {
         type leafref {
@@ -467,7 +473,7 @@ module alto-service {
   }
 
   container IRD {
-    container IRD-resource-entries {
+    container IRD-resource-entries { /* yry: list vs container to implement as map? */
       leaf resource-id {
         type resource-id;
       }
@@ -481,7 +487,7 @@ module alto-service {
         leaf accepts {
           type media-type;
         }
-        container capabilities {
+        container capabilities {  /* yry: consistency between cap and resource type (indicated by media-type)? */
           list cost-type-names {
             uses cost-type;
             key cost-type-name;
@@ -522,7 +528,7 @@ module alto-service {
           "Cost type.";
       }
       leaf-list constraints {
-        type string;
+        type string; /* yry: string has formats... */
       }
       container endpoints {
         container srcs {
@@ -673,7 +679,7 @@ module alto-service {
     input {
       container ReqFilteredNetworkMap {
         leaf-list pids {
-          type endpoint-address;
+          type endpoint-address;  /* yry: pid-name? */
         }
         leaf-list address-types {
           type endpoint-address-type;
@@ -693,7 +699,7 @@ module alto-service {
       list network-map {
         key pid;
         leaf pid {
-          type endpoint-address;
+          type endpoint-address; /* yry: see above */
           description
             "must be present in the input srcs or dsts";
         }
