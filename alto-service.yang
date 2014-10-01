@@ -37,15 +37,21 @@ module alto-service {
   typedef endpoint-address {
     type union {
       type inet:ipv4-address;
-      type inet:ipv6-address;
-      // type TypedEndpointAddr;
+      type inet:ipv6-address; /* yry: Will this generate ALTO format, 
+                                 which is based on Sec. 3.2.2 of 
+                                 http://www.ietf.org/rfc/rfc3986.txt? */
+                              /* sx: http://www.yang-central.org/twiki/bin/view/Main/InetTypesHtml
+                                  this is ipv4 address alone; I could use inet:host
+                                  so that it includes domain names. We might have to
+                                  write our own reg-names typedef. */
+      // type typed-endpoint-address;
     }
     description
       "Endpoint address, either IPv4 or Ipv6." +
       "or TypedEndpointAddr, see below.";
   }
 
-  typedef TypedEndpointAddr {
+  typedef typed-endpoint-address {
     type string {
       pattern "[0-9a-zA-Z]+:.+";
     }
@@ -71,32 +77,32 @@ module alto-service {
       "Ref: RFC7285 Sec 2.2.";
   }
   
-  typedef EndpointPrefix {
+  typedef endpoint-prefix {
     type inet:ip-prefix;
   }
   
-  grouping EndpointAddrGroup {
+  grouping endpoint-address-group {
     description
       "EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
       " object-map {
-          AddressType -> EndpointPrefix<0..*>;
+          AddressType -> endpoint-prefix<0..*>;
         } EndpointAddrGroup;";
     list endpoint-address-group {
-      key AddressType;
-      leaf AddressType {
+      key address-type;
+      leaf address-type {
         type endpoint-address-type;
       }
-      leaf-list EndpointPrefix {
-        type EndpointPrefix;
+      leaf-list endpoint-prefix {
+        type endpoint-prefix;
       }
       must
-        "AddressType != 'ipv4' or " +
-        "(AddressType = 'ipv4' and EndpointPrefix = 'inet:ipv4-prefix')" {
+        "address-type != 'ipv4' or " +
+        "(address-type = 'ipv4' and endpoint-prefix = 'inet:ipv4-prefix')" {
         error-message "Invalid ipv4 address.";
       }      
       must
-        "AddressType != 'ipv6' or " +
-        "(AddressType = 'ipv6' and EndpointPrefix = 'inet:ipv6-prefix')" {
+        "address-type != 'ipv6' or " +
+        "(address-type = 'ipv6' and endpoint-prefix = 'inet:ipv6-prefix')" {
         error-message "Invalid ipv6 address.";
       }
     }
@@ -340,7 +346,7 @@ module alto-service {
       leaf pid {
         type pid-name;
       }
-      uses EndpointAddrGroup;
+      uses endpoint-address-group;
       description
         "RFC7285 Sec. 11.2.1.6." + 
         " object-map {
@@ -697,7 +703,7 @@ module alto-service {
           description
             "must be present in the input srcs or dsts";
         }
-        uses EndpointAddrGroup;
+        uses endpoint-address-group;
         description
           "RFC7285 Sec. 11.2.1.6." + 
           " object-map {
