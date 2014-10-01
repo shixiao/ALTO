@@ -434,4 +434,111 @@ YANG validated:
   }
 }
 
-11.2.3.7
+11.2.3.7 cost map response example
+ALTO example
+{
+  "meta":{
+    "dependent-vtags":[
+      {
+        "resource-id":"my-default-network-map",
+        "tag":"3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+      }
+    ],
+    "cost-type":{
+      "cost-mode":"numerical",
+      "cost-metric":"routingcost"
+    }
+  },
+  "cost-map":{
+    "PID1":{
+      "PID1":1,
+      "PID2":5,
+      "PID3":10
+    },
+    "PID2":{
+      "PID1":5,
+      "PID2":1,
+      "PID3":15
+    },
+    "PID3":{
+      "PID1":20,
+      "PID2":15
+    }
+  }
+}
+
+YANG validated:
+{
+  "data": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "cost-map" : [
+        {
+          "resource-id": "my-default-cost-map",
+          "meta": {
+            "dependent-vtags": [
+              {
+                "resource-id": "my-default-network-map",
+                "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+              }
+            ],
+            "cost-type":{
+              "cost-mode":"numerical",
+              "cost-metric":"routingcost"
+            }
+          },
+          "cost-map": [
+            {
+              "src": "PID1",
+              "dst-costs": [
+                {
+                  "dst": "PID1",
+                  "cost": 1
+                },
+                {
+                  "dst": "PID2",
+                  "cost": 5
+                },
+                {
+                  "dst": "PID3",
+                  "cost": 10
+                }
+              ]
+            },
+            {
+              "src": "PID2",
+              "dst-costs": [
+                {
+                  "dst": "PID1",
+                  "cost": 5
+                },
+                {
+                  "dst": "PID2",
+                  "cost": 1
+                },
+                {
+                  "dst": "PID3",
+                  "cost": 15
+                }
+              ]
+            },
+            {
+              "src": "PID3",
+              "dst-costs": [
+                {
+                  "dst": "PID1",
+                  "cost": 20
+                },
+                {
+                  "dst": "PID2",
+                  "cost": 15
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

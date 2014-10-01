@@ -316,7 +316,7 @@ module alto-service {
     choice dependent {
       // multiple vtags
       case dependent {
-        list vtags {
+        list dependent-vtags {
           uses version-tag;
           description
             "Version tags.";
@@ -400,14 +400,14 @@ module alto-service {
           "Cost type.";
       }
     }
-    list CostMapData {
+    list cost-map {
       leaf src {
         type pid-name;
         description
           "Source PID.";
       }
       key "src";
-      list DstCosts {
+      list dst-costs {
         leaf dst {
           type pid-name;
           description
@@ -441,7 +441,7 @@ module alto-service {
         type leafref {
           path "../../meta/cost-type/cost-type-name";
         }
-        min-elements 1;
+        //min-elements 1; // if added, capabilities becomes mandatory in cost-map.
         max-elements 1;
       }
       leaf-list prop-types {
@@ -469,7 +469,7 @@ module alto-service {
   container map-service {
     config false;
     list network-map {
-      min-elements 1;
+      //min-elements 1;
       key "resource-id";
       leaf resource-id {
         type leafref {
