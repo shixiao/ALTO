@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+		<meta xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+			<vtag>
+				<resource-id>my-default-network-map</resource-id>
+				<tag>da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785</tag>
+			</vtag>
+		</meta>
+		<network-map>
+			<pid>PID1</pid>
+			<endpoint-address-group>
+				<AddressType>ipv4</AddressType>
+				<EndpointPrefix>192.0.2.0/24</EndpointPrefix>
+				<EndpointPrefix>198.51.100.0/25</EndpointPrefix>
+			</endpoint-address-group>
+		</network-map>
+		<network-map>
+			<pid>PID2</pid>
+			<endpoint-address-group>
+				<AddressType>ipv4</AddressType>
+				<EndpointPrefix>198.51.100.128/25</EndpointPrefix>
+			</endpoint-address-group>
+		</network-map>
+		<network-map>
+			<pid>PID3</pid>
+			<endpoint-address-group>
+				<AddressType>ipv4</AddressType>
+				<EndpointPrefix>0.0.0.0/0</EndpointPrefix>
+			</endpoint-address-group>
+			<endpoint-address-group>
+				<AddressType>ipv6</AddressType>
+				<EndpointPrefix>::/0</EndpointPrefix>
+			</endpoint-address-group>
+		</network-map>
+	</data>
+	

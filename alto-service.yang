@@ -289,7 +289,6 @@ module alto-service {
 
   grouping meta {
     choice dependent {
-      mandatory true;
       // multiple vtags
       case dependent {
         list vtags {
@@ -336,7 +335,7 @@ module alto-service {
     container meta {
       uses meta;
     }
-    list pids {
+    list network-map {
       key "pid";
       leaf pid {
         type pid-name;
@@ -514,6 +513,7 @@ module alto-service {
   }
 
   // RPCs
+
   rpc endpoint-cost-service {
     input {
       container cost-type {
@@ -856,7 +856,6 @@ module alto-service {
     }
     output {
       container meta {
-        uses meta;
       }
       list resources  {
         key "resource-id";
