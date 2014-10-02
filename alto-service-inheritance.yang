@@ -494,7 +494,7 @@ module alto-service-inheritance {
   }
 
   augment "/resource/meta" {
-    when "./media-type = 'application/alto-costmap+json' ";
+    when "../media-type = 'application/alto-costmap+json' ";
     container cost-type {
       uses cost-type;
       description
