@@ -194,11 +194,16 @@ module alto-service-inheritance {
       "Cost mode. MUST support at least one of numerical and ordinal";
   }
 
+  typedef cost-type-name {
+    type string;
+    // no specification in RFC7285, looks like alphanumeric and dash.
+  }
+
   grouping cost-type {
     /* yry: This is in IRD only, right? How about name cost-type-in-ird? */
     /* sx: no, it is also used in rpc-reply of cost-map-service, see the augment statements near the end*/
     leaf cost-type-name {
-      type string;
+      type cost-type-name;
     }
     leaf cost-mode {
       type cost-mode;
@@ -366,82 +371,16 @@ module alto-service-inheritance {
       "ALTO costs, currently only integer values.";
   }
 
-  grouping cost-map {
-    container meta { 
-      uses meta;
-      /* yry: depended network map? */
-      /* sx: in the meta/dependent-vtags/resource-id */
-      container cost-type {
-        uses cost-type;
-        description
-          "Cost type.";
-      }
-    }
-    list cost-map {
-      leaf src {
-        type pid-name;
-        description
-          "Source PID.";
-      }
-      key "src";
-      list dst-costs {
-        leaf dst {
-          type pid-name;
-          description
-            "Destination PID.";
-        }
-        key "dst";
-        leaf cost {
-          type alto-cost;
-          description
-            "Cost from source to destination.";
-        }
-        description
-          "The list represents the inner part of the cost matrix." +
-          "DstCosts. RFC7285 Sec. 11.2.3.6." +
-          " object-map {
-              PIDName -> JSONValue;
-            } DstCosts;";
-      }         
-      description
-        "The list represents the outer part of the cost matrix." +
-        "CostMapData. RFC7285 Sec. 11.2.3.6." +
-        " object-map {
-            PIDName -> DstCosts;
-          } CostMapData;";
-    }
-    container capabilities {
-      when "current()";
-      leaf-list cost-type-names {
-        type leafref {
-          path "../../meta/cost-type/cost-type-name";
-        }
-        min-elements 1; // if added, capabilities becomes mandatory in cost-map.
-        max-elements 1;
-      }
-      leaf-list prop-types {
-        type endpoint-property-value;
-      }
-      description
-        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
-        " object {
-            JSONString cost-type-names<1..1>;
-          } CostMapCapabilities;";
-      // TODO: model other CostMapCapabilities, if provided
-    }
-    description
-      "Cost map. RFC7285 Sec. 11.2.3.6." +
-      " object {
-          CostMapData cost-map;
-        } InfoResourceCostMap : ResponseEntityBase;";
-  }
 
-  /* data/instances */
+  /* data instances */
   list resource {
     config false;
     // ResponseEntityBase;
     // Note: resource-id for network/cost maps are in their meta,
     // see the augment statements below.
+    container meta {
+      uses meta;
+    }
     leaf uri {
       type inet:uri;
     }
@@ -450,13 +389,23 @@ module alto-service-inheritance {
     }
   }
 
-  // do we want to model 
   container IRD {
     config false;
+    leaf uri {
+      type inet:uri;
+    }
+    leaf media-type {
+      type media-type;
+    }
     list resources {
       key resource-id;
       leaf resource-id {
         type resource-id;
+        //TODO: ideally, this should be a leafref to the resource-id
+        //in various resources, e.g. network-map/meta/vtag/resource-id
+        //but this might need much more complicated conditioning.
+        //Also need to try to enforce this resource-id matches the
+        //uri and media-type of that resource. Not sure how to yet.
       }
       leaf uri {
         type leafref {
@@ -492,7 +441,106 @@ module alto-service-inheritance {
   augment "/IRD" {
     container meta {
       uses meta;
+      list cost-types {
+        key "cost-type-name";
+        uses cost-type;
+        description
+          "Cost type. RFC7285 Sec. 9.2.2." + 
+          " object-map {
+              JSONString -> CostType;
+            } IRDMetaCostTypes;";
+      }
+      leaf default-alto-network-map {
+        type leafref {
+          path "../../../IRD/resources/resource-id";
+        }
+      }
     }
+  }
+
+
+  /* network-map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-networkmap+json' ";
+    uses network-map;
+  }
+
+  grouping network-map {
+    list network-map {
+      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
+         How about define a derived type, which is complete?*/
+      key "pid";
+      leaf pid {
+        type pid-name;
+      }
+      uses endpoint-address-group;
+      description
+        "RFC7285 Sec. 11.2.1.6." + 
+        " object-map {
+            PIDName -> EndpointAddrGroup;
+          } NetworkMapData;";
+    }
+    description
+      "Network map. RFC7285 Sec. 11.2.1.6." +
+      "object {
+         NetworkMapData network-map;
+       } InfoResourceNetworkMap : ResponseEntityBase;";
+  }
+
+  /* cost map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-costmap+json' ";
+    uses cost-map;
+  }
+
+  augment "/resource/meta" {
+    when "./media-type = 'application/alto-costmap+json' ";
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
+  grouping cost-map {
+    list cost-map {
+      leaf src {
+        type pid-name;
+        description
+          "Source PID.";
+      }
+      key "src";
+      list dst-costs {
+        leaf dst {
+          type pid-name;
+          description
+            "Destination PID.";
+        }
+        key "dst";
+        leaf cost {
+          type alto-cost;
+          description
+            "Cost from source to destination.";
+        }
+        description
+          "The list represents the inner part of the cost matrix." +
+          "DstCosts. RFC7285 Sec. 11.2.3.6." +
+          " object-map {
+              PIDName -> JSONValue;
+            } DstCosts;";
+      }         
+      description
+        "The list represents the outer part of the cost matrix." +
+        "CostMapData. RFC7285 Sec. 11.2.3.6." +
+        " object-map {
+            PIDName -> DstCosts;
+          } CostMapData;";
+    }
+    description
+      "Cost map. RFC7285 Sec. 11.2.3.6." +
+      " object {
+          CostMapData cost-map;
+        } InfoResourceCostMap : ResponseEntityBase;";
   }
 
   /* accepts (optional) */
@@ -532,41 +580,61 @@ module alto-service-inheritance {
     // when the above conditions are satisfied.
     uses uses;
   }
+  augment "/IRD/resources" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    leaf-list uses {
+      type leafref {
+        path "/resource/uses";
+      }
+    }
+  }
 
   /* capabilities */
   augment "/resource" {
-
-  }
-
-  /* network-map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-networkmap+json' ";
-    uses network-map;
-  }
-
-  grouping network-map {
-    container meta {
-      uses meta;
-    }
-    list network-map {
-      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
-         How about define a derived type, which is complete?*/
-      key "pid";
-      leaf pid {
-        type pid-name;
+    when "./media-type = 'application/alto-costmap+json' ";
+    container capabilities {
+      when "current()";
+      leaf-list cost-type-names {
+        type leafref {
+          path "../../meta/cost-type/cost-type-name";
+        }
+        min-elements 1; // if added, capabilities becomes mandatory in cost-map.
+        max-elements 1;
       }
-      uses endpoint-address-group;
+      leaf-list prop-types {
+        type endpoint-property-value;
+      }
       description
-        "RFC7285 Sec. 11.2.1.6." + 
-        " object-map {
-            PIDName -> EndpointAddrGroup;
-          } NetworkMapData;";
+        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
+        " object {
+            JSONString cost-type-names<1..1>;
+          } CostMapCapabilities;";
+      // TODO: model other CostMapCapabilities, if provided
     }
-    description
-      "Network map. RFC7285 Sec. 11.2.1.6." +
-      "object {
-         NetworkMapData network-map;
-       } InfoResourceNetworkMap : ResponseEntityBase;";
+  }
+
+  augment "/IRD/resources" {
+    container capabilities {
+      leaf cost-constraints {
+        type boolean;
+      }
+      leaf-list cost-type-names {
+        /*type leafref {
+          path "/resource/capabilities/cost-type-names";
+        }*/
+        type cost-type-name;
+      }
+      leaf-list prop-types {
+        type endpoint-property-value;
+        /*type leafref {
+          path "/resource/capabilities/prop-types";
+        }*/
+      }
+    }
   }
 
 }

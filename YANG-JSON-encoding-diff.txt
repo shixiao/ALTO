@@ -1,5 +1,13 @@
 9.2.3 IRD response example
 In ALTO protocol
+GET /directory HTTP/1.1
+Host: alto.example.com
+Accept: application/alto-directory+json,application/alto-error+json
+
+HTTP/1.1 200 OK
+Content-Length: 2333
+Content-Type: application/alto-directory+json
+
 {
   "meta": {
     "cost-types": {
@@ -436,6 +444,9 @@ YANG validated (inheritance version):
 
 11.2.3.7 cost map response example
 ALTO example
+HTTP/1.1 200 OK
+Content-Length: 435
+Content-Type: application/alto-costmap+json
 {
   "meta":{
     "dependent-vtags":[
