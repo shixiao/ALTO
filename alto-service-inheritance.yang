@@ -356,30 +356,7 @@ module alto-service-inheritance {
     }
   }    
       
-  grouping network-map {
-    container meta {
-      uses meta;
-    }
-    list network-map {
-      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
-         How about define a derived type, which is complete?*/
-      key "pid";
-      leaf pid {
-        type pid-name;
-      }
-      uses endpoint-address-group;
-      description
-        "RFC7285 Sec. 11.2.1.6." + 
-        " object-map {
-            PIDName -> EndpointAddrGroup;
-          } NetworkMapData;";
-    }
-    description
-      "Network map. RFC7285 Sec. 11.2.1.6." +
-      "object {
-         NetworkMapData network-map;
-       } InfoResourceNetworkMap : ResponseEntityBase;";
-  }
+
 
   typedef alto-cost {
     type decimal64 {
@@ -460,7 +437,7 @@ module alto-service-inheritance {
   }
 
   /* data/instances */
-  container resource {
+  list resource {
     config false;
     //ResponseEntityBase;
     leaf uri {
@@ -493,6 +470,42 @@ module alto-service-inheritance {
       type resource-id;
       min-elements 1;
     }
+  }
+
+  /* capabilities */
+  augment "/resource" {
+
+  }
+
+  /* network-map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-networkmap+json' ";
+    uses network-map;
+  }
+
+  grouping network-map {
+    container meta {
+      uses meta;
+    }
+    list network-map {
+      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
+         How about define a derived type, which is complete?*/
+      key "pid";
+      leaf pid {
+        type pid-name;
+      }
+      uses endpoint-address-group;
+      description
+        "RFC7285 Sec. 11.2.1.6." + 
+        " object-map {
+            PIDName -> EndpointAddrGroup;
+          } NetworkMapData;";
+    }
+    description
+      "Network map. RFC7285 Sec. 11.2.1.6." +
+      "object {
+         NetworkMapData network-map;
+       } InfoResourceNetworkMap : ResponseEntityBase;";
   }
 
 }
