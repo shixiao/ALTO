@@ -3,8 +3,11 @@ default resource-id "my-default-network-map"
 IRD: a used cost-type must exist
 
 namespace issues during rpc/rpc-reply validation
+(in a (near) top-level array, ns must be include in every single node)
 
 rpc input-output orders must be fixed
+
+dealing with data inheritance and polymorphism arrays
 
 ===Notes===
 

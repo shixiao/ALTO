@@ -437,11 +437,12 @@ module alto-service {
       type media-type;
     }
     container capabilities {
+      when "current()";
       leaf-list cost-type-names {
         type leafref {
           path "../../meta/cost-type/cost-type-name";
         }
-        //min-elements 1; // if added, capabilities becomes mandatory in cost-map.
+        min-elements 1; // if added, capabilities becomes mandatory in cost-map.
         max-elements 1;
       }
       leaf-list prop-types {
@@ -469,7 +470,8 @@ module alto-service {
   container map-service {
     config false;
     list network-map {
-      //min-elements 1;
+      when "current()";
+      min-elements 1;
       key "resource-id";
       leaf resource-id {
         type leafref {
