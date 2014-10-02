@@ -439,7 +439,9 @@ module alto-service-inheritance {
   /* data/instances */
   list resource {
     config false;
-    //ResponseEntityBase;
+    // ResponseEntityBase;
+    // Note: resource-id for network/cost maps are in their meta,
+    // see the augment statements below.
     leaf uri {
       type inet:uri;
     }
@@ -448,16 +450,78 @@ module alto-service-inheritance {
     }
   }
 
+  // do we want to model 
+  container IRD {
+    config false;
+    list resources {
+      key resource-id;
+      leaf resource-id {
+        type resource-id;
+      }
+      leaf uri {
+        type leafref {
+          path "/resource/uri";
+        }
+      }
+      leaf media-type {
+        type leafref {
+          path "/resource/media-type";
+        }
+      }
+      description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;" +
+        "InformationResourceDirectory. RFC7285 9.2.2." +
+        " object {
+            IRDResourceEntries resources;
+          } InfoResourceDirectory : ResponseEntityBase;";
+    }
+  }
+
+  /* meta */
+  augment "/IRD" {
+    container meta {
+      uses meta;
+    }
+  }
+
   /* accepts (optional) */
-  augment "/resource" {
-    when ".";
+  grouping accepts {
     leaf-list accepts {
       type media-type;
       min-elements 1;
     }
   }
+  augment "/resource" {
+    when ".";
+    uses accepts;
+  }
+  augment "/IRD/resources" {
+    when ".";
+    leaf-list accepts {
+      type leafref {
+        path "/resource/accepts";
+      }
+    }
+  }
 
   /* uses */
+  grouping uses {
+    leaf-list uses {
+      type resource-id;
+      min-elements 1;
+    }
+  }
   augment "/resource" {
     when "(./media-type = 'application/alto-endpointprop+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
@@ -466,10 +530,7 @@ module alto-service-inheritance {
       "and ./accepts != '')";
     // the logic is that the following structures can be present ONLY 
     // when the above conditions are satisfied.
-    leaf-list uses {
-      type resource-id;
-      min-elements 1;
-    }
+    uses uses;
   }
 
   /* capabilities */
