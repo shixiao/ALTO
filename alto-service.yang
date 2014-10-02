@@ -473,7 +473,7 @@ module alto-service {
       key "resource-id";
       leaf resource-id {
         type leafref {
-          path "../../../IRD/IRD-resource-entries/resource-id";
+          path "../../../IRD/resource-id";
         }
       }
       uses network-map;
@@ -484,7 +484,7 @@ module alto-service {
       key "resource-id";
       leaf resource-id {
         type leafref {
-          path "../../../IRD/IRD-resource-entries/resource-id";
+          path "../../../IRD/resource-id";
         }
       }
       uses cost-map;
@@ -494,49 +494,45 @@ module alto-service {
     description
       "Network and cost map service (unfiltered).";
   }
-
-  container IRD {
-    list IRD-resource-entries {
-      key resource-id;
-      leaf resource-id {
+  list IRD {
+    key resource-id;
+    leaf resource-id {
+      type resource-id;
+    }
+    container IRD-resource-entry {
+      leaf uri {
+        type inet:uri;
+      }
+      leaf media-type {
+        type media-type;
+      }
+      leaf accepts {
+        type media-type;
+      }
+      container capabilities {
+        list cost-type-names {
+          uses cost-type;
+          key cost-type-name;
+        }
+      }
+      leaf-list uses {
         type resource-id;
       }
-      container IRD-resource-entry {
-        leaf uri {
-          type inet:uri;
-        }
-        leaf media-type {
-          type media-type;
-        }
-        leaf accepts {
-          type media-type;
-        }
-        container capabilities {
-          list cost-type-names {
-            uses cost-type;
-            key cost-type-name;
-          }
-        }
-        leaf-list uses {
-          type resource-id;
-        }
-        description
-          "IRDResourceEntry. RFC7285 9.2.2." +
-          " object {
-              JSONString      uri;
-              JSONString      media-type;
-              [JSONString     accepts;]
-              [Capabilities   capabilities;]
-              [ResourceID     uses<0..*>;]
-            } IRDResourceEntry;";
-      }
       description
-        "IRDResourceEntries. RFC7285 9.2.2." +
-        " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;";
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;";
     }
     description
+      "IRDResourceEntries. RFC7285 9.2.2." +
+      " object-map {
+          ResourceID  -> IRDResourceEntry;
+        } IRDResourceEntries;" +
       "InformationResourceDirectory. RFC7285 9.2.2." +
       " object {
           IRDResourceEntries resources;
@@ -877,7 +873,7 @@ module alto-service {
     }
     leaf default-alto-network-map {
       type leafref {
-        path "../../../../IRD/IRD-resource-entries/resource-id";
+        path "../../../../IRD/resource-id";
       }
     }
   }
@@ -896,7 +892,7 @@ module alto-service {
         key "resource-id";
         leaf resource-id {
           /*type leafref {
-            path "/IRD/IRD-resource-entries/resource-id";
+            path "/IRD/resource-id";
           }*/
           type resource-id;
         }

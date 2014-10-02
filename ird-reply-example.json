@@ -42,7 +42,7 @@
         "uri": "http://alto.example.com/costmap/num/routingcost",
         "media-type": "application/alto-costmap+json",
         "capabilities": { "cost-type-names": "num-routing" },
-        "uses": "my-default-network-map"
+        "uses": ["my-default-network-map"]
       },
       {
         "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
@@ -50,7 +50,7 @@
         "uri": "http://alto.example.com/costmap/num/hopcount",
         "media-type": "application/alto-costmap+json",
         "capabilities": { "cost-type-names": "num-hop" },
-        "uses": "my-default-network-map"
+        "uses": ["my-default-network-map"]
       },
       {
         "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
