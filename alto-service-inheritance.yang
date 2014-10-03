@@ -113,16 +113,18 @@ module alto-service-inheritance {
       leaf-list endpoint-prefix {
         type endpoint-prefix;
       }
+      /* TODO:
       must
         "address-type != 'ipv4' or " +
-        "(address-type = 'ipv4' and endpoint-prefix = 'inet:ipv4-prefix')" {
+        "(address-type = 'ipv4' and endpoint-prefix matches inet:ipv4-prefix)" {
         error-message "Invalid ipv4 address.";
-      }      
+      }
       must
         "address-type != 'ipv6' or " +
         "(address-type = 'ipv6' and endpoint-prefix = 'inet:ipv6-prefix')" {
         error-message "Invalid ipv6 address.";
       }
+      */
     }
   }
 
@@ -724,6 +726,50 @@ module alto-service-inheritance {
           " object {
               EndpointPropertyMapData endpoint-properties;
             } InfoResourceEndpointProperties : ResponseEntityBase;";
+      }
+    }
+  }
+
+  rpc filtered-network-map-service {
+    description
+      "inquiries on filtered network map";
+    input {
+      leaf-list pids {
+        type pid-name;
+      }
+      leaf-list address-types {
+        type endpoint-address-type;
+      }
+      description
+        "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+        " object {
+            PIDName pids<0..*>;
+            [AddressType address-types<0..*>;]
+          } ReqFilteredNetworkMap;";
+    }
+    output {
+      container filtered-network-map-service {
+        container meta {
+          uses meta;
+        }
+        list network-map {
+          key pid;
+          leaf pid {
+            type pid-name;
+            description
+              "must be present in the input srcs or dsts";
+          }
+          uses endpoint-address-group;
+          description
+            "RFC7285 Sec. 11.2.1.6." + 
+            " object-map {
+                PIDName -> EndpointAddrGroup;
+              } NetworkMapData;";
+        }
+        description
+          " object {
+              NetworkMapData network-map;
+            } InfoResourceNetworkMap : ResponseEntityBase;";
       }
     }
   }

@@ -1,0 +1,34 @@
+{
+  "rpc-reply": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 2,
+    "filtered-network-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "meta" : {
+        "vtag" : {
+          "resource-id": "my-default-network-map",
+          "tag": "c0ce023b8678a7b9ec00324673b98e54656d1f6d"
+        }
+      },
+      "network-map": [
+        {
+          "pid": "PID1",
+          "endpoint-address-group": {
+            "address-type": "ipv4",
+            "endpoint-prefix": [
+              "192.0.2.0/24",
+              "198.51.100.0/24"
+            ]
+          }
+        },
+        {
+          "pid": "PID2",
+          "endpoint-address-group": {
+            "address-type": "ipv4",
+            "endpoint-prefix": ["198.51.100.128/24"]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -358,6 +358,131 @@ YANG validated:
   }
 }
 
+11.3.1.7 Filtered Network Map
+ALTO example
+===request===
+POST /networkmap/filtered HTTP/1.1
+Host: custom.alto.example.com
+Content-Length: 33
+Content-Type: application/alto-networkmapfilter+json
+Accept: application/alto-networkmap+json,application/alto-error+json
+
+{
+  "pids": [ "PID1", "PID2" ]
+}
+=============
+
+HTTP/1.1 200 OK
+Content-Length: 342
+Content-Type: application/alto-networkmap+json
+{
+  "meta" : {
+    "vtag" : {
+       "resource-id": "my-default-network-map",
+       "tag": "c0ce023b8678a7b9ec00324673b98e54656d1f6d"
+    }
+  },
+  "network-map" : {
+    "PID1" : {
+      "ipv4" : [
+        "192.0.2.0/24",
+        "198.51.100.0/24"
+      ]
+    },
+    "PID2" : {
+      "ipv4": [
+        "198.51.100.128/24"
+      ]
+    }
+  }
+}
+
+YANG validated (with inheritance):
+===rpc input===
+{
+  "rpc": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 1,
+    "filtered-network-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "pids": [ "PID1", "PID2" ]
+    }
+  }
+}
+=====rpc output====
+{
+  "rpc-reply": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 2,
+    "filtered-network-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "meta" : {
+        "vtag" : {
+          "resource-id": "my-default-network-map",
+          "tag": "c0ce023b8678a7b9ec00324673b98e54656d1f6d"
+        }
+      },
+      "network-map": [
+        {
+          "pid": "PID1",
+          "endpoint-address-group": {
+            "address-type": "ipv4",
+            "endpoint-prefix": [
+              "192.0.2.0/24",
+              "198.51.100.0/24"
+            ]
+          }
+        },
+        {
+          "pid": "PID2",
+          "endpoint-address-group": {
+            "address-type": "ipv4",
+            "endpoint-prefix": ["198.51.100.128/24"]
+          }
+        }
+      ]
+    }
+  }
+}
+================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 11.2.1.7 network-map response example
 ALTO example
 GET /networkmap HTTP/1.1
