@@ -523,6 +523,14 @@ module alto-service-inheritance {
     }
   }
 
+  augment "/filtered-cost-map-service/output/filtered-cost-map-service/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
   grouping cost-map {
     list cost-map {
       leaf src {
@@ -825,41 +833,38 @@ module alto-service-inheritance {
           description
             "Meta information.";
         }
-        container cost-map {
-          list CostMapData {
-            leaf src {
-              type endpoint-address;
+        list cost-map {
+          leaf src {
+            type pid-name;
+            description
+              "Source endpoint address.";
+          }
+          key "src";
+          list dst-costs {
+            leaf dst {
+              type pid-name;
               description
-                "Source endpoint address.";
+                  "Destination endpoint address.";
             }
-            key "src";
-            list DstCosts {
-              leaf dst {
-                type endpoint-address;
+            key "dst";
+            leaf cost {
+              type alto-cost;
                 description
-                    "Destination endpoint address.";
-              }
-              key "dst";
-              leaf cost {
-                type alto-cost;
-                  description
-                    "Cost from source to destination.";
-              }
-              description
-                "The list represents the inner part of the cost matrix." +
-                "DstCosts. RFC7285 Sec. 11.2.3.6." +
-                " object-map {
-                    PIDName -> JSONValue;
-                  } DstCosts;";
+                  "Cost from source to destination.";
             }
             description
-              "The list represents the outer part of the cost matrix." +
-              "CostMapData. RFC7285 Sec. 11.2.3.6." +
+              "The list represents the inner part of the cost matrix." +
+              "DstCosts. RFC7285 Sec. 11.2.3.6." +
               " object-map {
-                  PIDName -> DstCosts;
-                } CostMapData;";
+                  PIDName -> JSONValue;
+                } DstCosts;";
           }
           description
+            "The list represents the outer part of the cost matrix." +
+            "CostMapData. RFC7285 Sec. 11.2.3.6." +
+            " object-map {
+                PIDName -> DstCosts;
+              } CostMapData;" +
             "Endpoint-cost-map.";
         }
         /*

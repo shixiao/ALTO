@@ -358,36 +358,6 @@ YANG validated:
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 11.3.1.7 Filtered Network Map
 ALTO example
 ===request===
@@ -541,39 +511,44 @@ YANG validated (with inheritance):
   }
 }
 ===rpc output===
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{
+  "rpc-reply": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 2,
+    "filtered-cost-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "meta": {
+        "dependent-vtags": {
+          "resource-id": "my-default-network-map",
+          "tag": "75ed013b3cb58f896e839582504f622838ce670f"
+        },
+        "cost-type": {
+          "cost-mode": "numerical",
+          "cost-metric": "routingcost"
+        }
+      },
+      "cost-map": [
+        {
+          "src": "PID1",
+          "dst-costs": [
+            {
+              "dst": "PID1",
+              "cost": "0"
+            },
+            {
+              "dst": "PID2",
+              "cost": "1"
+            },
+            {
+              "dst": "PID3",
+              "cost": "2"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 
 11.2.1.7 network-map response example
 ALTO example
