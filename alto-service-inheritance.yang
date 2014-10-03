@@ -660,6 +660,19 @@ module alto-service-inheritance {
     }
   }
 
+  augment "/endpoint-property-service/output/endpoint-property-service" {
+    leaf-list capabilities {
+      when ".";
+      type endpoint-property-type;
+      min-elements 1;
+      description
+        "Sec. 11.4.1.4." +
+        " object {
+            EndpointPropertyType prop-types<1..*>;
+          } EndpointPropertyCapabilities;";
+    }
+  }
+
   /* rpc */
 
   rpc endpoint-property-service {
@@ -710,17 +723,6 @@ module alto-service-inheritance {
                 TypedEndpointAddr -> EndpointProps;
               } EndpointPropertyMapData;";
         }
-        /*
-        leaf-list capabilities {
-          type endpoint-property-type;
-          min-elements 1;
-          description
-            "Sec. 11.4.1.4." +
-            " object {
-                EndpointPropertyType prop-types<1..*>;
-              } EndpointPropertyCapabilities;";
-        }
-        */
         description
           "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
           " object {
@@ -729,6 +731,8 @@ module alto-service-inheritance {
       }
     }
   }
+
+
 
   rpc filtered-network-map-service {
     description
@@ -773,5 +777,7 @@ module alto-service-inheritance {
       }
     }
   }
+
+
 
 }
