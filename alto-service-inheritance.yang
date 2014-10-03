@@ -531,6 +531,14 @@ module alto-service-inheritance {
     }
   }
 
+  augment "/endpoint-cost-service/output/endpoint-cost-service/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
   grouping cost-map {
     list cost-map {
       leaf src {
@@ -704,7 +712,9 @@ module alto-service-inheritance {
     }
   }
 
-  /* rpc */
+  /* 
+   * rpc
+   */
 
   rpc endpoint-property-service {
     description
@@ -865,6 +875,90 @@ module alto-service-inheritance {
           list dst-costs {
             leaf dst {
               type pid-name;
+              description
+                  "Destination endpoint address.";
+            }
+            key "dst";
+            leaf cost {
+              type alto-cost;
+                description
+                  "Cost from source to destination.";
+            }
+            description
+              "The list represents the inner part of the cost matrix." +
+              "DstCosts. RFC7285 Sec. 11.2.3.6." +
+              " object-map {
+                  PIDName -> JSONValue;
+                } DstCosts;";
+          }
+          description
+            "The list represents the outer part of the cost matrix." +
+            "CostMapData. RFC7285 Sec. 11.2.3.6." +
+            " object-map {
+                PIDName -> DstCosts;
+              } CostMapData;" +
+            "Endpoint-cost-map.";
+        }
+      }
+    }
+  }
+
+  rpc endpoint-cost-service {
+    input {
+      container cost-type {
+        uses cost-type;
+        description
+          "Cost type.";
+      }
+      leaf-list constraints {
+        type constraint;
+        description
+          "RFC7285 Sec. 11.3.2.3.";
+      }
+      container pids {
+        leaf-list srcs {
+          type endpoint-address;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type endpoint-address;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+          " object {
+              PIDName srcs<0..*>;
+              PIDName dsts<0..*>;
+            } PIDFilter;";
+      }
+      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
+      description
+        "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
+        " object {
+            CostType   cost-type;
+            [JSONString constraints<0..*>;]
+            [PIDFilter  pids;]
+          } ReqFilteredCostMap;";
+    }
+    output {
+      container endpoint-cost-service {
+        container meta {
+          uses meta;
+          description
+            "Meta information.";
+        }
+        list endpoint-cost-map {
+          leaf src {
+            type endpoint-address;
+            description
+              "Source endpoint address.";
+          }
+          key "src";
+          list dst-costs {
+            leaf dst {
+              type endpoint-address;
               description
                   "Destination endpoint address.";
             }

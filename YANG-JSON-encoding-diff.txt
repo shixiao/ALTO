@@ -747,6 +747,107 @@ YANG validated (inheritance version):
   }
 }
 
+11.5.1.7.  Endpoint cost service Example
+===ALTO request===
+POST /endpointcost/lookup HTTP/1.1
+Host: alto.example.com
+Content-Length: 248
+Content-Type: application/alto-endpointcostparams+json
+Accept: application/alto-endpointcost+json,application/alto-error+json
+
+{
+  "cost-type": {"cost-mode" : "ordinal",
+                "cost-metric" : "routingcost"},
+  "endpoints" : {
+    "srcs": [ "ipv4:192.0.2.2" ],
+    "dsts": [
+      "ipv4:192.0.2.89",
+      "ipv4:198.51.100.34",
+      "ipv4:203.0.113.45"
+    ]
+  }
+}
+===response===
+HTTP/1.1 200 OK
+Content-Length: 274
+Content-Type: application/alto-endpointcost+json
+
+{
+  "meta" : {
+    "cost-type": {"cost-mode" : "ordinal",
+                  "cost-metric" : "routingcost"
+    }
+  },
+  "endpoint-cost-map" : {
+    "ipv4:192.0.2.2": {
+      "ipv4:192.0.2.89"    : 1,
+      "ipv4:198.51.100.34" : 2,
+      "ipv4:203.0.113.45"  : 3
+    }
+  }
+}
+=============
+
+YANG validated:
+{
+  "rpc": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 1,
+    "filtered-cost-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "cost-type" : {
+        "cost-mode": "ordinal",
+        "cost-metric": "routingcost"
+      },
+      "pids" : {
+        "srcs" : [ "ipv4:192.0.2.2" ],
+        "dsts" : [
+          "ipv4:192.0.2.89",
+          "ipv4:198.51.100.34",
+          "ipv4:203.0.113.45"
+        ]
+      }
+    }
+  }
+}
+===rpc output===
+{
+  "rpc-reply": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 2,
+    "endpoint-cost-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "meta": {
+        "cost-type": {
+          "cost-mode": "ordinal",
+          "cost-metric": "routingcost"
+        }
+      },
+      "endpoint-cost-map": [
+        {
+          "src": "ipv4:192.0.2.2",
+          "dst-costs": [
+            {
+              "dst": "ipv4:192.0.2.89",
+              "cost": "1"
+            },
+            {
+              "dst": "ipv4:198.51.100.34",
+              "cost": "2"
+            },
+            {
+              "dst": "ipv4:203.0.113.45",
+              "cost": "10"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+
+
 11.4.1.7.  endpoint property service
 ALTO Request:
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="2">
+		<endpoint-cost-service xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+			<meta>
+				<cost-type>
+					<cost-mode>ordinal</cost-mode>
+					<cost-metric>routingcost</cost-metric>
+				</cost-type>
+			</meta>
+			<endpoint-cost-map>
+				<src>ipv4:192.0.2.2</src>
+				<dst-costs>
+					<dst>ipv4:192.0.2.89</dst>
+					<cost>1</cost>
+				</dst-costs>
+				<dst-costs>
+					<dst>ipv4:198.51.100.34</dst>
+					<cost>2</cost>
+				</dst-costs>
+				<dst-costs>
+					<dst>ipv4:203.0.113.45</dst>
+					<cost>10</cost>
+				</dst-costs>
+			</endpoint-cost-map>
+		</endpoint-cost-service>
+	</rpc-reply>
+	
