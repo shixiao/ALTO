@@ -682,6 +682,28 @@ module alto-service-inheritance {
     }
   }
 
+  augment "/filtered-cost-map-service/output/filtered-cost-map-service" {
+    container capabilities {
+      when ".";
+      leaf-list cost-type-names {
+        type leafref {
+          path "../../meta/cost-type/cost-type-name";
+        }
+        min-elements 1;
+      }
+      leaf cost-constraints {
+        type boolean;
+      }
+      description
+        "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
+        " object {
+            JSONString cost-type-names<1..*>;
+            JSONBool cost-constraints;
+          } FilteredCostMapCapabilities;";
+    // TODO: model other CostMapCapabilities, if provided
+    }
+  }
+
   /* rpc */
 
   rpc endpoint-property-service {
@@ -867,25 +889,6 @@ module alto-service-inheritance {
               } CostMapData;" +
             "Endpoint-cost-map.";
         }
-        /*
-        container capabilities {
-          leaf-list cost-type-names {
-            type leafref {
-              path "../../meta/cost-types/cost-type-name";
-            }
-            min-elements 1;
-          }
-          leaf cost-constraints {
-            type boolean;
-          }
-          description
-            "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
-            " object {
-                JSONString cost-type-names<1..*>;
-                JSONBool cost-constraints;
-              } FilteredCostMapCapabilities;";
-        // TODO: model other CostMapCapabilities, if provided
-        }*/
       }
     }
   }
