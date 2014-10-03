@@ -44,17 +44,35 @@ module alto-service-inheritance {
                                   this is ipv4 address alone; I could use inet:host
                                   so that it includes domain names. We might have to
                                   write our own reg-names typedef. */
-      // type typed-endpoint-address;
+      type typed-endpoint-address;
     }
     description
       "Endpoint address, either IPv4 or Ipv6." +
       "or TypedEndpointAddr, see below.";
   }
 
+  //temporary
   typedef typed-endpoint-address {
-    type string {
-      pattern "[0-9a-zA-Z]+:.+";
+    type union {
+      type string {
+        pattern
+          'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+        +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+        + '(%[\p{N}\p{L}]+)?';
+        //ref: ietf-inet-types.yang ipv6-address
+      }
+      type string {
+        pattern 'ipv6:((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
+              + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
+              + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
+              + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
+              + '(%[\p{N}\p{L}]+)?';
+        pattern 'ipv6:(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
+              + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
+              + '(%.+)?';
+      }
     }
+
     description
       "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
       "= AddressType:EndpointAddr" +
@@ -241,9 +259,9 @@ module alto-service-inheritance {
   }
 
   typedef endpoint-property-type {
-    type enumeration {
-      enum resource-specific-endpoint-property;
-      enum global-endpoint-property;
+    type union {
+      type resource-specific-endpoint-property;
+      type global-endpoint-property;
     }
     description
       "Endpoint property type. RFC7285 Sec. 10.8.";
@@ -572,16 +590,19 @@ module alto-service-inheritance {
   }
   augment "/resource" {
     when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
       "and ./accepts = 'application/alto-networkmapfilter+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
       "and ./accepts != '')";
     // the logic is that the following structures can be present ONLY 
-    // when the above conditions are satisfied.
+    // when the above conditions are satisfied. Not sure how to place
+    // different restrictions on different conditions.
     uses uses;
   }
   augment "/IRD/resources" {
     when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
       "and ./accepts = 'application/alto-networkmapfilter+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
@@ -606,7 +627,7 @@ module alto-service-inheritance {
         max-elements 1;
       }
       leaf-list prop-types {
-        type endpoint-property-value;
+        type endpoint-property-type;
       }
       description
         "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
@@ -629,10 +650,80 @@ module alto-service-inheritance {
         type cost-type-name;
       }
       leaf-list prop-types {
-        type endpoint-property-value;
+        type endpoint-property-type;
         /*type leafref {
           path "/resource/capabilities/prop-types";
         }*/
+      }
+    }
+  }
+
+  /* rpc */
+
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint";
+    input {
+      leaf-list properties {
+        type endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type endpoint-address;
+        min-elements 1;
+      }
+      description
+        " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+    }
+    output {
+      container endpoint-property-service {
+        container meta {
+          uses meta;
+        }
+        list endpoint-properties {
+          key pid;
+          leaf pid {
+            type endpoint-address;
+          }
+          list properties {
+            key property-type;
+            leaf property-type {
+              type endpoint-property-type;
+            }
+            leaf property {
+              type endpoint-property-value;
+            }
+            description
+              "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+              " object {
+                  EndpointPropertyType -> JSONValue;
+                } EndpointProps;";
+          }
+          description
+            "EndpointPropertyMapData. Sec. 11.4.1.6." +
+            " object-map {
+                TypedEndpointAddr -> EndpointProps;
+              } EndpointPropertyMapData;";
+        }
+        /*
+        leaf-list capabilities {
+          type endpoint-property-type;
+          min-elements 1;
+          description
+            "Sec. 11.4.1.4." +
+            " object {
+                EndpointPropertyType prop-types<1..*>;
+              } EndpointPropertyCapabilities;";
+        }
+        */
+        description
+          "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+          " object {
+              EndpointPropertyMapData endpoint-properties;
+            } InfoResourceEndpointProperties : ResponseEntityBase;";
       }
     }
   }

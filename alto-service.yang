@@ -446,7 +446,7 @@ module alto-service {
         max-elements 1;
       }
       leaf-list prop-types {
-        type endpoint-property-value;
+        type endpoint-property-type;
       }
       description
         "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +

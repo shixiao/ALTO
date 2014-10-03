@@ -1,0 +1,40 @@
+{
+  "rpc-reply": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": "2",
+    "endpoint-property-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "meta" : {
+        "dependent-vtags" : [
+          {"resource-id": "my-default-network-map",
+            "tag": "7915dc0290c2705481c491a2b4ffbec482b3cf62"
+          }
+        ]
+      },
+      "endpoint-properties": [
+        {
+          "pid": "ipv4:192.0.2.34",
+          "properties" : [
+            {
+              "property-type": "my-default-network-map.pid",
+              "property": "PID1"
+            },
+            {
+              "property-type": "priv:ietf-example-prop",
+              "property": "1"
+            }
+          ]
+        },
+        {
+          "pid": "ipv4:203.0.113.129",
+          "properties": [
+            {
+              "property-type": "my-default-network-map.pid",
+              "property": "PID3"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
