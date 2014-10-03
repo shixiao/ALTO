@@ -358,6 +358,36 @@ YANG validated:
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 11.3.1.7 Filtered Network Map
 ALTO example
 ===request===
@@ -449,6 +479,68 @@ YANG validated (with inheritance):
 
 
 
+
+
+
+11.3.2.7.  Filtered Cost Map Example
+===ALTO request===
+POST /costmap/filtered HTTP/1.1
+Host: custom.alto.example.com
+Content-Type: application/alto-costmapfilter+json
+Content-Length: 181
+Accept: application/alto-costmap+json,application/alto-error+json
+
+{
+  "cost-type" : {"cost-mode": "numerical",
+                 "cost-metric": "routingcost"
+  },
+  "pids" : {
+    "srcs" : [ "PID1" ],
+    "dsts" : [ "PID1", "PID2", "PID3" ]
+  }
+}
+
+===ALTO response===
+HTTP/1.1 200 OK
+Content-Length: 341
+Content-Type: application/alto-costmap+json
+
+{
+  "meta" : {
+    "dependent-vtags" : [
+      {"resource-id": "my-default-network-map",
+       "tag": "75ed013b3cb58f896e839582504f622838ce670f"
+      }
+    ],
+    "cost-type": {"cost-mode" : "numerical",
+                  "cost-metric" : "routingcost"
+    }
+  },
+  "cost-map" : {
+       "PID1": { "PID1": 0,  "PID2": 1,  "PID3": 2 }
+  }
+}
+
+YANG validated (with inheritance):
+==rpc input===
+{
+  "rpc": {
+    "-xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "-message-id": 1,
+    "filtered-cost-map-service": {
+      "-xmlns": "urn:ietf:params:xml:ns:yang:alto-service",
+      "cost-type" : {
+        "cost-mode": "numerical",
+        "cost-metric": "routingcost"
+      },
+      "pids" : {
+        "srcs" : [ "PID1" ],
+        "dsts" : [ "PID1", "PID2", "PID3" ]
+      }
+    }
+  }
+}
+===rpc output===
 
 
 

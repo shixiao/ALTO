@@ -778,6 +778,111 @@ module alto-service-inheritance {
     }
   }
 
+  rpc filtered-cost-map-service {
+    input {
+      container cost-type {
+        uses cost-type;
+        description
+          "Cost type.";
+      }
+      leaf-list constraints {
+        type constraint;
+        description
+          "RFC7285 Sec. 11.3.2.3.";
+      }
+      container pids {
+        leaf-list srcs {
+          type pid-name;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type pid-name;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+          " object {
+              PIDName srcs<0..*>;
+              PIDName dsts<0..*>;
+            } PIDFilter;";
+      }
+      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
+      description
+        "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
+        " object {
+            CostType   cost-type;
+            [JSONString constraints<0..*>;]
+            [PIDFilter  pids;]
+          } ReqFilteredCostMap;";
+    }
+    output {
+      container filtered-cost-map-service {
+        container meta {
+          uses meta;
+          description
+            "Meta information.";
+        }
+        container cost-map {
+          list CostMapData {
+            leaf src {
+              type endpoint-address;
+              description
+                "Source endpoint address.";
+            }
+            key "src";
+            list DstCosts {
+              leaf dst {
+                type endpoint-address;
+                description
+                    "Destination endpoint address.";
+              }
+              key "dst";
+              leaf cost {
+                type alto-cost;
+                  description
+                    "Cost from source to destination.";
+              }
+              description
+                "The list represents the inner part of the cost matrix." +
+                "DstCosts. RFC7285 Sec. 11.2.3.6." +
+                " object-map {
+                    PIDName -> JSONValue;
+                  } DstCosts;";
+            }
+            description
+              "The list represents the outer part of the cost matrix." +
+              "CostMapData. RFC7285 Sec. 11.2.3.6." +
+              " object-map {
+                  PIDName -> DstCosts;
+                } CostMapData;";
+          }
+          description
+            "Endpoint-cost-map.";
+        }
+        /*
+        container capabilities {
+          leaf-list cost-type-names {
+            type leafref {
+              path "../../meta/cost-types/cost-type-name";
+            }
+            min-elements 1;
+          }
+          leaf cost-constraints {
+            type boolean;
+          }
+          description
+            "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
+            " object {
+                JSONString cost-type-names<1..*>;
+                JSONBool cost-constraints;
+              } FilteredCostMapCapabilities;";
+        // TODO: model other CostMapCapabilities, if provided
+        }*/
+      }
+    }
+  }
 
 
 }
