@@ -32,7 +32,9 @@ module alto-service-inheritance {
     description "Initial revision. betw Michael and Xiao";
   }
   
-  /* Type definitions */
+  /********************
+   * TYPE DEFINITIONS *
+   ********************/
 
   typedef endpoint-address {
     type union {
@@ -380,9 +382,7 @@ module alto-service-inheritance {
         enum alto-error+json;
       }
     }
-  }    
-      
-
+  }
 
   typedef alto-cost {
     type decimal64 {
@@ -392,8 +392,16 @@ module alto-service-inheritance {
       "ALTO costs, currently only integer values.";
   }
 
+  /******************
+   * DATA INSTANCES *
+   ******************/
 
-  /* data instances */
+  /*
+   * unfiltered network-maps, unfiltered cost-maps are all
+   * instances of resource.
+   *
+   * IRD is also modeled as data.
+   */
   list resource {
     config false;
     // ResponseEntityBase;
@@ -408,6 +416,81 @@ module alto-service-inheritance {
     leaf media-type {
       type media-type;
     }
+  }
+
+    /* network-map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-networkmap+json' ";
+    uses network-map;
+  }
+
+  grouping network-map {
+    list network-map {
+      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
+         How about define a derived type, which is complete?*/
+      key "pid";
+      leaf pid {
+        type pid-name;
+      }
+      uses endpoint-address-group;
+      description
+        "RFC7285 Sec. 11.2.1.6." + 
+        " object-map {
+            PIDName -> EndpointAddrGroup;
+          } NetworkMapData;";
+    }
+    description
+      "Network map. RFC7285 Sec. 11.2.1.6." +
+      "object {
+         NetworkMapData network-map;
+       } InfoResourceNetworkMap : ResponseEntityBase;";
+  }
+
+  /* cost map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-costmap+json' ";
+    uses cost-map;
+  }
+
+  grouping cost-map {
+    list cost-map {
+      leaf src {
+        type pid-name;
+        description
+          "Source PID.";
+      }
+      key "src";
+      list dst-costs {
+        leaf dst {
+          type pid-name;
+          description
+            "Destination PID.";
+        }
+        key "dst";
+        leaf cost {
+          type alto-cost;
+          description
+            "Cost from source to destination.";
+        }
+        description
+          "The list represents the inner part of the cost matrix." +
+          "DstCosts. RFC7285 Sec. 11.2.3.6." +
+          " object-map {
+              PIDName -> JSONValue;
+            } DstCosts;";
+      }         
+      description
+        "The list represents the outer part of the cost matrix." +
+        "CostMapData. RFC7285 Sec. 11.2.3.6." +
+        " object-map {
+            PIDName -> DstCosts;
+          } CostMapData;";
+    }
+    description
+      "Cost map. RFC7285 Sec. 11.2.3.6." +
+      " object {
+          CostMapData cost-map;
+        } InfoResourceCostMap : ResponseEntityBase;";
   }
 
   container IRD {
@@ -479,41 +562,6 @@ module alto-service-inheritance {
     }
   }
 
-
-  /* network-map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-networkmap+json' ";
-    uses network-map;
-  }
-
-  grouping network-map {
-    list network-map {
-      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
-         How about define a derived type, which is complete?*/
-      key "pid";
-      leaf pid {
-        type pid-name;
-      }
-      uses endpoint-address-group;
-      description
-        "RFC7285 Sec. 11.2.1.6." + 
-        " object-map {
-            PIDName -> EndpointAddrGroup;
-          } NetworkMapData;";
-    }
-    description
-      "Network map. RFC7285 Sec. 11.2.1.6." +
-      "object {
-         NetworkMapData network-map;
-       } InfoResourceNetworkMap : ResponseEntityBase;";
-  }
-
-  /* cost map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    uses cost-map;
-  }
-
   augment "/resource/meta" {
     when "../media-type = 'application/alto-costmap+json' ";
     container cost-type {
@@ -537,47 +585,6 @@ module alto-service-inheritance {
       description
         "Cost type.";
     }
-  }
-
-  grouping cost-map {
-    list cost-map {
-      leaf src {
-        type pid-name;
-        description
-          "Source PID.";
-      }
-      key "src";
-      list dst-costs {
-        leaf dst {
-          type pid-name;
-          description
-            "Destination PID.";
-        }
-        key "dst";
-        leaf cost {
-          type alto-cost;
-          description
-            "Cost from source to destination.";
-        }
-        description
-          "The list represents the inner part of the cost matrix." +
-          "DstCosts. RFC7285 Sec. 11.2.3.6." +
-          " object-map {
-              PIDName -> JSONValue;
-            } DstCosts;";
-      }         
-      description
-        "The list represents the outer part of the cost matrix." +
-        "CostMapData. RFC7285 Sec. 11.2.3.6." +
-        " object-map {
-            PIDName -> DstCosts;
-          } CostMapData;";
-    }
-    description
-      "Cost map. RFC7285 Sec. 11.2.3.6." +
-      " object {
-          CostMapData cost-map;
-        } InfoResourceCostMap : ResponseEntityBase;";
   }
 
   /* accepts (optional) */
@@ -712,9 +719,9 @@ module alto-service-inheritance {
     }
   }
 
-  /* 
-   * rpc
-   */
+  /*******
+   * RPC *
+   *******/
 
   rpc endpoint-property-service {
     description
@@ -772,8 +779,6 @@ module alto-service-inheritance {
       }
     }
   }
-
-
 
   rpc filtered-network-map-service {
     description
@@ -913,7 +918,7 @@ module alto-service-inheritance {
       leaf-list constraints {
         type constraint;
         description
-          "RFC7285 Sec. 11.3.2.3.";
+          "RFC7285 Sec. 11.5.1.3.";
       }
       container pids {
         leaf-list srcs {
@@ -927,20 +932,19 @@ module alto-service-inheritance {
             "Destination endpoint addresses.";
         }
         description
-          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+          " EndpointFilter: Endpoint addresses. RFC7285 Sec. 11.5.1.3." +
           " object {
-              PIDName srcs<0..*>;
-              PIDName dsts<0..*>;
-            } PIDFilter;";
+              [TypedEndpointAddr srcs<0..*>;]
+              [TypedEndpointAddr dsts<0..*>;]
+            } EndpointFilter;";
       }
-      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
       description
-        "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
+        "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
         " object {
-            CostType   cost-type;
-            [JSONString constraints<0..*>;]
-            [PIDFilter  pids;]
-          } ReqFilteredCostMap;";
+            CostType          cost-type;
+            [JSONString       constraints<0..*>;]
+            EndpointFilter    endpoints;
+          } ReqEndpointCostMap;";
     }
     output {
       container endpoint-cost-service {
@@ -970,18 +974,20 @@ module alto-service-inheritance {
             }
             description
               "The list represents the inner part of the cost matrix." +
-              "DstCosts. RFC7285 Sec. 11.2.3.6." +
+              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
               " object-map {
-                  PIDName -> JSONValue;
-                } DstCosts;";
+                  TypedEndpointAddr -> JSONValue;
+                } EndpointDstCosts;";
           }
           description
             "The list represents the outer part of the cost matrix." +
-            "CostMapData. RFC7285 Sec. 11.2.3.6." +
-            " object-map {
-                PIDName -> DstCosts;
-              } CostMapData;" +
-            "Endpoint-cost-map.";
+            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
+            " object {
+                EndpointCostMapData endpoint-cost-map;
+              } InfoResourceEndpointCostMap : ResponseEntityBase;
+              object-map {
+                TypedEndpointAddr -> EndpointDstCosts;
+              } EndpointCostMapData;";
         }
       }
     }

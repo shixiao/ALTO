@@ -1,0 +1,176 @@
+module: alto-service-inheritance
+   +--ro resource*
+   |  +--ro meta
+   |  |  +--ro (dependent)?
+   |  |  |  +--:(dependent)
+   |  |  |  |  +--ro dependent-vtags*
+   |  |  |  |     +--ro resource-id?   resource-id
+   |  |  |  |     +--ro tag?           string
+   |  |  |  +--:(independent)
+   |  |  |     +--ro vtag
+   |  |  |        +--ro resource-id?   resource-id
+   |  |  |        +--ro tag?           string
+   |  |  +--ro cost-type
+   |  |     +--ro cost-type-name?   cost-type-name
+   |  |     +--ro cost-mode?        cost-mode
+   |  |     +--ro cost-metric?      cost-metric
+   |  |     +--ro description?      string
+   |  +--ro uri?            inet:uri
+   |  +--ro media-type?     media-type
+   |  +--ro network-map* [pid]
+   |  |  +--ro pid                       pid-name
+   |  |  +--ro endpoint-address-group* [address-type]
+   |  |     +--ro address-type       endpoint-address-type
+   |  |     +--ro endpoint-prefix*   endpoint-prefix
+   |  +--ro cost-map* [src]
+   |  |  +--ro src          pid-name
+   |  |  +--ro dst-costs* [dst]
+   |  |     +--ro dst     pid-name
+   |  |     +--ro cost?   alto-cost
+   |  +--ro accepts*        media-type
+   |  +--ro uses*           resource-id
+   |  +--ro capabilities
+   |     +--ro cost-type-names*   leafref
+   |     +--ro prop-types*        endpoint-property-type
+   +--ro IRD
+      +--ro uri?          inet:uri
+      +--ro media-type?   media-type
+      +--ro resources* [resource-id]
+      |  +--ro resource-id     resource-id
+      |  +--ro uri?            leafref
+      |  +--ro media-type?     leafref
+      |  +--ro accepts*        leafref
+      |  +--ro uses*           leafref
+      |  +--ro capabilities
+      |     +--ro cost-constraints?   boolean
+      |     +--ro cost-type-names*    cost-type-name
+      |     +--ro prop-types*         endpoint-property-type
+      +--ro meta
+         +--ro (dependent)?
+         |  +--:(dependent)
+         |  |  +--ro dependent-vtags*
+         |  |     +--ro resource-id?   resource-id
+         |  |     +--ro tag?           string
+         |  +--:(independent)
+         |     +--ro vtag
+         |        +--ro resource-id?   resource-id
+         |        +--ro tag?           string
+         +--ro cost-types* [cost-type-name]
+         |  +--ro cost-type-name    cost-type-name
+         |  +--ro cost-mode?        cost-mode
+         |  +--ro cost-metric?      cost-metric
+         |  +--ro description?      string
+         +--ro default-alto-network-map?   leafref
+rpcs:
+   +---x endpoint-property-service       
+   |  +--ro input     
+   |  |  +--ro properties*   endpoint-property-type
+   |  |  +--ro endpoints*    endpoint-address
+   |  +--ro output    
+   |     +--ro endpoint-property-service
+   |        +--ro meta
+   |        |  +--ro (dependent)?
+   |        |     +--:(dependent)
+   |        |     |  +--ro dependent-vtags*
+   |        |     |     +--ro resource-id?   resource-id
+   |        |     |     +--ro tag?           string
+   |        |     +--:(independent)
+   |        |        +--ro vtag
+   |        |           +--ro resource-id?   resource-id
+   |        |           +--ro tag?           string
+   |        +--ro endpoint-properties* [pid]
+   |        |  +--ro pid           endpoint-address
+   |        |  +--ro properties* [property-type]
+   |        |     +--ro property-type    endpoint-property-type
+   |        |     +--ro property?        endpoint-property-value
+   |        +--ro capabilities*          endpoint-property-type
+   +---x filtered-network-map-service    
+   |  +--ro input     
+   |  |  +--ro pids*            pid-name
+   |  |  +--ro address-types*   endpoint-address-type
+   |  +--ro output    
+   |     +--ro filtered-network-map-service
+   |        +--ro meta
+   |        |  +--ro (dependent)?
+   |        |     +--:(dependent)
+   |        |     |  +--ro dependent-vtags*
+   |        |     |     +--ro resource-id?   resource-id
+   |        |     |     +--ro tag?           string
+   |        |     +--:(independent)
+   |        |        +--ro vtag
+   |        |           +--ro resource-id?   resource-id
+   |        |           +--ro tag?           string
+   |        +--ro network-map* [pid]
+   |           +--ro pid                       pid-name
+   |           +--ro endpoint-address-group* [address-type]
+   |              +--ro address-type       endpoint-address-type
+   |              +--ro endpoint-prefix*   endpoint-prefix
+   +---x filtered-cost-map-service       
+   |  +--ro input     
+   |  |  +--ro cost-type
+   |  |  |  +--ro cost-type-name?   cost-type-name
+   |  |  |  +--ro cost-mode?        cost-mode
+   |  |  |  +--ro cost-metric?      cost-metric
+   |  |  |  +--ro description?      string
+   |  |  +--ro constraints*   constraint
+   |  |  +--ro pids
+   |  |     +--ro srcs*   pid-name
+   |  |     +--ro dsts*   pid-name
+   |  +--ro output    
+   |     +--ro filtered-cost-map-service
+   |        +--ro meta
+   |        |  +--ro (dependent)?
+   |        |  |  +--:(dependent)
+   |        |  |  |  +--ro dependent-vtags*
+   |        |  |  |     +--ro resource-id?   resource-id
+   |        |  |  |     +--ro tag?           string
+   |        |  |  +--:(independent)
+   |        |  |     +--ro vtag
+   |        |  |        +--ro resource-id?   resource-id
+   |        |  |        +--ro tag?           string
+   |        |  +--ro cost-type
+   |        |     +--ro cost-type-name?   cost-type-name
+   |        |     +--ro cost-mode?        cost-mode
+   |        |     +--ro cost-metric?      cost-metric
+   |        |     +--ro description?      string
+   |        +--ro cost-map* [src]
+   |        |  +--ro src          pid-name
+   |        |  +--ro dst-costs* [dst]
+   |        |     +--ro dst     pid-name
+   |        |     +--ro cost?   alto-cost
+   |        +--ro capabilities
+   |           +--ro cost-type-names*    leafref
+   |           +--ro cost-constraints?   boolean
+   +---x endpoint-cost-service           
+      +--ro input     
+      |  +--ro cost-type
+      |  |  +--ro cost-type-name?   cost-type-name
+      |  |  +--ro cost-mode?        cost-mode
+      |  |  +--ro cost-metric?      cost-metric
+      |  |  +--ro description?      string
+      |  +--ro constraints*   constraint
+      |  +--ro pids
+      |     +--ro srcs*   endpoint-address
+      |     +--ro dsts*   endpoint-address
+      +--ro output    
+         +--ro endpoint-cost-service
+            +--ro meta
+            |  +--ro (dependent)?
+            |  |  +--:(dependent)
+            |  |  |  +--ro dependent-vtags*
+            |  |  |     +--ro resource-id?   resource-id
+            |  |  |     +--ro tag?           string
+            |  |  +--:(independent)
+            |  |     +--ro vtag
+            |  |        +--ro resource-id?   resource-id
+            |  |        +--ro tag?           string
+            |  +--ro cost-type
+            |     +--ro cost-type-name?   cost-type-name
+            |     +--ro cost-mode?        cost-mode
+            |     +--ro cost-metric?      cost-metric
+            |     +--ro description?      string
+            +--ro endpoint-cost-map* [src]
+               +--ro src          endpoint-address
+               +--ro dst-costs* [dst]
+                  +--ro dst     endpoint-address
+                  +--ro cost?   alto-cost
