@@ -38,24 +38,6 @@ module alto-service-inheritance {
 
   typedef endpoint-address {
     type union {
-      type inet:ipv4-address;
-      type inet:ipv6-address; /* yry: Will this generate ALTO format, 
-                                 which is based on Sec. 3.2.2 of 
-                                 http://www.ietf.org/rfc/rfc3986.txt? */
-                              /* sx: http://www.yang-central.org/twiki/bin/view/Main/InetTypesHtml
-                                  this is ipv4 address alone; I could use inet:host
-                                  so that it includes domain names. We might have to
-                                  write our own reg-names typedef. */
-      type typed-endpoint-address;
-    }
-    description
-      "Endpoint address, either IPv4 or Ipv6." +
-      "or TypedEndpointAddr, see below.";
-  }
-
-  //temporary
-  typedef typed-endpoint-address {
-    type union {
       type string {
         pattern
           'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
@@ -74,7 +56,13 @@ module alto-service-inheritance {
               + '(%.+)?';
       }
     }
-
+    /* yry: Will this generate ALTO format, 
+      which is based on Sec. 3.2.2 of 
+      http://www.ietf.org/rfc/rfc3986.txt? */
+    /* sx: http://www.yang-central.org/twiki/bin/view/Main/InetTypesHtml
+      this is ipv4 address alone; I could use inet:host
+      so that it includes domain names. We might have to
+      write our own reg-names typedef. */
     description
       "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
       "= AddressType:EndpointAddr" +
@@ -85,18 +73,20 @@ module alto-service-inheritance {
   }
 
   typedef endpoint-address-type {
-    type enumeration {
-      enum ipv4;
-      enum ipv6;
-      enum MAC;
-      enum overlay-ID;
-      // put more options here;
+    type union {
+      type enumeration {
+        enum ipv4;
+        enum ipv6;
+      }
+      type string {
+        pattern "[0-9a-zA-Z]+";
+      }
     }
     description
       "If the address is not typed, it has an associated address type." +
       "Ref: RFC7285 Sec 2.2.";
   }
-  
+
   typedef endpoint-prefix {
     type inet:ip-prefix;
   }
@@ -287,15 +277,9 @@ module alto-service-inheritance {
     type union {
       type enumeration {
         enum pid {
-          value "0";
           description "PID property.";
         }
-        enum network-location {
-          value "1";
-          description
-            "Network location";
-        }
-        // other examples here
+        // other options here
       }
       type string {
         length "1..32";
