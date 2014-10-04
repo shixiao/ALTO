@@ -837,40 +837,7 @@ module alto-service-inheritance {
           description
             "Meta information.";
         }
-        list cost-map {
-          leaf src {
-            type pid-name;
-            description
-              "Source endpoint address.";
-          }
-          key "src";
-          list dst-costs {
-            leaf dst {
-              type pid-name;
-              description
-                  "Destination endpoint address.";
-            }
-            key "dst";
-            leaf cost {
-              type alto-cost;
-                description
-                  "Cost from source to destination.";
-            }
-            description
-              "The list represents the inner part of the cost matrix." +
-              "DstCosts. RFC7285 Sec. 11.2.3.6." +
-              " object-map {
-                  PIDName -> JSONValue;
-                } DstCosts;";
-          }
-          description
-            "The list represents the outer part of the cost matrix." +
-            "CostMapData. RFC7285 Sec. 11.2.3.6." +
-            " object-map {
-                PIDName -> DstCosts;
-              } CostMapData;" +
-            "Endpoint-cost-map.";
-        }
+        uses cost-map;
       }
     }
   }
