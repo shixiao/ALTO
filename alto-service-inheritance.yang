@@ -786,24 +786,7 @@ module alto-service-inheritance {
         container meta {
           uses meta;
         }
-        list network-map {
-          key pid;
-          leaf pid {
-            type pid-name;
-            description
-              "must be present in the input srcs or dsts";
-          }
-          uses endpoint-address-group;
-          description
-            "RFC7285 Sec. 11.2.1.6." + 
-            " object-map {
-                PIDName -> EndpointAddrGroup;
-              } NetworkMapData;";
-        }
-        description
-          " object {
-              NetworkMapData network-map;
-            } InfoResourceNetworkMap : ResponseEntityBase;";
+        uses network-map;
       }
     }
   }
