@@ -1,5 +1,3 @@
-default resource-id "my-default-network-map"
-
 IRD: a used cost-type must exist
 
 namespace issues during rpc/rpc-reply validation
@@ -10,14 +8,6 @@ rpc input-output orders must be fixed
 dealing with data inheritance and polymorphism arrays
 
 ===Notes===
-
-1. TypedEndpointAddress (RFC7285, Sec. 10.4.1).
-
-"ipv4:127.0.0.1" as a whole string. It is very difficult to model
-using YANG: "Type:Addr" where the Addr is inet-ip-address type.
-
-Similar instances include "pid.endpoint-property-type" where the
-second half should be enum/restricted.
 
 2. meta field should have the same format, use augment feature of YANG
 to encode it.
@@ -36,22 +26,3 @@ for cost service/filtered-map service, use leaf-ref to restrict output pids
 //can't seem to reference an rpc node.
 
 reply from netmod: Can't do this in YANG. Specify in description.
-
-4. YANG-JSON encoding
-One difficulty is that ALTO protocol specifies some data nodes as JSON map keys.
-
-One major issue I encountered was that in the ALTO examples, sometimes the request/reply would model a name as the key of a JSON map. for example, in the response below "PID1" and "PID2" are used as JSON map keys.
-
-"network-map" : {
-  "PID1" : {
-    ...
-  },
-  "PID2" : {
-    ...
-  }
-}
-
-However, according to the "Modeling JSON text with YANG" document, a JSON map key corresponds to a YANG container, and JSON map value is what's in the container. This means the name of the YANG container needs to be "PID1" or "PID2", which I don't think is possible in YANG because they are data, not schema.
-
-I have emailed the author of the draft of "Modeling JSON text with YANG."
-

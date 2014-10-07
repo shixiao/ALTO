@@ -402,7 +402,7 @@ module alto-service-inheritance {
     }
   }
 
-    /* network-map */
+  /* network-map */
   augment "/resource" {
     when "./media-type = 'application/alto-networkmap+json' ";
     uses network-map;

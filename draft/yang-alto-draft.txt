@@ -1,0 +1,174 @@
+Non-trivial specification efforts
+
+1. Typed addresses
+1.1. The ALTO definition
+The ALTO Protocol defines Typed Endpoint Addresses in RFC7285, Sec. 10.4.1 as strings of the format AddressType:EndpointAddr, with the ':' character as a separator, in order to accommodate different type of addresses: ipv4, ipv6, MAC addresses, etc. For example, "ipv4:127.0.0.1" or "ipv6:21DA:D3:0:2F3B:2AA:FF:FE28:9C5A".
+
+1.2. ip-address in ietf-inet-types (defined in RFC6021)
+The ip-address Type in ietf-inet-types is defined as a union (RFC6020 Sec. 9.12) of ipv4 and ipv6 addresses.
+typedef ip-address {
+  type union {
+    type inet:ipv4-address;
+    type inet:ipv6-address;
+  }
+}
+
+typedef ipv4-address {
+  type string {
+    pattern
+      '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+    +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+    + '(%[\p{N}\p{L}]+)?';
+  }
+}
+
+typedef ipv6-address {
+  type string {
+    pattern '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
+          + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
+          + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
+          + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
+          + '(%[\p{N}\p{L}]+)?';
+    pattern '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
+          + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
+          + '(%.+)?';
+  }
+}
+
+1.3. YANG modeling of Typed Addresses
+Ideally, the typed address should be defined using the inet:ip-address by concatenating the prefixes "ipv4:" and "ipv6:" onto the inet:ip-address. The difficulty lies in the string constraints (i.e. pattern statment). There is no way to refer or extend a string pattern, which largely reduces extensibility and modularity of the model.
+
+1.4. Implications
+The self-carrying typing of ALTO typed addresses is actually easier to implement and easier to check, as the inet:ip-addresses checking requires a complex regex.
+
+1.5. Other useful applications
+Similar instances include resource-specific endpoint properties (RFC7285 Sec. 10.8.1.) which is defined as a resource ID, followed by the '.' separator (U+002E), followed by a name obeying the same rules as for global endpoint property names.
+
+
+2. Key-value store
+One helpful data structure is a key-value store (equivalent to a JSON map object or hashmaps in other languages). Map structures are useful because of their efficiency, inherent uniqueness constraint on their keys, and their natural conversion to and from structures like indexed database tables.
+
+A particular example of using key-value store is the network-map, which is defined as a key-value store to enforce that each named endpoint address group has a unique name. A specific example is in Section 11.2.1.7 of RFC 7285 (http://www.rfc-editor.org/rfc/rfc7285.txt):
+===JSON text===
+"network-map" : {
+  "PID1" : {
+    "ipv4" : [
+      "192.0.2.0/24",
+      "198.51.100.0/25"
+    ]
+  },
+  "PID2" : {
+    "ipv4" : [
+      "198.51.100.128/25"
+    ]
+  },
+  "PID3" : {
+    "ipv4" : [
+      "0.0.0.0/0"
+    ],
+    "ipv6" : [
+      "::/0"
+    ]
+  }
+}
+===============
+
+One way to express such a map in YANG is the following:
+===example YANG===
+list network-map {
+  key "pid";
+  leaf pid {
+    type string;
+  }
+  list endpoint-address-group {
+    key address-type;
+    leaf address-type {
+      type endpoint-address-type;
+    }
+    leaf-list endpoint-prefix {
+      type endpoint-prefix;
+    }
+  }
+}
+==================
+
+However, following the draft "Modeling JSON Text with YANG" (http://tools.ietf.org/id/draft-lhotka-netmod-yang-json-00.html), the corresponding JSON text is the following:
+===Validated JSON===
+"network-map": [
+  {
+    "pid": "PID1",
+    "endpoint-address-group": {
+      "address-type": "ipv4",
+      "endpoint-prefix": [
+        "192.0.2.0/24",
+        "198.51.100.0/25"
+      ]
+    }
+  },
+  {
+    "pid": "PID2",
+    "endpoint-address-group": {
+      "address-type": "ipv4",
+      "endpoint-prefix": ["198.51.100.128/25"]
+    }
+  },
+  {
+    "pid": "PID3",
+    "endpoint-address-group": [
+      {
+        "address-type": "ipv4",
+        "endpoint-prefix": ["0.0.0.0/0"]
+      },
+      {
+        "address-type": "ipv6",
+        "endpoint-prefix": ["::/0"]
+      }
+    ]
+  }
+]
+====================
+
+We immediately notices the difference and a few disadvantages.
+1) it is unclear from the JSON text that pid is the key to the list network-map;
+2) the JSON text generated from the YANG model is much more verbose, which decreases the server efficiency when the model scales.
+
+A side note: the address-type and address (prefix) consistency is not enforced in the YANG model.
+
+
+3. Constraints
+3.1. use of leafrefs
+Leafrefs in YANG are heavily tied with XML and XPATH expressions. However, leafrefs cannot reference a rpc node (or structures within a rpc node). One useful application is referring to rpc input from rpc output.
+
+3.2. inheritance
+There are two major approaches to model inheritance (or extend and modularize structures) in YANG: 1) grouping and uses statements; 2) augment and refine statements.
+
+Some of the inconveniences:
+1) There are certain limitations to what a "refine" statement could do (for good reason), e.g. refine statements cannot remove components;
+2) When augmenting a base structure, there can only be one structure of a certain name. This is equivalent to the functionalities of #ifdefs in C/C++, or having different variables or methods in extended classes in object-oriented languages. For example, the following YANG model is not allowed in the current YANG specification:
+===invalid YANG model===
+container base-class {
+  // empty base structure
+}
+
+augment "/base-class" {
+  when "../media-type = 'type-a'";
+  container extension {
+    // structures for type-a
+  }
+}
+
+augment "/base-class" {
+  when "../media-type = 'type-b'";
+  container extention {
+    // structures for type-b
+  }
+}
+=========================
+
+4. Data model vs. RPCs
+A distinction between data model and rpc is necessary for leafref restrictions. For example, to put together the IRD (Information Resource Directory), the IRD entries references the URIs and media-types of each resource (network map or cost map), hence the resource must be a data model, not entirely in a rpc. 
+
+It is unclear how users (both server-side and client-side) will use the YANG model--e.g. a verifier, a client code generator, etc.--hence whether to duplicate structures in data model and rpcs is unclear in the design process.
+
+Results and quality of YANG tools
+
