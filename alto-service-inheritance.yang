@@ -17,14 +17,14 @@ module alto-service-inheritance {
   }
   */
 
-  organization "TBD";
-  contact "WILL-BE-DEFINED-LATER";
+  organization "ALTO WG";
+  contact "alto@ietf.org";
 
   description 
-    "This module defines a model for the ALTO service
-     based on draft-ietf-alto-protocol-27.";
+    "This module defines a data model for the ALTO services
+     defined in RFC7285.";
 
-  revision 2014-09-29 {
+  revision 2014-10-09 {
     description "v1. pending review";
   }
 
@@ -55,14 +55,8 @@ module alto-service-inheritance {
               + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
               + '(%.+)?';
       }
+      // EXTENSION: additional address types will be added here.
     }
-    /* yry: Will this generate ALTO format, 
-      which is based on Sec. 3.2.2 of 
-      http://www.ietf.org/rfc/rfc3986.txt? */
-    /* sx: http://www.yang-central.org/twiki/bin/view/Main/InetTypesHtml
-      this is ipv4 address alone; I could use inet:host
-      so that it includes domain names. We might have to
-      write our own reg-names typedef. */
     description
       "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
       "= AddressType:EndpointAddr" +
@@ -180,6 +174,7 @@ module alto-service-inheritance {
           description
           "Hopcount metric.";
         }
+        // EXTENSION: Additional cost-metric will be defined here.
       }
       type string {
         length 1..32;
@@ -202,6 +197,7 @@ module alto-service-inheritance {
         description
           "Ordinal cost mode.";
       }
+      // EXTENSION: Additional cost-mode will be defined here.
     }
     description
       "Cost mode. MUST support at least one of numerical and ordinal";
@@ -212,6 +208,8 @@ module alto-service-inheritance {
     // no specification in RFC7285, looks like alphanumeric and dash.
   }
 
+  // yry: distinguish cost-type definition (used in ird), which includes cost-mode, cost-metric, and description
+  //                  cost-type value (used in cost map), which includes only cost-mode and cost-metric
   grouping cost-type {
     /* yry: This is in IRD only, right? How about name cost-type-in-ird? */
     /* sx: no, it is also used in rpc-reply of cost-map-service, see the augment statements near the end*/
