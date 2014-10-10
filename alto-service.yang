@@ -10,21 +10,19 @@ module alto-service {
     prefix inet;
   }
 
-  /*
-  // currently unused
-  import ietf-yang-types {
-    prefix yang;
-  }
-  */
-
-  organization "TBD";
-  contact "WILL-BE-DEFINED-LATER";
+  organization "ALTO WG";
+  contact "alto@ietf.org";
 
   description 
-    "This module defines a model for the ALTO service
-     based on draft-ietf-alto-protocol-27.";
+    "This module defines a data model for the ALTO services
+     defined in RFC7285.";
 
-  revision 2014-09-29 {
+  /* Potential issue for future EXTENSION: YANG 1.0 is unable to
+   * augment a typedef or enum type. e.g., there is not a good way to
+   * add a cost metric or type of address if this document is
+   * fixed. We have marked such places with "EXTENSION." */
+
+  revision 2014-10-09 {
     description "v1. pending review";
   }
 
@@ -32,118 +30,177 @@ module alto-service {
     description "Initial revision. betw Michael and Xiao";
   }
   
-  /* Type definitions */
+  /********************
+   * TYPE DEFINITIONS *
+   ********************/
 
-  typedef endpoint-address {
-    type union {
-      type inet:ipv4-address;
-      type inet:ipv6-address; /* yry: Will this generate ALTO format, 
-                                 which is based on Sec. 3.2.2 of 
-                                 http://www.ietf.org/rfc/rfc3986.txt? */
-                              /* sx: http://www.yang-central.org/twiki/bin/view/Main/InetTypesHtml
-                                  this is ipv4 address alone; I could use inet:host
-                                  so that it includes domain names. We might have to
-                                  write our own reg-names typedef. */
-      // type typed-endpoint-address;
+  /***********************************************************
+    Definitions for addresses
+
+    ALTO RFC7285 uses the following addresses, as shown in the
+    examples below:
+
+     - Endpoint property service (Sec. 11.4.1.7):
+       "endpoints"  : [ "ipv4:192.0.2.34",
+                        "ipv4:203.0.113.129" ]
+     - Endpoint cost service (Sec. 11.5.1.7):
+       "endpoints" : {
+       "srcs": [ "ipv4:192.0.2.2" ],
+       "dsts": [
+         "ipv4:192.0.2.89",
+         "ipv4:198.51.100.34",
+         "ipv4:203.0.113.45"
+     - Network map (Sec. 11.2.1.7.):
+         "ipv4": [
+           "192.0.2.0/24",
+           "198.51.100.0/25"
+         ],
+         "ipv6": [
+           "2001:db8:0:1::/64",
+           "2001:db8:0:2::/64"
+         ]
+
+   To handle the proceeding, we need definitions in the following order:
+      ipv4-address (e.g., 192.0.2.0, already defined in rfc6991), 
+      ipv6-address (already defined in rfc6991), 
+      ipv4-prefix (e.g., 192.0.2.0/24, already defined in rfc6991), 
+      ipv6-prefix (defined in rfc6991), 
+      typed-ipv4-address (e.g., ipv4:192.0.2.1, to be defined in this module) 
+      typed-ipv6-address
+      typed-ipv4-prefix-list (e.g., "ipv4": [
+           "192.0.2.0/24",
+           "198.51.100.0/25"
+         ],
+
+  ***************************************************************************/
+
+  /* 
+     First define typed-ipv4-address and typed-ipv6-address, as used
+     by endpoint services.
+
+     The ideal case is to define it as "ipv4:"+ipv4-address, but there
+     is not such a type constructor (YANG EXTENSION).  Hence, the
+     current definition cuts-and-pastes (i.e., repeats verbatim) the
+     definition of ipv4-address and prepend "ipv4:". The downside is
+     that if someone redefines ipv4-address, there could be
+     inconsistency.
+   */
+
+  typedef typed-ipv4-address {
+    type string {
+        pattern
+          'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+         +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+         + '(%[\p{N}\p{L}]+)?';
+      }
+  }
+
+
+  typedef typed-ipv6-address {
+    type string {
+      pattern 'ipv6:((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
+            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
+            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
+            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
+            + '(%[\p{N}\p{L}]+)?';
+      pattern 'ipv6:(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
+            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
+            + '(%.+)?';
     }
-    description
-      "Endpoint address, either IPv4 or Ipv6." +
-      "or TypedEndpointAddr, see below.";
   }
 
   typedef typed-endpoint-address {
-    type string {
-      pattern "[0-9a-zA-Z]+:.+";
+    type union {
+      type typed-ipv4-address;
+      type typed-ipv6-address;
+      // EXTENSION: ADD NEW TYPE HERE.
     }
     description
       "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
-      "= AddressType:EndpointAddr" +
-      "TODO: restrict both halves of the address. See TODO.txt for" +
-      "explanation of difficulty. The second half should extend the" +
-      "restrictions if the first half (AddressType is ipv4 or" +
-      "ipv6). Ref: RFC7285 10.4.2.";
+      "= AddressType:EndpointAddr";
   }
 
+  /* Next, we define endpoint address group, as used in the definition
+     of ALTO network maps. Specifically, an endpoint address group in
+     ALTO is defined as a key-value store, with address type as key,
+     and an array of prefix as the value of each key:
+
+     EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
+       object-map {
+       AddressType -> endpoint-prefix<0..*>;
+     } EndpointAddrGroup;
+
+     There are two challenges:
+ 
+     1) To specify that AddressType is key, we must use the list type,
+     which is the only type that one can specify key. However, the
+     current JSON-YANG encoding generates an array, instead of a
+     key-value map;
+
+     2) Ideally, we want to enforce address type and prefix
+     consistency; for example, an ipv6 prefix in an ipv4 type should
+     not be allowed. However, we encounter problems. We leave this as
+     an OPEN ISSUE.
+  */
+
   typedef endpoint-address-type {
-    type enumeration {
-      enum ipv4;
-      enum ipv6;
-      enum MAC;
-      enum overlay-ID;
-      // put more options here;
+    type union {
+      type enumeration {
+        enum ipv4;
+        enum ipv6;
+        // EXTENSION: ADD NEW TYPE HERE
+      }
     }
     description
-      "If the address is not typed, it has an associated address type." +
       "Ref: RFC7285 Sec 2.2.";
   }
   
   typedef endpoint-prefix {
     type inet:ip-prefix;
+    description
+      "endpoint prefix, identical to the ip-prefix definition in RFC6991.";
   }
-  
+
   grouping endpoint-address-group {
+    list endpoint-address-group {
+      key address-type;
+      leaf address-type {
+        type endpoint-address-type;
+        mandatory true;
+      }
+      leaf-list endpoint-prefix {
+        type endpoint-prefix;
+      }
+    }
     description
       "EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
       " object-map {
           AddressType -> endpoint-prefix<0..*>;
         } EndpointAddrGroup;";
-    list endpoint-address-group { /* yry: issue: json encoding will not generate map, but an array */
-      key address-type;
-      leaf address-type {
-        type endpoint-address-type;
-      }
-      leaf-list endpoint-prefix {
-        type endpoint-prefix;
-      }
-      must
-        "address-type != 'ipv4' or " +
-        "(address-type = 'ipv4' and endpoint-prefix = 'inet:ipv4-prefix')" {
-        error-message "Invalid ipv4 address.";
-      }      
-      must
-        "address-type != 'ipv6' or " +
-        "(address-type = 'ipv6' and endpoint-prefix = 'inet:ipv6-prefix')" {
-        error-message "Invalid ipv6 address.";
-      }
-    }
   }
 
-  grouping endpoint-addresses {
-    leaf-list endpoints {  /* yry: Can the list be a mix of ipv4 and ipv6 addresses?
-                              One possibility of typed branch is to define ipv4 addresses and ipv6 addresses.
-                              sx: yes. see typedef endpoint-address, it is a union of ipv4 and ipv6, could be either.*/
-      type endpoint-address;
-      description
-        "The leaf list identifies endpoints.";
-    }
-  }
-
-  typedef network-location {
-    type union {
-      type inet:ipv4-prefix;
-      type inet:ipv6-prefix;
-      type inet:ipv4-address;
-      type inet:ipv6-address;
-    }
-    description
-      "Network location, either IPv4 or Ipv6.";
-  }
-
-  grouping network-locations {
-    leaf-list locations {    /* yry: this will allow a mixed type of addresses. */
-      type network-location;
-      description
-        "The leaf list identifies network locations.";
-    }
-    description
-      "This corresponds to the term __Network Location__ in RFC7285 Sec. 2.3";
-  }
+  /**************************************************************
+   * Definitions for IDs and names
+   *
+   * ALTO defines the following concepts that are names and IDs:
+   *
+   *   pid name (used in network map, cost map),
+   *   resource IDs (used to identify alto network/cost maps),
+   *   version tag (used to indicate uniqueness of resource),
+   *   cost-type-name (used in IRD),
+   *   cost-metric,
+   *   cost-mode
+   *
+   * We group their definitions together below.       
+   **************************************************************/
 
   typedef valid-id-string {
     type string {
       length "1..64";
       pattern "[0-9a-zA-Z_\-:@\.]+";
     }
+    description
+      "Type for valid ID strings.";
   }
 
   typedef pid-name {
@@ -155,22 +212,64 @@ module alto-service {
       "document.";
   }
 
+  typedef resource-id {
+    type valid-id-string;
+    description
+      "Resource-ID.";
+  }
+
+  grouping version-tag {
+    leaf resource-id {
+      type resource-id;
+      mandatory true;
+    }
+    leaf tag {
+      type string {
+        length "1..64";
+        pattern "[!-~]+";
+      }
+      mandatory true;
+      description
+        "Tag. RFC7285 Sec. 10.3. U+0021-U+007E";
+    }
+    description
+      "Version tag. Both resource-id and tag must be equal
+       byte-for-byte. RFC7285 Sec. 10.3." +
+      " object {
+          ResourceID resource-id;
+          JSONString tag;
+        } VersionTag;";
+  }
+
+ /*************************************
+    Definitions for cost type and cost types
+
+    In ALTO, a cost type consists of two required components:
+
+      cost-metric,
+      cost-mode
+      and an optional description component.
+
+    In the IRD, one can name each cost type. Such info is collected in
+     a hash map called cost types.
+  *************************************/
+
   typedef cost-metric {
     type union {
       type enumeration {
         enum routingcost {
-          value "0"; /* yry: what is the implication on encoding? */
           description
           "Default metric. MUST support. RFC7285 Sec. 6.1.1.1.";
         }
         enum hopcount {
-          value "1";
           description
           "Hopcount metric.";
         }
+        // EXTENSION: Additional cost-metric will be defined here.
       }
       type string {
-        pattern "[\w\-:\.]+";
+        length 1..32;
+        pattern "priv:[0-9a-zA-Z_\-:\.]+";
       }
     }
     description
@@ -180,39 +279,33 @@ module alto-service {
   typedef cost-mode {
     type enumeration {
       enum numerical {
-        value "0";
         description
           "Numerical cost mode.";
       }
       enum ordinal {
-        value "1";
         description
           "Ordinal cost mode.";
       }
+      // EXTENSION: Additional cost-mode will be defined here.
     }
     description
       "Cost mode. MUST support at least one of numerical and ordinal";
   }
 
   grouping cost-type {
-    /* yry: This is in IRD only, right? How about name cost-type-in-ird? */
-    /* sx: no, it is also used in rpc-reply of cost-map-service, see the augment statements near the end*/
-    leaf cost-type-name {
-      type string;
-    }
     leaf cost-mode {
       type cost-mode;
+      mandatory true;
       description
         "Cost mode.";
     }
     leaf cost-metric {
       type cost-metric;
+      mandatory true;
       description
         "Cost metric.";
     }
     leaf description {
-      /* yry: How to indicate this is optional? */
-      /* sx: I believe all leafs are optional unless specified as mandatory which I have not done yet... */
       type string;
       description
         "Optional description field.";
@@ -226,57 +319,68 @@ module alto-service {
         } CostType;";
   }
 
-  typedef constraint {
-    type string {
-      pattern "(gt|ge|lt|le|eq) [0-9]+";
-    }
-    description
-      "RFC7285 Sec. 11.3.2.3. The second part must be in the" +
-      "same unit as cost-metric, IEEE 754 2008 floating point.";
+  typedef cost-type-name {
+    type valid-id-string;
+    // NOTE: not fully specified in RFC7285, default as valid id
   }
 
-  typedef endpoint-property-type {
-    type enumeration {
-      enum resource-specific-endpoint-property;
-      enum global-endpoint-property;
+  grouping cost-types {
+    list cost-types {
+      key cost-type-name;
+      leaf cost-type-name {
+        type cost-type-name;
+      }
+      uses cost-type;
     }
     description
-      "Endpoint property type. RFC7285 Sec. 10.8.";
+      "RFC 7285 Sec. 9.2.2." +
+      "object-map {
+         JSONString -> CostType;
+       } IRDMetaCostTypes;";
   }
+
+
+  /**************************************
+  * Definitions for endpoint properties *
+  **************************************/
+  typedef global-endpoint-property {
+    type union {
+      type enumeration {
+        enum pid {
+          description "PID property.";
+        }
+        // EXTENSION: other options here
+      }
+    }
+    description
+      "Global endpoint property. RFC7285 Sec. 10.8.2." +
+      "'priv:' for Private Use " + 
+      " length 1..32; ‘.’ is not allowed";
+  }
+
+  /*
+   * Ideally we would want to extend the typedef of resource-id and
+   * global endpoint properties, however, YANG 1.0 does not allow
+   * that, hence we simply copied the regex for resource-id over
+   * verbatim.
+   */
 
   typedef resource-specific-endpoint-property {
     type string {
       length "3..97"; //len(resource-id) + 1 + len(global-property)
       pattern "[\w\-:@\.]+\.[\w\-:_]+"; // resource-id.property
-      /* yry: is it possible to enforce reference to existence of id and prop? */
-      /* sx: with string concatenation, I do not think that is possible in YANG 1.0 */
     }
     description
       "Resource-specific endpoint property.";
   }
 
-  typedef global-endpoint-property {
+  typedef endpoint-property-type {
     type union {
-      type enumeration {
-        enum pid {
-          value "0";
-          description "PID property.";
-        }
-        enum network-location {
-          value "1";
-          description
-            "Network location";
-        }
-        // other examples here
-      }
-      type string {
-        length "1..32";
-        pattern "[\w\-:_]+"; // '.' is not allowed.
-      }
+      type resource-specific-endpoint-property;
+      type global-endpoint-property;
     }
     description
-      "Global endpoint property. RFC7285 Sec. 10.8.2." +
-      "'priv:' for Private Use ";
+      "Endpoint property type. RFC7285 Sec. 10.8.";
   }
 
   typedef endpoint-property-value {
@@ -285,33 +389,9 @@ module alto-service {
       "Endpoint property (value).";
   }
 
-  typedef resource-id {
-    type valid-id-string;
-    description
-      "Resource-ID.";
-  }
-
-  grouping version-tag {
-    leaf resource-id {
-      type resource-id;
-    }
-    leaf tag {
-      type string {
-        length "1..64";
-        pattern "[!-~]+";
-      }
-      description
-        "Tag. RFC7285 Sec. 10.3. U+0021-U+007E";
-    }
-    description
-      "Version tag. Both resource-id and tag must be equal
-       byte-for-byte. RFC7285 Sec. 10.3." +
-      " object {
-          ResourceID resource-id;
-          JSONString tag;
-        } VersionTag;";
-  }
-
+ /*************************************
+  * Definitions for response header
+  *************************************/
   grouping meta {
     choice dependent {
       // multiple vtags
@@ -339,7 +419,7 @@ module alto-service {
     type union {
       type string {
         // TODO: restrict more? RFC 7285, Sec. 14.1?
-        pattern "application/alto\-.*";   /* yry: it may not be always alto- */
+        pattern "application/alto\-.*";   
       }
       type enumeration {
         enum alto-directory+json;
@@ -354,15 +434,62 @@ module alto-service {
         enum alto-error+json;
       }
     }
-  }    
-      
-  grouping network-map {
+  }
+
+  typedef alto-cost {
+    type decimal64 {
+      fraction-digits 6;
+    }
+    description
+      "ALTO costs, currently only integer values. " +
+      "According to RFC 7285, alto-cost should be a JSONValue, which could be
+       an object, array, string, etc. (Ref: RFC 7159 Sec.3.)";
+  }
+
+
+  typedef constraint {
+    type string {
+      pattern "(gt|ge|lt|le|eq) [0-9]+";
+    }
+    description
+      "RFC7285 Sec. 11.3.2.3. The second part must be in the" +
+      "same unit as cost-metric, IEEE 754 2008 floating point.";
+  }
+
+  /****************************************************
+     DATA INSTANCES of all ALTO information resources
+
+     unfiltered network-maps, unfiltered cost-maps are all instances
+     of resources. IRD is also modeled as data.
+
+     The design uses augment as the basic approach to implement
+     inheritance.
+   ****************************************************/
+
+  /* base type */
+  list resource {
+    config false;
+    // ResponseEntityBase; Note: resource-id for network/cost maps are
+    // in their meta, see the augment statements below.
     container meta {
       uses meta;
     }
+    leaf uri {
+      type inet:uri;
+    }
+    leaf media-type {
+      type media-type;
+    }
+  }
+
+  /* network-map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-networkmap+json' ";
+    uses network-map;
+  }
+
+  grouping network-map {
     list network-map {
-      /* yry: enforce completeness (RFC 7285/Section 11.2.2) of a network map ? 
-         How about define a derived type, which is complete?*/
       key "pid";
       leaf pid {
         type pid-name;
@@ -381,25 +508,13 @@ module alto-service {
        } InfoResourceNetworkMap : ResponseEntityBase;";
   }
 
-  typedef alto-cost {
-    type decimal64 {
-      fraction-digits 6;
-    }
-    description
-      "ALTO costs, currently only integer values.";
+  /* cost map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-costmap+json' ";
+    uses cost-map;
   }
 
   grouping cost-map {
-    container meta { 
-      uses meta;
-      /* yry: depended network map? */
-      /* sx: in the meta/dependent-vtags/resource-id */
-      container cost-type {
-        uses cost-type;
-        description
-          "Cost type.";
-      }
-    }
     list cost-map {
       leaf src {
         type pid-name;
@@ -433,15 +548,159 @@ module alto-service {
             PIDName -> DstCosts;
           } CostMapData;";
     }
-    leaf accepts { /* yry: ? mixed?*/
+    description
+      "Cost map. RFC7285 Sec. 11.2.3.6." +
+      " object {
+          CostMapData cost-map;
+        } InfoResourceCostMap : ResponseEntityBase;";
+  }
+
+  container IRD {
+    config false;
+    leaf uri {
+      type inet:uri;
+    }
+    leaf media-type {
       type media-type;
     }
+    list resources {
+      key resource-id;
+      leaf resource-id {
+        type resource-id;
+        //TODO: ideally, this should be a leafref to the resource-id
+        //in various resources, e.g. network-map/meta/vtag/resource-id
+        //but this might need much more complicated conditioning.
+        //Also need to try to enforce this resource-id matches the uri
+        //and media-type of that resource. Not sure how to yet.
+      }
+      leaf uri {
+        type leafref {
+          path "/resource/uri";
+        }
+      }
+      leaf media-type {
+        type leafref {
+          path "/resource/media-type";
+        }
+      }
+      description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;" +
+        "InformationResourceDirectory. RFC7285 9.2.2." +
+        " object {
+            IRDResourceEntries resources;
+          } InfoResourceDirectory : ResponseEntityBase;";
+    }
+  }
+
+  /* meta */
+  augment "/IRD" {
+    container meta {
+      uses meta;
+      uses cost-types;
+      leaf default-alto-network-map {
+        type leafref {
+          path "../../../IRD/resources/resource-id";
+        }
+      }
+    }
+  }
+
+  augment "/resource/meta" {
+    when "../media-type = 'application/alto-costmap+json' ";
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
+  augment "/filtered-cost-map-service/output/filtered-cost-map-service/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
+  augment "/endpoint-cost-service/output/endpoint-cost-service/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
+
+  /* accepts (optional) */
+  grouping accepts {
+    leaf-list accepts {
+      type media-type;
+      min-elements 1;
+    }
+  }
+  augment "/resource" {
+    when ".";
+    uses accepts;
+  }
+  augment "/IRD/resources" {
+    when ".";
+    leaf-list accepts {
+      type leafref {
+        path "/resource/accepts";
+      }
+    }
+  }
+
+  /* uses */
+  grouping uses {
+    leaf-list uses {
+      type resource-id;
+      min-elements 1;
+    }
+  }
+  augment "/resource" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    // the logic is that the following structures can be present ONLY
+    // when the above conditions are satisfied. Not sure how to place
+    // different restrictions on different conditions.
+    uses uses;
+  }
+  augment "/IRD/resources" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    leaf-list uses {
+      type leafref {
+        path "/resource/uses";
+      }
+    }
+  }
+
+  /* capabilities */
+  augment "/resource" {
+    when "./media-type = 'application/alto-costmap+json' ";
     container capabilities {
       when "current()";
       leaf-list cost-type-names {
-        type leafref {
-          path "../../meta/cost-type/cost-type-name";
-        }
+        type cost-type-name;
         min-elements 1; // if added, capabilities becomes mandatory in cost-map.
         max-elements 1;
       }
@@ -455,95 +714,152 @@ module alto-service {
           } CostMapCapabilities;";
       // TODO: model other CostMapCapabilities, if provided
     }
-    leaf-list uses {
-      type resource-id;
-    }
-    description
-      "Cost map. RFC7285 Sec. 11.2.3.6." +
-      " object {
-          CostMapData cost-map;
-        } InfoResourceCostMap : ResponseEntityBase;";
   }
 
-  /* Instances */
+  augment "/IRD/resources" {
+    container capabilities {
+      leaf cost-constraints {
+        type boolean;
+      }
+      leaf-list cost-type-names {
+        type leafref {
+          path "/resource/capabilities/cost-type-names";
+        }
+      }
+      leaf-list prop-types {
+        type leafref {
+          path "/resource/capabilities/prop-types";
+        }
+      }
+    }
+  }
 
-  container map-service {
-    config false;
-    list network-map {
-      when "current()";
+  augment "/endpoint-property-service/output/endpoint-property-service" {
+    leaf-list capabilities {
+      when ".";
+      type endpoint-property-type;
       min-elements 1;
-      key "resource-id";
-      leaf resource-id {
-        type leafref {
-          path "../../../IRD/resource-id";
-        }
-      }
-      uses network-map;
       description
-        "Network map service (unfiltered).";
-    }
-    list cost-map {
-      key "resource-id";
-      leaf resource-id {
-        type leafref {
-          path "../../../IRD/resource-id";
-        }
-      }
-      uses cost-map;
-      description
-        "Cost map service (unfiltered).";
-    }
-    description
-      "Network and cost map service (unfiltered).";
-  }
-  list IRD {
-    key resource-id;
-    leaf resource-id {
-      type resource-id;
-    }
-    container IRD-resource-entry {
-      leaf uri {
-        type inet:uri;
-      }
-      leaf media-type {
-        type media-type;
-      }
-      leaf accepts {
-        type media-type;
-      }
-      container capabilities {
-        list cost-type-names {
-          uses cost-type;
-          key cost-type-name;
-        }
-      }
-      leaf-list uses {
-        type resource-id;
-      }
-      description
-        "IRDResourceEntry. RFC7285 9.2.2." +
+        "Sec. 11.4.1.4." +
         " object {
-            JSONString      uri;
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;";
+            EndpointPropertyType prop-types<1..*>;
+          } EndpointPropertyCapabilities;";
     }
-    description
-      "IRDResourceEntries. RFC7285 9.2.2." +
-      " object-map {
-          ResourceID  -> IRDResourceEntry;
-        } IRDResourceEntries;" +
-      "InformationResourceDirectory. RFC7285 9.2.2." +
-      " object {
-          IRDResourceEntries resources;
-        } InfoResourceDirectory : ResponseEntityBase;";
   }
 
-  // RPCs
+  augment "/filtered-cost-map-service/output/filtered-cost-map-service" {
+    container capabilities {
+      when ".";
+      leaf-list cost-type-names {
+        type cost-type-name;
+        min-elements 1;
+      }
+      leaf cost-constraints {
+        type boolean;
+      }
+      description
+        "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
+        " object {
+            JSONString cost-type-names<1..*>;
+            JSONBool cost-constraints;
+          } FilteredCostMapCapabilities;";
+    // TODO: model other CostMapCapabilities, if provided
+    }
+  }
 
-  rpc endpoint-cost-service {
+  /************************************
+   * RPC                              *
+   ************************************/
+
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint";
+    input {
+      leaf-list properties {
+        type endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type typed-endpoint-address;
+        min-elements 1;
+      }
+      /*
+      description
+        " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+      */
+    }
+    output {
+      container endpoint-property-service {
+        container meta {
+          uses meta;
+        }
+        list endpoint-properties {
+          key endpoint;
+          leaf endpoint {
+            type typed-endpoint-address;
+          }
+          list properties {
+            key property-type;
+            leaf property-type {
+              type endpoint-property-type;
+            }
+            leaf property {
+              type endpoint-property-value;
+            }
+            description
+              "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+              " object {
+                  EndpointPropertyType -> JSONValue;
+                } EndpointProps;";
+          }
+          description
+            "EndpointPropertyMapData. Sec. 11.4.1.6." +
+            " object-map {
+                TypedEndpointAddr -> EndpointProps;
+              } EndpointPropertyMapData;";
+        }
+        description
+          "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+          " object {
+              EndpointPropertyMapData endpoint-properties;
+            } InfoResourceEndpointProperties : ResponseEntityBase;";
+      }
+    }
+  }
+
+  rpc filtered-network-map-service {
+    description
+      "inquiries on filtered network map";
+    input {
+      leaf-list pids {
+        type pid-name;
+      }
+      leaf-list address-types {
+        type endpoint-address-type;
+      }
+      /*
+      description
+        "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+        " object {
+            PIDName pids<0..*>;
+            [AddressType address-types<0..*>;]
+          } ReqFilteredNetworkMap;";
+      */
+    }
+    output {
+      container filtered-network-map-service {
+        container meta {
+          uses meta;
+        }
+        uses network-map;
+      }
+    }
+  }
+
+  rpc filtered-cost-map-service {
     input {
       container cost-type {
         uses cost-type;
@@ -555,54 +871,108 @@ module alto-service {
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
-      container endpoints {
-        container srcs {
-          uses endpoint-addresses;
+      container pids {
+        leaf-list srcs {
+          type pid-name;
           description
             "Source endpoint addresses.";
         }
-        container dsts {
-          uses endpoint-addresses;
+        leaf-list dsts {
+          type pid-name;
           description
             "Destination endpoint addresses.";
         }
         description
-          "Endpoint addresses. RFC7285 Sec. 11.5.1.3." +
+          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+          " object {
+              PIDName srcs<0..*>;
+              PIDName dsts<0..*>;
+            } PIDFilter;";
+      }
+      /*
+      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
+      description
+        "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
+        " object {
+            CostType   cost-type;
+            [JSONString constraints<0..*>;]
+            [PIDFilter  pids;]
+          } ReqFilteredCostMap;";
+      */
+    }
+    output {
+      container filtered-cost-map-service {
+        container meta {
+          uses meta;
+          description
+            "Meta information.";
+        }
+        uses cost-map;
+      }
+    }
+  }
+
+  rpc endpoint-cost-service {
+    input {
+      container cost-type {
+        uses cost-type;
+        description
+          "Cost type.";
+      }
+      leaf-list constraints {
+        type constraint;
+        description
+          "RFC7285 Sec. 11.5.1.3.";
+      }
+      container pids {
+        leaf-list srcs {
+          type typed-endpoint-address;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type typed-endpoint-address;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          " EndpointFilter: Endpoint addresses. RFC7285 Sec. 11.5.1.3." +
           " object {
               [TypedEndpointAddr srcs<0..*>;]
               [TypedEndpointAddr dsts<0..*>;]
             } EndpointFilter;";
       }
+      /*
       description
-        "Request for cost map (unfiltered). RFC7285 Sec. 11.5.1.3." +
+        "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
         " object {
             CostType          cost-type;
             [JSONString       constraints<0..*>;]
             EndpointFilter    endpoints;
           } ReqEndpointCostMap;";
+      */
     }
     output {
-      container meta {
-        uses meta;
-        // uses augment to add cost-type fields
-        description
-          "Meta information.";
-      }
-      container endpoint-cost-map {
-        list srcs {
-          key "src";
+      container endpoint-cost-service {
+        container meta {
+          uses meta;
+          description
+            "Meta information.";
+        }
+        list endpoint-cost-map {
           leaf src {
-            type endpoint-address;
+            type typed-endpoint-address;
             description
               "Source endpoint address.";
           }
-          list dsts {
-            key "dst";
+          key "src";
+          list dst-costs {
             leaf dst {
-              type endpoint-address;
+              type typed-endpoint-address;
               description
                   "Destination endpoint address.";
             }
+            key "dst";
             leaf cost {
               type alto-cost;
                 description
@@ -610,342 +980,22 @@ module alto-service {
             }
             description
               "The list represents the inner part of the cost matrix." +
-              "RFC7285 Sec. 11.5.1.6." +
+              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
               " object-map {
                   TypedEndpointAddr -> JSONValue;
                 } EndpointDstCosts;";
           }
           description
             "The list represents the outer part of the cost matrix." +
-            "RFC7285 Sec. 11.5.1.6." +
-            " object-map {
+            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
+            " object {
+                EndpointCostMapData endpoint-cost-map;
+              } InfoResourceEndpointCostMap : ResponseEntityBase;
+              object-map {
                 TypedEndpointAddr -> EndpointDstCosts;
               } EndpointCostMapData;";
         }
-        description
-          "Endpoint-cost-map." +
-          "RFC7285 Sec. 11.5.1.6." +
-          " object {
-              EndpointCostMapData endpoint-cost-map;
-            } InfoResourceEndpointCostMap : ResponseEntityBase;";
       }
-    }
-  }
-
-  rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint";
-    input {
-      container ReqEndpointProp {
-        leaf-list endpoints {
-          type endpoint-address;
-          min-elements 1;
-        }
-        leaf-list property-types {
-          type endpoint-property-type;
-          min-elements 1;
-        }
-        description
-          " object {
-              EndpointPropertyType  properties<1..*>;
-              TypedEndpointAddr     endpoints<1..*>;
-            } ReqEndpointProp;";
-      }
-    }
-    output {
-      container meta {
-        uses meta;
-      }
-      list endpoint-properties {
-        key pid;
-        leaf pid {
-          type endpoint-address;
-        }
-        list properties {
-          key property-type;
-          leaf property-type {
-            type endpoint-property-type;
-          }
-          leaf property {
-            type endpoint-property-value;
-          }
-          description
-            "EndpointProps. RFC7285 Sec. 11.4.1.6." +
-            " object {
-                EndpointPropertyType -> JSONValue;
-              } EndpointProps;";
-        }
-        description
-          "EndpointPropertyMapData. Sec. 11.4.1.6." +
-          " object-map {
-              TypedEndpointAddr -> EndpointProps;
-            } EndpointPropertyMapData;";
-      }
-      leaf-list capabilities {
-        type endpoint-property-type;
-        min-elements 1;
-        description
-          "Sec. 11.4.1.4." +
-          " object {
-              EndpointPropertyType prop-types<1..*>;
-            } EndpointPropertyCapabilities;";
-      }
-      description
-        "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
-        " object {
-            EndpointPropertyMapData endpoint-properties;
-          } InfoResourceEndpointProperties : ResponseEntityBase;";
-    }
-  }
-  
-  rpc filtered-network-map-service {
-    description
-      "inquiries on filtered network map";
-    input {
-      container ReqFilteredNetworkMap {
-        leaf-list pids {
-          type pid-name;
-        }
-        leaf-list address-types {
-          type endpoint-address-type;
-        }
-        description
-          "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
-          " object {
-              PIDName pids<0..*>;
-              [AddressType address-types<0..*>;]
-            } ReqFilteredNetworkMap;";
-      }
-    }
-    output {
-      container meta {
-        uses meta;
-      }
-      list network-map {
-        key pid;
-        leaf pid {
-          type pid-name;
-          description
-            "must be present in the input srcs or dsts";
-        }
-        uses endpoint-address-group;
-        description
-          "RFC7285 Sec. 11.2.1.6." + 
-          " object-map {
-              PIDName -> EndpointAddrGroup;
-            } NetworkMapData;";
-      }
-      description
-        " object {
-            NetworkMapData network-map;
-          } InfoResourceNetworkMap : ResponseEntityBase;";
-    }
-  }
-
-  rpc filtered-endpoint-cost-service {
-    input {
-      container ReqFilteredCostMap {
-        container cost-type {
-          uses cost-type;
-          description
-            "Cost type.";
-        }
-        leaf-list constraints {
-          type constraint;
-          description
-            "RFC7285 Sec. 11.3.2.3.";
-        }
-        container pids {
-          container srcs {
-            uses endpoint-addresses;
-            description
-              "Source endpoint addresses.";
-          }
-          container dsts {
-            uses endpoint-addresses;
-            description
-              "Destination endpoint addresses.";
-          }
-          description
-            "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
-            " object {
-                PIDName srcs<0..*>;
-                PIDName dsts<0..*>;
-              } PIDFilter;";
-        }
-        // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
-        description
-          "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
-          " object {
-              CostType   cost-type;
-              [JSONString constraints<0..*>;]
-              [PIDFilter  pids;]
-            } ReqFilteredCostMap;";
-      }
-    }
-    output {
-      container meta {
-        uses meta;
-        description
-          "Meta information.";
-      }
-      container cost-map {
-        list CostMapData {
-          leaf src {
-            type endpoint-address;
-            description
-              "Source endpoint address.";
-          }
-          key "src";
-          list DstCosts {
-            leaf dst {
-              type endpoint-address;
-              description
-                  "Destination endpoint address.";
-            }
-            key "dst";
-            leaf cost {
-              type alto-cost;
-                description
-                  "Cost from source to destination.";
-            }
-            description
-              "The list represents the inner part of the cost matrix." +
-              "DstCosts. RFC7285 Sec. 11.2.3.6." +
-              " object-map {
-                  PIDName -> JSONValue;
-                } DstCosts;";
-          }
-          description
-            "The list represents the outer part of the cost matrix." +
-            "CostMapData. RFC7285 Sec. 11.2.3.6." +
-            " object-map {
-                PIDName -> DstCosts;
-              } CostMapData;";
-        }
-        description
-          "Endpoint-cost-map.";
-      }
-      container capabilities {
-        leaf-list cost-type-names {
-          type leafref {
-            path "../../meta/cost-types/cost-type-name";
-          }
-          min-elements 1;
-        }
-        leaf cost-constraints {
-          type boolean;
-        }
-        description
-          "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
-          " object {
-              JSONString cost-type-names<1..*>;
-              JSONBool cost-constraints;
-            } FilteredCostMapCapabilities;";
-      // TODO: model other CostMapCapabilities, if provided
-      }
-    }
-  }
-
-  augment "/endpoint-cost-service/output/meta" {
-    container cost-types {
-      uses cost-type;
-      description
-        "Cost type. MUST be included. RFC7285 Sec. 11.5.1.6";
-    }
-  }
-
-  augment "/filtered-endpoint-cost-service/output/meta" {
-    container cost-types {
-      uses cost-type;
-      description
-        "Cost type. MUST be included. RFC7285 Sec. 11.5.1.6";
-    }
-  }
-
-  augment "/IRD-request/output/meta" {
-    list cost-types {
-      key "cost-type-name";
-      uses cost-type;
-      description
-        "Cost type. RFC7285 Sec. 9.2.2." + 
-        " object-map {
-            JSONString -> CostType;
-          } IRDMetaCostTypes;";
-    }
-    leaf default-alto-network-map {
-      type leafref {
-        path "../../../../IRD/resource-id";
-      }
-    }
-  }
-
-  rpc IRD-request {
-    input {
-      // TODO: change this
-      leaf request {
-        type string;
-      }
-    }
-    output {
-      container meta {
-      }
-      list resources  {
-        key "resource-id";
-        leaf resource-id {
-          /*type leafref {
-            path "/IRD/resource-id";
-          }*/
-          type resource-id;
-        }
-        leaf uri {
-          type inet:uri;
-        }
-        leaf media-type {
-          type media-type;
-        }
-        leaf accepts {
-          type media-type;
-        }
-        container capabilities {
-          leaf cost-constraints {
-            type boolean;
-          }
-          leaf-list cost-type-names {
-            type leafref {
-              path "/map-service/cost-map/capabilities/cost-type-names";
-            }
-          }
-          leaf-list prop-types {
-            type leafref {
-              path "/map-service/cost-map/capabilities/prop-types";
-            }
-          }
-        }
-        leaf-list uses {
-          type leafref {
-            path "/map-service/cost-map/uses";
-          }
-        }
-        description
-        "IRDResourceEntry. RFC7285 9.2.2." +
-        " object {
-            JSONString      uri;
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;" +
-        "IRDResourceEntries. RFC7285 9.2.2." +
-        " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;";
-      }
-      description
-        "InformationResourceDirectory. RFC7285 9.2.2." +
-        " object {
-            IRDResourceEntries resources;
-          } InfoResourceDirectory : ResponseEntityBase;";
     }
   }
 

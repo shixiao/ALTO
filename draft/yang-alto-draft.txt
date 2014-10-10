@@ -170,5 +170,7 @@ A distinction between data model and rpc is necessary for leafref restrictions. 
 
 It is unclear how users (both server-side and client-side) will use the YANG model--e.g. a verifier, a client code generator, etc.--hence whether to duplicate structures in data model and rpcs is unclear in the design process.
 
+Extending yang models
+
 Results and quality of YANG tools
 
