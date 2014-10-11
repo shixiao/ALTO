@@ -606,7 +606,6 @@ module alto-service {
   /* meta */
   augment "/IRD" {
     container meta {
-      uses meta;
       uses cost-types;
       leaf default-alto-network-map {
         type leafref {
@@ -868,6 +867,7 @@ module alto-service {
       }
       leaf-list constraints {
         type constraint;
+        when "/resource/capabilities/cost-constraints = true";
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
