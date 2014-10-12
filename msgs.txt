@@ -1,12 +1,4 @@
 9.2.3 IRD response example
-In ALTO protocol
-GET /directory HTTP/1.1
-Host: alto.example.com
-Accept: application/alto-directory+json,application/alto-error+json
-
-HTTP/1.1 200 OK
-Content-Length: 2333
-Content-Type: application/alto-directory+json
 
 {
   "meta": {
@@ -172,21 +164,6 @@ ALTO example
 
 11.3.1.7 Filtered Network Map
 ALTO example
-===request===
-POST /networkmap/filtered HTTP/1.1
-Host: custom.alto.example.com
-Content-Length: 33
-Content-Type: application/alto-networkmapfilter+json
-Accept: application/alto-networkmap+json,application/alto-error+json
-
-{
-  "pids": [ "PID1", "PID2" ]
-}
-=============
-
-HTTP/1.1 200 OK
-Content-Length: 342
-Content-Type: application/alto-networkmap+json
 {
   "meta" : {
     "vtag" : {
@@ -210,28 +187,7 @@ Content-Type: application/alto-networkmap+json
 }
 
 11.3.2.7.  Filtered Cost Map Example
-===ALTO request===
-POST /costmap/filtered HTTP/1.1
-Host: custom.alto.example.com
-Content-Type: application/alto-costmapfilter+json
-Content-Length: 181
-Accept: application/alto-costmap+json,application/alto-error+json
-
-{
-  "cost-type" : {"cost-mode": "numerical",
-                 "cost-metric": "routingcost"
-  },
-  "pids" : {
-    "srcs" : [ "PID1" ],
-    "dsts" : [ "PID1", "PID2", "PID3" ]
-  }
-}
-
 ===ALTO response===
-HTTP/1.1 200 OK
-Content-Length: 341
-Content-Type: application/alto-costmap+json
-
 {
   "meta" : {
     "dependent-vtags" : [
@@ -249,12 +205,6 @@ Content-Type: application/alto-costmap+json
 }
 
 11.2.1.7 network-map response example
-ALTO example
-GET /networkmap HTTP/1.1
-Host: alto.example.com
-Accept: application/alto-networkmap+json,application/alto-error+json
-HTTP/1.1 200 OK
-Content-Length: 449
 Content-Type: application/alto-networkmap+json
 {
   "meta":{
@@ -287,13 +237,6 @@ Content-Type: application/alto-networkmap+json
 }
 
 11.2.3.7 cost map response example
-ALTO example
-GET /costmap/num/routingcost HTTP/1.1
-Host: alto.example.com
-Accept: application/alto-costmap+json,application/alto-error+json
-HTTP/1.1 200 OK
-Content-Length: 435
-Content-Type: application/alto-costmap+json
 {
   "meta":{
     "dependent-vtags":[
@@ -326,30 +269,6 @@ Content-Type: application/alto-costmap+json
 }
 
 11.5.1.7.  Endpoint cost service Example
-===ALTO request===
-POST /endpointcost/lookup HTTP/1.1
-Host: alto.example.com
-Content-Length: 248
-Content-Type: application/alto-endpointcostparams+json
-Accept: application/alto-endpointcost+json,application/alto-error+json
-
-{
-  "cost-type": {"cost-mode" : "ordinal",
-                "cost-metric" : "routingcost"},
-  "endpoints" : {
-    "srcs": [ "ipv4:192.0.2.2" ],
-    "dsts": [
-      "ipv4:192.0.2.89",
-      "ipv4:198.51.100.34",
-      "ipv4:203.0.113.45"
-    ]
-  }
-}
-===response===
-HTTP/1.1 200 OK
-Content-Length: 274
-Content-Type: application/alto-endpointcost+json
-
 {
   "meta" : {
     "cost-type": {"cost-mode" : "ordinal",
@@ -361,33 +280,12 @@ Content-Type: application/alto-endpointcost+json
       "ipv4:192.0.2.89"    : 1,
       "ipv4:198.51.100.34" : 2,
       "ipv4:203.0.113.45"  : 3
-    }
+    } 
   }
 }
 
 
 11.4.1.7.  endpoint property service
-ALTO Request:
-
-POST /endpointprop/lookup HTTP/1.1
-Host: alto.example.com
-Content-Length: 181
-Content-Type: application/alto-endpointpropparams+json
-Accept: application/alto-endpointprop+json,application/alto-error+json
-
-{
-  "properties" : [ "my-default-networkmap.pid",
-                   "priv:ietf-example-prop" ],
-  "endpoints"  : [ "ipv4:192.0.2.34",
-                   "ipv4:203.0.113.129" ]
-}
-
-ALTO Response:
-
-HTTP/1.1 200 OK
-Content-Length: 396
-Content-Type: application/alto-endpointprop+json
-
 {
   "meta" : {
     "dependent-vtags" : [
