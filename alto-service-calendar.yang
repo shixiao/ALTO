@@ -1,4 +1,4 @@
-module alto-service {
+module alto-service-calendar {
   yang-version 1;
   
   namespace "urn:ietf:params:xml:ns:yang:alto-service";
@@ -30,6 +30,11 @@ module alto-service {
     description "Initial revision. betw Michael and Xiao";
   }
   
+  feature calendar {
+    description
+      "Calendar feature for ALTO service.";
+  }
+
   /********************
    * TYPE DEFINITIONS *
    ********************/
@@ -286,6 +291,10 @@ module alto-service {
         description
           "Ordinal cost mode.";
       }
+      enum calendar {
+        description
+          "Calendar cost mode.";
+      }
       // EXTENSION: Additional cost-mode will be defined here.
     }
     description
@@ -305,8 +314,7 @@ module alto-service {
       description
         "Cost metric.";
     }
-    leaf description {
-      type string;
+    container description {
       description
         "Optional description field.";
     }
@@ -454,6 +462,18 @@ module alto-service {
     description
       "RFC7285 Sec. 11.3.2.3. The second part must be in the" +
       "same unit as cost-metric, IEEE 754 2008 floating point.";
+  }
+
+  typedef calendar-date {
+    type string {
+      pattern
+        "[0-5]\d:(20|21|22|23|[01]\d)" +
+        "(((0[1-9]|[1-2][0-9]|3[0-1])/(0[13578]|(10|12)))" + 
+        "|((0[1-9]|[1-2][0-9])/02)" +
+        "|((0[1-9]|[1-2][0-9]|30)/(0[469]|11)))/[0-9]{4}";
+    }
+    description
+      "mn/hh/dd/mo/yyyy"; //consider using yang:date-and-time
   }
 
   /****************************************************
@@ -612,6 +632,67 @@ module alto-service {
           path "../../../IRD/resources/resource-id";
         }
       }
+    }
+  }
+
+  augment "/IRD/meta/cost-types/description" {
+    if-feature calendar;
+    leaf interval-unit {
+      type enumeration {
+        enum second;
+        enum minute;
+        enum hour;
+        enum day;
+        enum week;
+        enum month;
+        enum quarter;
+        enum year;
+      }
+      description
+        "The unit in which the duration of an ALTO calendar time interval
+        duration is expressed.";
+    }
+    leaf nb-int-units {
+      type int64;
+      description
+        "Number of time units per interval.";
+    }
+    leaf calendar-start-date {
+      type calendar-date;
+      description
+        "Date corresponding to the first value in the array";
+    }
+    leaf next-calendar-start-date {
+      type calendar-date;
+      description
+        "The starting date of the next calendar";
+    }
+    leaf nb-intervals {
+      type uint64 {
+        range "1..max";
+      }
+      description
+        "The number of values in the cost calendar array";
+    }
+    leaf calendar-time-zone {
+      type string {
+        pattern
+          "UTC+(20|21|22|23|[01]\d)[0-5]\d";
+      }
+      description
+        "UTC+hhmm";
+    }
+    leaf last-calendar-update {
+      type calendar-date;
+      description
+        "The last date at which ALTO calendar values were updated in the ALTO
+        server. Must be sooner than calendar-start-date.";
+    }
+    leaf next-calendar-update {
+      type calendar-date;
+      description
+        "The next date at which the ALTO calendar values will be updated in 
+        the ALTO server. MUST be later than next-calendar-start-date.";
     }
   }
 
@@ -973,10 +1054,11 @@ module alto-service {
                   "Destination endpoint address.";
             }
             key "dst";
-            leaf cost {
+            leaf-list cost {
               type alto-cost;
-                description
-                  "Cost from source to destination.";
+              min-elements 1;
+              description
+                "Cost from source to destination.";
             }
             description
               "The list represents the inner part of the cost matrix." +
