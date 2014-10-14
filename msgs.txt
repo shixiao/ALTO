@@ -1,5 +1,4 @@
 9.2.3 IRD response example
-
 {
   "meta": {
     "cost-types": {
@@ -86,7 +85,6 @@
 
 
 9.2.4 IRD delegation reply example
-ALTO example
 {
   "meta":{
     "cost-types":{
@@ -163,7 +161,6 @@ ALTO example
 }
 
 11.3.1.7 Filtered Network Map
-ALTO example
 {
   "meta" : {
     "vtag" : {
@@ -187,7 +184,6 @@ ALTO example
 }
 
 11.3.2.7.  Filtered Cost Map Example
-===ALTO response===
 {
   "meta" : {
     "dependent-vtags" : [
@@ -205,7 +201,6 @@ ALTO example
 }
 
 11.2.1.7 network-map response example
-Content-Type: application/alto-networkmap+json
 {
   "meta":{
     "vtag":{
@@ -285,7 +280,7 @@ Content-Type: application/alto-networkmap+json
 }
 
 
-11.4.1.7.  endpoint property service
+11.4.1.7.  endpoint property service Example
 {
   "meta" : {
     "dependent-vtags" : [
