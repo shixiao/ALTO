@@ -187,7 +187,7 @@
 				  <artwork><![CDATA[                            
   {
     "meta" : {
-      “vtag” : {
+      "vtag" : {
         "tag" : "a10ce8b059740b0b2e3f8eb1d4785acd42231bfe"
       }
     },
@@ -591,8 +591,7 @@
 				discard the Network and Cost Maps,
 				and reestablish the Update Stream.
 				Although inefficient, this recovery method is simple and reliable.
-			</t>
-		  </section>
+			</t> </section>
 		</section>
 		
 		<section title="Filtered Update Stream Service">

@@ -10,8 +10,8 @@ Expires: April 27, 2015                                          Y. Yang
                                                         October 24, 2014
 
 
-                 Resource Attributes for ALTO Protocol
-                    draft-roome-alto-incr-update-01
+                        ALTO Incremental Updates
+                    draft-roome-alto-incr-updates-02
 
 Abstract
 
@@ -26,8 +26,9 @@ Abstract
    those maps may change frequently (cost maps in particular).
 
    This draft presents a method to provide incremental updates for these
-   maps.  The goal is to reduce the load on the ALTO Client and Server
-   by transmitting just the updated portions of those maps.
+   information resources.  The goal is to reduce the load on the ALTO
+   Client and Server by transmitting just the updated portions of those
+   maps.
 
 Status of This Memo
 
@@ -52,10 +53,9 @@ Status of This Memo
 
 
 
-
 Roome, et al.            Expires April 27, 2015                 [Page 1]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 Copyright Notice
@@ -111,7 +111,7 @@ Table of Contents
 
 Roome, et al.            Expires April 27, 2015                 [Page 2]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 1.  Introduction
@@ -167,7 +167,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 3]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      define MergePatch(Target, Patch) {
@@ -223,7 +223,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 4]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      {
@@ -279,7 +279,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 5]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      {
@@ -335,7 +335,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 6]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      {
@@ -391,7 +391,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 7]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      GET /stream HTTP/1.1
@@ -447,7 +447,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 8]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
    Here examples of ALTO update events.  Note that we spread the event
@@ -503,7 +503,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                 [Page 9]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      object {
@@ -559,7 +559,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 10]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 4.7.  Response
@@ -615,7 +615,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 11]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 4.8.  Client Actions When Receiving Update Messages
@@ -671,7 +671,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 12]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
    the list is empty, the ALTO Server MUST send all event types in the
@@ -727,7 +727,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 13]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
      POST /updates/routingcost-hopcount HTTP/1.1
@@ -783,7 +783,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 14]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
          "cost-type-names": ["num-routingcost"]
@@ -839,7 +839,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 15]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 7.  Design Decisions and Discussion
@@ -895,7 +895,7 @@ Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
 
 Roome, et al.            Expires April 27, 2015                [Page 16]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
    Alternatively an ALTO Server MAY return the HTTP status "307
@@ -951,7 +951,7 @@ Authors' Addresses
 
 Roome, et al.            Expires April 27, 2015                [Page 17]
 
-Internet-Draft    Resource Attributes for ALTO Protocol     October 2014
+Internet-Draft          ALTO Incremental Updates            October 2014
 
 
    Xiao Shi

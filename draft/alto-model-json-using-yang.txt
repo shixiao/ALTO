@@ -72,48 +72,30 @@ Table of Contents
    2.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
      2.1.  Message Encoding Condition  . . . . . . . . . . . . . . .   3
      2.2.  The URI Condition . . . . . . . . . . . . . . . . . . . .   3
-     2.3.  JSON Merge Patch Applied to Network Map Messages  . . . .   4
-     2.4.  JSON Merge Patch Applied to Cost Map Messages . . . . . .   5
-   3.  Server-Sent Events  . . . . . . . . . . . . . . . . . . . . .   6
-     3.1.  Overview of SSEs  . . . . . . . . . . . . . . . . . . . .   6
-     3.2.  ALTO SSE Update Messages  . . . . . . . . . . . . . . . .   7
-     3.3.  Keep-Alive Messages . . . . . . . . . . . . . . . . . . .   8
-   4.  Update Stream Service . . . . . . . . . . . . . . . . . . . .   8
-     4.1.  Media Type  . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.2.  HTTP Method . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.3.  Accept Input Parameters . . . . . . . . . . . . . . . . .   8
-     4.4.  Capabilities  . . . . . . . . . . . . . . . . . . . . . .   8
-     4.5.  Uses  . . . . . . . . . . . . . . . . . . . . . . . . . .   9
-     4.6.  Event Order Requirements  . . . . . . . . . . . . . . . .   9
-     4.7.  Response  . . . . . . . . . . . . . . . . . . . . . . . .  10
-     4.8.  Client Actions When Receiving Update Messages . . . . . .  11
-   5.  Filtered Update Stream Service  . . . . . . . . . . . . . . .  11
-     5.1.  HTTP Method . . . . . . . . . . . . . . . . . . . . . . .  11
-     5.2.  Accept Input Parameters . . . . . . . . . . . . . . . . .  11
-     5.3.  Response  . . . . . . . . . . . . . . . . . . . . . . . .  12
-   6.  IRD Example . . . . . . . . . . . . . . . . . . . . . . . . .  13
-   7.  Design Decisions and Discussion . . . . . . . . . . . . . . .  15
-     7.1.  Not Allowing Stream Restart . . . . . . . . . . . . . . .  15
-     7.2.  Is Incremental Update Useful for Network Maps?  . . . . .  15
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  15
-   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  16
-   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  16
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  17
+   3.  Proof of syntactic equivalence conditions . . . . . . . . . .   3
+     3.1.  The necessity of the message encoding condition . . . . .   3
+       3.1.1.  Condition (1) . . . . . . . . . . . . . . . . . . . .   3
+       3.1.2.  Condition (2) . . . . . . . . . . . . . . . . . . . .   4
+       3.1.3.  Condition (3) . . . . . . . . . . . . . . . . . . . .   4
+       3.1.4.  Conclusion  . . . . . . . . . . . . . . . . . . . . .   4
+     3.2.  The sufficiency of the message encoding condition . . . .   4
+       3.2.1.  Motivation of using Jackson data binding  . . . . . .   4
+       3.2.2.  The message encoding condition in Jackson terms . . .   5
+       3.2.3.  Proof . . . . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Semantic Equivalence  . . . . . . . . . . . . . . . . . . . .  12
+     4.1.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     4.2.  Proof by Indistinguishability . . . . . . . . . . . . . .  12
+   5.  Ramifications . . . . . . . . . . . . . . . . . . . . . . . .  13
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
 
 1.  Introduction
 
    JavaScript Object Notation (JSON) has been a popular choice as the
    message encoding for many network protocols such as the Application-
    Layer Traffic Optimization (ALTO) protocol [RFC7285], the Content
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 2]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
    Delivery Networks Interconnection (CDNi) protocol [RFC6707], the Port
    Control Protocol (PCP) [RFC6887], etc.
 
@@ -123,6 +105,14 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    the OpenDayLight Controller.  Although YANG itself is XML based,
    there have been efforts to model JSON content using YANG
    [draft-ietf-netmod-yang-json-01]
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 2]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
    This documents explores the conditions under which the messages of a
    JSON based protocol can have a syntactically equivalent hence
@@ -141,16 +131,15 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
    The JSON message encoding condition is the following:
 
-   (1) At any level, there MUST NOT be a stand-alone non-object JSON
-   value;
+   (1)  The message MUST be a JSON object.
 
-   (2) The arrays MUST be homogeneous, i.e. the elements must be of the
-   same type;
+   (2)  The arrays MUST be either all objects, or all non-object non-
+        array types, i.e. false, null, true, number, string;
 
-   (3) The JSON message MUST NOT contain a variable as a key or null as
-   a value in a JSON object key-value pair; in other words, the keys in
-   the JSON message must be an already defined constant keyword in the
-   message format of the protocol.
+   (3)  The JSON message MUST NOT contain a variable as a key or null as
+        a value in a JSON object key-value pair; in other words, the
+        keys in the JSON message must be an already defined constant
+        keyword in the message format of the protocol.
 
 2.2.  The URI Condition
 
@@ -160,7 +149,18 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    gateway translation for uri.  Hence, we focus on the message encoding
    condition and leave this condition open.
 
+3.  Proof of syntactic equivalence conditions
 
+3.1.  The necessity of the message encoding condition
+
+   We prove the necessity of the message encoding condition by proving
+   its contrapositive.
+
+3.1.1.  Condition (1)
+
+   Although there are no strict rules to convert from JSON to XML, a
+   stand-alone non-object JSON value would not have an XML tag, which
+   fails because of the same reason for Condition (3).
 
 
 
@@ -170,54 +170,54 @@ Shi & Yang               Expires April 27, 2015                 [Page 3]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-2.3.  JSON Merge Patch Applied to Network Map Messages
+3.1.2.  Condition (2)
 
-   Section 11.2.1.6 of [RFC7285] defines the format of a Network Map
-   message.  Here is a simple example:
+   YANG cannot model stand alone arrays as non of the YANG statements
+   maps to an array according to [draft-ietf-netmod-yang-json-01].
 
-     {
-       "meta" : {
-         "vtag": {
-           "resource-id": "my-default-network-map",
-           "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
-         }
-       },
-       "network-map" : {
-         "PID1" : {
-           "ipv4" : [
-             "192.0.2.0/24",
-             "198.51.100.0/25"
-           ]
-         },
-         "PID2" : {
-           "ipv4" : [ "198.51.100.128/25" ]
-         },
-         "PID3" : {
-           "ipv4" : [ "0.0.0.0/0" ],
-           "ipv6" : [ "::/0" ]
-         }
-       }
-     }
+   There are two statements which generate a name/array pair in YANG,
+   the leaf-list statement and the list statement.  For a leaf-list, the
+   element type must be a YANG datatype (Section. 6 of
+   [draft-ietf-netmod-yang-json-01]); for a list, the array elements
+   must be JSON objects.  Hence, there cannot be a mix.
 
-   When applied to that message, the following Merge Patch update
-   message adds the ipv6 prefix "2000::/3" to "PID1", deletes "PID2",
-   and assigns a new "tag" to the Network Map:
+3.1.3.  Condition (3)
 
-     {
-       "meta" : {
-         "vtag" : {
-           "tag" : "a10ce8b059740b0b2e3f8eb1d4785acd42231bfe"
-         }
-       },
-       "network-map": {
-         "PID1" : {
-           "ipv6" : [ "2000::/3" ]
-         },
-         "PID2" : null
-       }
-     }
+   If one of the keys in the key-value pair in the JSON document is not
+   pre-defined, the corresponding XML tags will not be pre-defined
+   keywords.  Therefore, it would not possible to model it in YANG
+   without using YANG's anyxml statement (which allows arbitrary XML
+   content).  However, using the anyxml statement defeats the purpose of
+   modeling the data as it allows arbitrary XML content, and will not
+   help the subsequent parsing process.
 
-   Here is the updated Network Map:
+3.1.4.  Conclusion
+
+   The above three conditions are necessary to model a JSON message in
+   YANG.
+
+3.2.  The sufficiency of the message encoding condition
+
+   We prove this by providing a translation procedure from a JSON
+   message that is compliant with the protocol we are trying to model,
+   to a custom java class that can be used for Jackson data binding,
+   then to a YANG model.  Note that the middle step of translating to
+   and from the custom parser class is not necessary, but it is useful.
+
+3.2.1.  Motivation of using Jackson data binding
+
+   JSON data binding is the process of binding data structures (objects,
+   arrays, etc.) in JSON to the appropriate data structures in the
+   server (e.g. java classes, database tables, etc.) in parsing the JSON
+   text.  In order to process JSON messages in a meaningful manner, data
+   binding is necessary.  Even if the binding is not explicit, the
+   server would need to do it eventually.  For example, one can read
+   JSON content in a stream without binding it to the java classes, but
+   eventually in order to make sense of the data, the server would
+   eventually have to organize it, which is analogous to data binding
+   upfront.  Popular choices for JSON parsing and data binding include
+   jackson and gson.
+
 
 
 
@@ -226,54 +226,54 @@ Shi & Yang               Expires April 27, 2015                 [Page 4]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-     {
-       "meta" : {
-         "vtag": {
-           "resource-id": "my-default-network-map",
-           "tag": "a10ce8b059740b0b2e3f8eb1d4785acd42231bfe"
-         }
-       },
-       "network-map" : {
-         "PID1" : {
-           "ipv4" : [
-             "192.0.2.0/24",
-             "198.51.100.0/25"
-           ],
-           "ipv6" : [ "2000::/3" ]
-         },
-         "PID3" : {
-           "ipv4" : [ "0.0.0.0/0" ],
-           "ipv6" : [  "::/0" ]
-         }
-       }
-     }
+   We use Jackson full data binding as our approach.  Full data binding
+   binds JSON content into plain old java objects (POJOs), i.e. this
+   custom parser class can neither extend nor implement any other class.
+   Jackson uses ObjectMapper with the custom parser class to parse JSON
+   content into this class.
 
-2.4.  JSON Merge Patch Applied to Cost Map Messages
+3.2.2.  The message encoding condition in Jackson terms
 
-   Section 11.2.3.6 of [RFC7285] defines the format of a Cost Map
-   message.  Here is a simple example:
+   For now, we make a stronger assumption than Condition (2): we assume
+   all arrays contain elements that are homogeneous non-array JSON
+   values.  We handle the case of heterogeneous objects and
+   heterogeneous non-object non-array types later.
 
-     {
-       "meta" : {
-         "dependent-vtags" : [
-           {"resource-id": "my-default-network-map",
-            "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
-           }
-         ],
-         "cost-type" : {"cost-mode"  : "numerical",
-                        "cost-metric": "routingcost"
-         }
-       },
-       "cost-map" : {
-         "PID1": { "PID1": 1,  "PID2": 5,  "PID3": 10 },
-         "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
-         "PID3": { "PID1": 20, "PID2": 15  }
-       }
-     }
+   The message encoding condition (3) is that all keys in each key-value
+   pair in the JSON text must be pre-defined keywords.  As the keys will
+   become either class names and instance variable names, or be keys in
+   the java maps, it is easy to see that this condition is equivalent
+   to: there exists a full data binding in Jackson custom parser class
+   without using any map structures (Map<String, ?>)."
 
-   The following Merge Patch message updates that cost map so that (1)
-   PID1->PID2 is 9 instead of 5; (2) PID3->PID1 is no longer available;
-   and (3) PID3->PID3 is now 1:
+3.2.3.  Proof
+
+3.2.3.1.  Generate Jackson Parser from JSON Message
+
+   We provide a recursive binding process from a JSON object to the
+   Jackson custom parser class to be used by Jackson ObjectMapper.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -282,49 +282,49 @@ Shi & Yang               Expires April 27, 2015                 [Page 5]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-     {
-       "cost-map" : {
-         "PID1" : { "PID2" : 9 },
-         "PID3" : { "PID1" : null, "PID3" : 1 }
-       }
+   Type determine_type(value) {
+     if (type(value) is string or number or boolean or null) {
+       return the corresponding java primitive type;
      }
-
-   Here is the updated Cost Map:
-
-     {
-       "meta" : {
-         "dependent-vtags" : [
-           {"resource-id": "my-default-network-map",
-            "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
-           }
-         ],
-         "cost-type" : {"cost-mode"  : "numerical",
-                        "cost-metric": "routingcost"
-         }
-       },
-       "cost-map" : {
-         "PID1": { "PID1": 1,  "PID2": 9,  "PID3": 10 },
-         "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
-         "PID3": { "PID1": 20,             "PID3": 1  }
-       }
+     if (value is a JSON object) {
+       return build_parser_class(value).class;
      }
+     if (value is an array) {
+       return ArrayList<T> where T=determine_type(value[0]);
+     }
+     // should not reach here.
+   }
 
-3.  Server-Sent Events
+   Class build_parser_class(JSONObject obj) {
+     create custom class C;
+     for each key/value pair in the obj {
+       add instance variable v in C;
+       the name of variable v <- key;
+       the type of variable v <- determine_type(value);
+     }
+     return C.class;
+   }
 
-3.1.  Overview of SSEs
+   To ensure the naming in the YANG model is consistent with the JSON
+   message, We follow the naming process: change everything into
+   CamelCase (i.e. remove dashes, etc.); for instance variables, use
+   "my" prefix, (e.g. myVariable, myNetworkMap, etc.); for the custom
+   class name, if the object is an element of the array, use "Element"
+   suffix.
 
-   Server-Sent Events [SSE] enable a server to send new data to a client
-   by pushing messages to the client.  To summarize the protocol, the
-   client establishes an HTTP connection to the server, and keeps the
-   connection open.  The server continually sends messages.  Messages
-   are delimited by two new-lines (this is a slight simplification of
-   the full specification), and contain three fields: an event type, an
-   id, and data.  All fields are strings.  The data field may contain
-   new-lines; the other fields cannot.  The event type and id fields are
-   optional.
+3.2.3.2.  Generate YANG Model from Jackson Parser
 
-   Here is a sample SSE stream, starting with the client request.  The
-   server sends three events and then closes the stream.
+   Given a Jackson Parser Java Class, the following algorithm generates
+   a YANG model:
+
+
+
+
+
+
+
+
+
 
 
 
@@ -338,53 +338,53 @@ Shi & Yang               Expires April 27, 2015                 [Page 6]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-     GET /stream HTTP/1.1
-     Host: example.com
-     Accept: text/event-stream
+   YANGModel build_yang_model(Class C) {
+     for each instance variable (Type, Name) {
+       if (Type is primitive type: string, number, boolean, null) {
+         add the following to the YANG module:
+         "leaf Name { type <YANG equivalent of Type>; }"
+       }
+       if (Type is an ArrayList<TypeElement>) {
+         if (TypeElement is primitive type) {
+           add the following to the YANG module:
+           "leaf-list Name { type <YANG equivalent of TypeElement>; }"
+         } else {
+           // TypeElement is a custom parser class
+           add the following to the YANG module:
+           "list Name { build_yang_model(TypeElement.class) }"
+         }
+       }
+       if (Type is a custom parser class) {
+         add the following to the YANG module:
+         "container Name { build_yang_model(Type.class) }"
+       }
+     }
+   }
 
-     HTTP/1.1 200 OK
-     Connection: keep-alive
-     Content-Type: text/event-stream
+3.2.3.3.  Example
 
-     event: start
-     data: hello there
+   JSON message object:
 
-     event: middle
-     data: let's chat some more ... and more ...
-
-     event: end
-     data: good bye
-
-3.2.  ALTO SSE Update Messages
-
-   In our events, the data field is a JSON message; specifically, a
-   Network Map, a Cost Map, or a Merge Patch to apply to a Network or
-   Cost Map.  Our event types have two sub-fields: the media-type of the
-   JSON message in the data field, and the resource-id of the ALTO
-   Network Map or Cost Map resource.  The media-type is "application/
-   alto-networkmap+json" for Network Map messages, "application/alto-
-   costmap+json" for Cost Map messages, or "application/merge-
-   patch+json" for Merge Patch messages.  The first two types are
-   defined by [RFC7285], and the last is defined by [RFC7285].
-
-   We use a JSON object to encode the sub-fields of the event type
-   field.  That is, our event types are JSON objects with two fields,
-   "resource-id" and "media-type".  Formally, ALTO Update SSE event
-   types are JSON objects of type UpdateEventType:
-
-     object {
-       JSONString resource-id;
-       JSONString media-type;
-     } UpdateEventType;
-
-   Note that two event types are equal iff their "resource-id" and
-   "media-type" sub-fields are equal.  When comparing event types,
-   clients MUST parse the type string as a JSON object and compare those
-   fields.  Clients MUST NOT do simple string comparison on the event
-   type string.
-
-   We do not use the SSE id field.
-
+   {
+     "meta": {
+       "resource-id": "my-default-map",
+       "tag": "aab875ef69c87d012"
+     },
+     "network-map": [
+       {
+         "src": "PID1",
+         "dsts": ["PID1", "PID2", "PID3"]
+       },
+       {
+         "src": "PID2",
+         "dsts": ["PID1", "PID3"]
+       },
+       {
+         "src": "PID3",
+         "dsts": ["PID2", "PID3"]
+       }
+     ]
+   }
 
 
 
@@ -394,51 +394,51 @@ Shi & Yang               Expires April 27, 2015                 [Page 7]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-   Here examples of ALTO update events.  Note that we spread the event
-   type over two lines for readability; the line break should not be
-   transmitted over the stream.
+   Result of build_parser_class(obj):
 
-     event: {"resource-id":"my-network-map",
-         "media-type":"application/alto-networkmap+json"}
-     data: { ... full Network Map message ... }
+   Class Message {
+     Meta myMeta;
+     ArrayList<NetworkMapElement> myNetworkMap;
+   }
+   Class Meta {
+     String myResourceId;
+     String myTag;
+   }
+   Class NetworkMapElement {
+     String mySrc;
+     ArrayList<String> myDsts;
+   }
 
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/alto-costmap+json"}
-     data: { ... full Cost Map message ... }
+   Generated YANG model:
 
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/merge-patch+json"}
-     data: { ... Merge Patch update for Cost Map ... }
+   container meta {
+     leaf resource-id {
+       type string;
+     }
+     leaf tag {
+       type string;
+     }
+   }
+   list network-map {
+     leaf src {
+       type string;
+     }
+     leaf-list dsts {
+       type string;
+     }
+   }
 
-3.3.  Keep-Alive Messages
+   This YANG model does validate the JSON document with XML-JSON
+   encoding.  The corresponding XML encoding:
 
-   An SSE event with an empty event type is a keep-alive message.  An
-   ALTO Server MAY send keep-alive messages as needed.  An ALTO Client
-   MUST ignore any keep-alive messages.
 
-4.  Update Stream Service
 
-   An Update Stream Service returns a stream of SSE messages, as defined
-   in Section 3.2.
 
-4.1.  Media Type
 
-   The media type of an ALTO Update Stream resource is "text/event-
-   stream".
 
-4.2.  HTTP Method
 
-   An ALTO Update Stream resource is requested using the HTTP GET
-   method.
 
-4.3.  Accept Input Parameters
 
-   None.
-
-4.4.  Capabilities
-
-   The capabilities are defined by an object of type
-   UpdateStreamCapabilities:
 
 
 
@@ -450,53 +450,53 @@ Shi & Yang               Expires April 27, 2015                 [Page 8]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-     object {
-       UpdateEventType events<1..*>;
-     } UpdateEventStreamCapabilities;
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <meta>
+     <resource-id>my-default-map</resource-id>
+     <tag>aab875ef69c87d012</tag>
+   </meta>
+   <network-map>
+     <src>PID1</src>
+     <dsts>PID1</dsts>
+     <dsts>PID2</dsts>
+     <dsts>PID3</dsts>
+   </network-map>
+   <network-map>
+     <src>PID2</src>
+     <dsts>PID1</dsts>
+     <dsts>PID3</dsts>
+   </network-map>
+   <network-map>
+     <src>PID3</src>
+     <dsts>PID2</dsts>
+     <dsts>PID3</dsts>
+   </network-map>
 
-   This array gives the event types sent by this Update Stream.
+3.2.3.4.  Handling heterogeneous arrays
 
-   If an Update Event Service's event capability list has an event with
-   a media-type of "text/merge-patch+json" for a given Network Map
-   resource-id, the event capability list MUST also have an event with
-   media-type "application/alto-networkmap+json" for that resource-id.
-   Similarly, if an Update Event Service's event capability list has an
-   event with a media-type of "text/merge-patch+json" for a given Cost
-   Map resource-id, the event capability list MUST also have an event
-   with media-type "application/alto-costmap+json" for that resource-id.
+   Due to Java's strong typing, handling heterogeneous arrays is
+   difficult, but not impossible.  For simplicity, we provide the YANG
+   model directly for heterogeneous arrays and provide guidelines for
+   Jackson parsing.
 
-4.5.  Uses
+3.2.3.4.1.  Arrays of entirely primitive types
 
-   An array with the resource-ids of the resources for which this stream
-   sends updates.  This array MUST contain the resource-ids of every
-   event type in the "events" capability.
+   If the array is consisted of entirely non-object, non-value types
+   type_1, type_2, ..., type_n, the corresponding YANG model is a leaf-
+   list with a derived type.
 
-4.6.  Event Order Requirements
+   typedef element-type {
+     type union {
+       type type_1;
+       type type_2;
+       ...
+       type type_m;
+     }
+   }
 
-   There are several requirements on the order in which an ALTO Server
-   sends SSE Update messages on the event stream:
-
-   o  For any given resource-id, the ALTO Server MUST send a full-map
-      update event (media-type "application/alto-networkmap+json" or
-      "application/alto-costmap+json") before the first Merge Patch
-      event (media-type "application/merge-patch+json") for that
-      resource-id.
-
-   o  The ALTO Server SHOULD send full-map update events for all
-      resource-ids covered by this Update Stream resource as soon as
-      possible after the client initiates the connection.
-
-   o  When a Network Map changes, the ALTO Server MUST send an update
-      event for that Network Map before sending the update events for
-      any Cost Maps that depend on that Network Map.
-
-   o  When a Network Map changes, the ALTO Server SHOULD send update
-      events for all Cost Maps that depend on that Network Map as soon
-      as possible after sending the update event for the Network Map.
-
-
-
-
+   leaf-list key-name {
+     type element-type;
+   }
 
 
 
@@ -506,50 +506,50 @@ Shi & Yang               Expires April 27, 2015                 [Page 9]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-4.7.  Response
+   In Jackson, one may parse such arrays as String[] and then convert to
+   whichever types needed.
 
-   Here is an example of a client's request and the server's immediate
-   response, using the Update Stream resource "my-routingcost-update-
-   stream" defined in the IRD in Section 6.  This assumes the Update
-   Stream service sends updates for a Network Map with resource-id "my-
-   network-map" and an associated Cost Map with resource-id "my-
-   routingcost-map":
+3.2.3.4.2.  Example
 
-     GET /updates/routingcost HTTP/1.1
-     Host: alto.example.com
-     Accept: text/event-stream
+   foo : [
+     12,
+     "abc",
+     true
+   ]
 
-     HTTP/1.1 200 OK
-     Connection: keep-alive
-     Content-Type: text/event-stream
+   leaf-list foo {
+     type union {
+       type int32;
+       type string;
+       type boolean;
+     }
+   }
 
-     event: {"resource-id":"my-network-map",
-         "media-type":"application/alto-networkmap+json"}
-     data: { ... full Network Map message ... }
+3.2.3.4.3.  Arrays of entirely JSON objects
 
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/alto-costmap+json"}
-     data: { ... full Cost Map message ... }
+   If the array is consisted of entirely JSON object, we create a YANG
+   grouping for each object (by following the same process as
+   build_parser_class and build_yang_object above).  Then use list,
+   choice, and case statements.
 
-   After sending those two events immediately, the ALTO Server will send
-   additional events as the maps change.  For example, the following
-   represents a small change to the Cost Map:
+   list key-name {
+     choice elements {
+       case element-object-1 {
+         uses grouping-1;
+       }
+       case element-object-2 {
+         uses grouping-2;
+       }
+       ...
+       case element-object-n {
+         uses grouping-n;
+       }
+     }
+   }
 
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/merge-patch+json"}
-     data: {"cost-map": {"PID1" : {"PID2" : 9}}}
+   In Jackson, one may use annotations or custom deserializers to parse
+   such structures.
 
-   If a major change to the Network Map occurs, the ALTO Server MAY
-   choose to send full Network and Cost Map messages rather than Merge
-   Patch messages:
-
-     event: {"resource-id":"my-network-map",
-         "media-type":"application/alto-networkmap+json"}
-     data: { ... full Network Map message ... }
-
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/alto-costmap+json"}
-     data: { ... full Cost Map message ... }
 
 
 
@@ -562,54 +562,54 @@ Shi & Yang               Expires April 27, 2015                [Page 10]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-4.8.  Client Actions When Receiving Update Messages
+3.2.3.4.4.  Example
 
-   In general, when a client receives a full-map update message for a
-   resource, the client should replace the current version with the new
-   version.  When a client receives a Merge Patch update message for a
-   resource, the client should apply those patches to the current
-   version of the resource.
+   foo : [
+     {
+       "bar" : 12,
+       "baz" : "abc"
+     },
+     {
+       "name" : "cyrus",
+       "year" : 1938
+     }
+   ]
 
-   However, because Cost Maps depend on Network Maps, there are special
-   considerations when a client receives a Network Map update.  After
-   updating the Network Map, the client MUST mark all dependent Cost
-   Maps as "temporarily invalid".  The client MAY NOT use those Cost
-   Maps until the client receives and applies updates from the ALTO
-   Server.
+   grouping grouping-1 {
+     leaf bar {
+       type int32;
+     }
+     leaf baz {
+       type string;
+     }
+   }
 
-   Note that the client MUST NOT delete the Cost Maps, because the
-   server may send a Merge Patch update message.
+   grouping grouping-2 {
+     leaf name {
+       type string;
+     }
+     leaf year {
+       type int32;
+     }
+   }
 
-   The ALTO Server SHOULD send Cost Map updates in a timely fashion.
-   However, if the client does not receive the expected Cost Map
-   updates, the client MUST close the Update Stream connection, discard
-   the Network and Cost Maps, and reestablish the Update Stream.
-   Although inefficient, this recovery method is simple and reliable.
+   list foo {
+     choice element-types {
+       case element-type-1 {
+         uses grouping-1;
+       }
+       case element-type-2 {
+         uses grouping-2;
+       }
+     }
+   }
 
-5.  Filtered Update Stream Service
+3.2.3.5.  Concluding remarks
 
-   The Filtered Update Stream service is similar to the Update Stream
-   service, except that the client can select the types of update
-   events.  Specifically, except as noted below, the Filtered Update
-   Stream service is identical to the Update Stream service (Section 4).
+   This process proves that the message encoding condition is a
+   sufficient condition for the JSON object to have a YANG model.
 
-5.1.  HTTP Method
 
-   A Filtered ALTO Update Stream resource is requested using the HTTP
-   POST method.
-
-5.2.  Accept Input Parameters
-
-   An ALTO Client supplies filtering parameters by specifying media type
-   "application/alto-updatestreamfilter+json" with HTTP POST body
-   containing a JSON object of type ReqFilteredUpdateStream, where:
-
-     object {
-       UpdateEventType events<0..*>;
-     } ReqFilteredUpdateStream;
-
-   This gives the types of the events the ALTO Client wishes to receive,
-   and MUST be a subset of the "events" capability of this resource.  If
 
 
 
@@ -618,54 +618,54 @@ Shi & Yang               Expires April 27, 2015                [Page 11]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-   the list is empty, the ALTO Server MUST send all event types in the
-   "events" capability of this resource.
+   Note the model generated is very crude and lose almost all
+   constraints and all inheritance features (if any), because it focuses
+   on the syntax and is essentially converted from an JSON object
+   compliant with a protocol instead of from the protocol itself.  Hence
+   this result is more useful in determining which JSON based protocols
+   cannot have a syntactically equivalent YANG model, than in generating
+   a usable YANG model.
 
-   If a client requests Merge Patch update events for a given resource-
-   id, the client MUST also request the corresponding full map update
-   events for that resource-id.
+4.  Semantic Equivalence
 
-   If a client requests the full map update event for given resource-id,
-   but does not request the Merge Patch update event for that resource-
-   id, then the ALTO Server MUST send full map update events whenever
-   the map changes.  For Network Map resources, the ALTO Server SHOULD
-   send the full map as soon as it would have sent the Merge Patch
-   event.  For Cost Map resources, the ALTO Server MAY delay sending the
-   full Cost Map until more changes are available.
+   For JSON based protocols that don't satisfy the message encoding
+   condition, it is still possible to have a semantically equivalent
+   YANG model.  All that is required for the protocol compliant clients
+   and the YANG model compliant server to interoperate is an adapter
+   which does the following:
 
-5.3.  Response
+   1) translate FROM YANG server compliant response msg TO alto
+   compliant response msg;
 
-   Here is an example of a client's request and the server's immediate
-   response, using the Filtered Update Stream resource "my-allcosts-
-   update-stream" defined in the IRD in Section 6.  The client requests
-   updates for the Network Map and the "routingcost" Cost Map, but does
-   not want updates for the "hopcount" Cost Map:
+   2) translate FROM alto compliant request msg TO YANG server compliant
+   request msg;
 
+4.1.  Claim
 
+   This adapter needs to be protocol-aware.
 
+   Ideally, given any YANG model, we would like to be able to
+   automatically (or at least mechanically) generate this message
+   adapter, which means not looking at the protocol or its compliant
+   msgs.  However, without knowing the specific protocol that we are
+   working with (i.e. human intervention, i.e. looking at the protocol
+   compliant msgs), such an adapter cannot be auto-generated.
 
+4.2.  Proof by Indistinguishability
 
+   Suppose both the YANG server compliant msg m_y and the actually
+   protocol compliant msg m_p are in JSON (or have been encoded into
+   JSON).  Looking at the differences between the two messages, call
+   these differences {d1, d2, ..., dn}. The goal for the auto-generated
+   adapter would be to identify and eliminate these differences.
+   Construct a new JSON msg m' where all but one difference di is the
+   same as m_p and di is the same as the m_y.  Without looking at the
+   protocol (or m_p), the auto-generated adapter would not be able to
+   distinguish between m' and m_p in its translation process, which
+   means, it won't be able to tell whether it should change di or not.
+   Hence, such an adapter must be protocol-aware.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   A good example is the dependent-vtag in the ALTO protocol:
 
 
 
@@ -674,191 +674,45 @@ Shi & Yang               Expires April 27, 2015                [Page 12]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-     POST /updates/routingcost-hopcount HTTP/1.1
-     Host: alto.example.com
-     Accept: text/event-stream
-     Content-Type: application/alto-updatestreamfilter+json
-     Content-Length: ###
-
-     { "events": [
-       {"media-type": "application/alto-networkmap+json",
-        "resource-id": "my-network-map"},
-       {"media-type": "application/alto-costmap+json",
-        "resource-id": "my-routingcost-map"},
-       {"media-type": "application/merge-patch+json",
-        "resource-id": "my-routingcost-map"}
-     ]}
-
-
-     HTTP/1.1 200 OK
-     Connection: keep-alive
-     Content-Type: text/event-stream
-
-     event: {"resource-id":"my-network-map",
-         "media-type":"application/alto-networkmap+json"}
-     data: { ... full Network Map message ... }
-
-     event: {"resource-id":"my-routingcost-map",
-         "media-type":"application/alto-costmap+json"}
-     data: { ... full Cost Map message ... }
-
-   After that, the ALTO Server sends updates for the Network Map and
-   "routingcost" Cost Map as they become available.
-
-6.  IRD Example
-
-   Here is an example of an IRD that offers both regular and Filtered
-   Update Stream services.  The unfiltered Update Stream provides
-   updates for the Network Map and "routingcost" Cost Map.  The Filtered
-   Update Stream provides update to both those maps, plus the "hopcount"
-   Cost Map.
-
-     "my-network-map": {
-       "uri": "http://alto.example.com/networkmap",
-       "media-type": "application/alto-networkmap+json",
-     },
-     "my-routingcost-map": {
-       "uri": "http://alto.example.com/costmap",
-       "media-type": "application/alto-costmap+json",
-       "uses": ["my-networkmap+json"],
-       "capabilities": {
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 13]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
-         "cost-type-names": ["num-routingcost"]
-       }
-     },
-     "my-hopcount-map": {
-       "uri": "http://alto.example.com/costmap",
-       "media-type": "application/alto-costmap+json",
-       "uses": ["my-networkmap+json"],
-       "capabilities": {
-         "cost-type-names": ["num-hopcount"]
-       }
-     },
-     "my-routingcost-update-stream": {
-       "uri": "http://alto.example.com/updates/routingcost",
-       "media-type": "text/event-stream",
-       "uses": ["network-map", "routingcost-map"],
-       "capabilities": {
-         "events": [
-           {"media-type": "application/alto-networkmap+json",
-            "resource-id": "my-network-map"},
-           {"media-type": "application/alto-costmap+json",
-            "resource-id": "my-routingcost-map"},
-           {"media-type": "application/merge-patch+json",
-            "resource-id": "my-routingcost-map"},
-         ]
-       }
-     },
-     "my-allcosts-update-stream": {
-       "uri": "http://alto.example.com/updates/routingcost-hopcount",
-       "media-type": "text/event-stream",
-       "uses": ["network-map", "routingcost-map", "hopcount-map"],
-       "accepts": "application/alto-updatestreamfilter+json",
-       "capabilities": {
-         "events": [
-           {"media-type": "application/alto-networkmap+json",
-            "resource-id": "my-network-map"},
-           {"media-type": "application/alto-costmap+json",
-            "resource-id": "my-routingcost-map"},
-           {"media-type": "application/merge-patch+json",
-            "resource-id": "my-routingcost-map"},
-           {"media-type": "application/alto-costmap+json",
-            "resource-id": "my-hopcount-map"},
-           {"media-type": "application/merge-patch+json",
-            "resource-id": "my-hopcount-map"}
-         ]
-       }
+   "dependent-vtag" : [
+     {
+       "resource-id" : "my-network-map",
+       "tag" : "abcd1234"
      }
+   ]
 
+   It was specified this way in the alto protocol.  However, it could
+   conceivably be the case that it was originally the following map
+   structure, and was converted into the above encoding because of the
+   map->list+key issue.  (This case is actually one of the few
+   differences in the m_y and m_p where the adapter does not need to
+   convert it back to a map structure.)
 
+   "dependent-vtag" : {
+     "my-network-map" : {
+       "tag" : "abcd1234"
+     }
+   }
 
+   Without knowing the protocol or protocol messages, it is impossible
+   to distinguish.
 
+5.  Ramifications
 
-Shi & Yang               Expires April 27, 2015                [Page 14]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+   We now understand the basic condition for a JSON based protocol to
+   have a YANG Model.  For the protocols that don't meet this condition,
+   there can be a semantic equivalent YANG model, but there won't be a
+   generic process of generating the adapter for all protocols.
 
+6.  Security Considerations
 
-7.  Design Decisions and Discussion
+   This document does not introduce security or privacy concerns.
 
-7.1.  Not Allowing Stream Restart
+7.  IANA Considerations
 
-   If an update stream is closed accidentally, when the client
-   reconnects, the server must resend the full maps.  This is clearly
-   inefficient.  To avoid that inefficiency, the SSE specification
-   allows a server to assign an id to each event.  When a client
-   reconnects, the client can present the id of the last successfully
-   received event, and the server restarts with the next event.
+   This document does not have IANA considerations.
 
-   However, that mechanism adds a lot of complication.  The server would
-   have to save SSE messages in a buffer, in case clients reconnect.
-   But that mechanism will never be perfect: if the client waits too
-   long to reconnect, or if the client's last id is bogus, then the
-   server will have to resend the complete maps anyway.
-
-   In short, using event ids to avoid resending the full map adds a lot
-   of complication to avoid a situation which is hopefully very rare.
-   Hence we decided to keep it simple.
-
-7.2.  Is Incremental Update Useful for Network Maps?
-
-   It is not clear whether incremental update (that is, Merge Patch
-   update) is useful for Network Maps.  For minor changes, such as
-   moving a prefix from one PID to another, it might be useful.  But
-   more involved changes to the Network Map are likely to be "flag
-   days": they represent a completely new Network Map, rather than a
-   simple, well-defined change.
-
-   This is not to say that Network Map updates are not useful.  Clearly
-   Network Maps will change, and update events are necessary to inform
-   clients of the new map.  But we expect most Network Map updates will
-   be full updates with full Network Map message, rather than
-   incremental Merge Patch updates.
-
-   Note that while we allow a server to use Merge Patch on Network Maps,
-   we do not require the server to do so.
-
-8.  Security Considerations
-
-   Allowing persistent update stream connections does enable a new class
-   of Denial-of-Service attacks.  An ALTO Server MAY choose to limit the
-   number of active streams, and reject new requests when that threshold
-   is reached.  In this case the server should return the HTTP status
-   "503 Service Unavailable".
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 15]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
-   Alternatively an ALTO Server MAY return the HTTP status "307
-   Temporary Redirect" to redirect the client to another ALTO Server
-   which can better handle a large number of update streams.
-
-   This extension does not introduce any privacy issues not already
-   present in the ALTO protocol.
-
-9.  IANA Considerations
-
-   This draft defines a new media-type, "application/alto-
-   updatestreamfilter+json", as described in Section 5.2.  That type
-   must be registered with IANA.
-
-   All other media-types used in this document have already been
-   registered, either for ALTO or JSON Merge Patch.
-
-10.  References
+8.  References
 
    [RFC6707]  Niven-Jenkins, B., Le Faucheur, F., and N. Bitar, "Content
               Distribution Network Interconnection (CDNi) Problem
@@ -866,6 +720,15 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
    [RFC7159]  Bray, T., "The JavaScript Object Notation (JSON) Data
               Interchange Format", RFC 7159, March 2014.
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 13]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
    [RFC7285]  Almi, R., Penno, R., Yang, Y., Kiesel, S., Previdi, S.,
               Roome, W., Shalunov, S., and R. Woundy, "Application-Layer
@@ -875,14 +738,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    [RFC6887]  Wing, Ed., D., Cheshire, S., Boucadair, M., Penno, R., and
               P. Selkirk, "Port Control Protocol", RFC 6887, April 2013.
 
-   [SSE]      Hickson, I., "Server-Sent Events (W3C)", December 2012.
-
-   [RFC5789]  Dusseault, L. and J. Snell, "PATCH Method for HTTP", RFC
-              5789, March 2010.
-
-   [RFC7386]  Hoffman, P. and J. Snell, "JSON Merge Patch", RFC 7386,
-              October 2014.
-
    [RFC6020]  Bjorklund Ed., M., "YANG - A Data Modeling Language for
               the Network Configuration Protocol (NETCONF)", RFC 6020,
               October 2010.
@@ -890,13 +745,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    [draft-ietf-netmod-yang-json-01]
               Lhotka, L., "JSON Encoding of Data Modeled with YANG",
               October 2014.
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 16]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
 
 Authors' Addresses
 
@@ -933,20 +781,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 17]
+Shi & Yang               Expires April 27, 2015                [Page 14]
