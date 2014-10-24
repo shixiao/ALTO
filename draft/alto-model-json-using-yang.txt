@@ -72,24 +72,28 @@ Table of Contents
    2.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
      2.1.  Message Encoding Condition  . . . . . . . . . . . . . . .   3
      2.2.  The URI Condition . . . . . . . . . . . . . . . . . . . .   3
-   3.  Proof of syntactic equivalence conditions . . . . . . . . . .   3
-     3.1.  The necessity of the message encoding condition . . . . .   3
-       3.1.1.  Condition (1) . . . . . . . . . . . . . . . . . . . .   3
+   3.  Proof of syntactic equivalence conditions . . . . . . . . . .   4
+     3.1.  The necessity of the message encoding condition . . . . .   4
+       3.1.1.  Condition (1) . . . . . . . . . . . . . . . . . . . .   4
        3.1.2.  Condition (2) . . . . . . . . . . . . . . . . . . . .   4
        3.1.3.  Condition (3) . . . . . . . . . . . . . . . . . . . .   4
        3.1.4.  Conclusion  . . . . . . . . . . . . . . . . . . . . .   4
      3.2.  The sufficiency of the message encoding condition . . . .   4
-       3.2.1.  Motivation of using Jackson data binding  . . . . . .   4
+       3.2.1.  Motivation of using Jackson data binding  . . . . . .   5
        3.2.2.  The message encoding condition in Jackson terms . . .   5
        3.2.3.  Proof . . . . . . . . . . . . . . . . . . . . . . . .   5
-   4.  Semantic Equivalence  . . . . . . . . . . . . . . . . . . . .  12
-     4.1.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . .  12
-     4.2.  Proof by Indistinguishability . . . . . . . . . . . . . .  12
-   5.  Ramifications . . . . . . . . . . . . . . . . . . . . . . . .  13
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
+     3.3.  Examples  . . . . . . . . . . . . . . . . . . . . . . . .   9
+       3.3.1.  ALTO cost map example . . . . . . . . . . . . . . . .  10
+       3.3.2.  CDNi metadata example . . . . . . . . . . . . . . . .  13
+     3.4.  Concluding remarks  . . . . . . . . . . . . . . . . . . .  18
+   4.  Semantic Equivalence  . . . . . . . . . . . . . . . . . . . .  18
+     4.1.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     4.2.  Proof by Indistinguishability . . . . . . . . . . . . . .  19
+   5.  Ramifications . . . . . . . . . . . . . . . . . . . . . . . .  19
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  20
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  20
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  20
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
 
 1.  Introduction
 
@@ -102,10 +106,6 @@ Table of Contents
    Meanwhile, there are broad interests in the networking community to
    use the YANG data modeling language [RFC6020] to define data store
    and protocol messages, so that one can use YANG related tools such as
-   the OpenDayLight Controller.  Although YANG itself is XML based,
-   there have been efforts to model JSON content using YANG
-   [draft-ietf-netmod-yang-json-01]
-
 
 
 
@@ -114,11 +114,21 @@ Shi & Yang               Expires April 27, 2015                 [Page 2]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
+   the OpenDayLight Controller.  Although YANG itself is XML based,
+   there have been efforts to model JSON content using YANG
+   [draft-ietf-netmod-yang-json-01]
+
    This documents explores the conditions under which the messages of a
    JSON based protocol can have a syntactically equivalent hence
-   interoperable YANG model.
+   interoperable YANG model, and provides a conversion process from the
+   JSON message to the YANG model.
 
 2.  Claim
+
+   Assume that we follow the specifications of JSON as specified in
+   [RFC7159], the YANG modeling languate as specified in [RFC6020]. and
+   the JSON encoding of data modeled in YANG as specified in
+   [draft-ietf-netmod-yang-json-01].
 
    A JSON based protocol message can have a syntactically equivalent
    YANG model if and only if:
@@ -144,10 +154,24 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 2.2.  The URI Condition
 
    Some of the YANG related protocols might have URI constraints, e.g.,
-   RESTCONF.  However, the uri in the JSON message could be conformed to
-   RESTCONF compliant uri; alternatively the server could set up a
-   gateway translation for uri.  Hence, we focus on the message encoding
-   condition and leave this condition open.
+   RESTCONF.  There might be also be future protocols that put on
+   additional restraints.  In addition, it is a restraint on the data
+   (the uri in the JSON message), instead of on the data model.
+
+   In case these constraints are in place, to resolve the issue, the uri
+   in the JSON message could be conformed to constraint-compliant uri;
+   alternatively, the server could set up a gateway translation for uri.
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 3]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+   Hence, for now we focus only on the message encoding condition and
+   leave this condition open.
 
 3.  Proof of syntactic equivalence conditions
 
@@ -161,14 +185,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    Although there are no strict rules to convert from JSON to XML, a
    stand-alone non-object JSON value would not have an XML tag, which
    fails because of the same reason for Condition (3).
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 3]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
 
 3.1.2.  Condition (2)
 
@@ -202,7 +218,17 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    message that is compliant with the protocol we are trying to model,
    to a custom java class that can be used for Jackson data binding,
    then to a YANG model.  Note that the middle step of translating to
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 4]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
    and from the custom parser class is not necessary, but it is useful.
+   This also implies which data binding/JSON parser we use does not
+   matter.
 
 3.2.1.  Motivation of using Jackson data binding
 
@@ -218,19 +244,15 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    upfront.  Popular choices for JSON parsing and data binding include
    jackson and gson.
 
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 4]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
    We use Jackson full data binding as our approach.  Full data binding
    binds JSON content into plain old java objects (POJOs), i.e. this
    custom parser class can neither extend nor implement any other class.
    Jackson uses ObjectMapper with the custom parser class to parse JSON
    content into this class.
+
+   The no inheritance assumption means that all custom parser classes
+   are base classes.  Nevertheless, this assumption is also not
+   necessary--we can simply make any derived classes a new based class.
 
 3.2.2.  The message encoding condition in Jackson terms
 
@@ -248,28 +270,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 3.2.3.  Proof
 
-3.2.3.1.  Generate Jackson Parser from JSON Message
-
-   We provide a recursive binding process from a JSON object to the
-   Jackson custom parser class to be used by Jackson ObjectMapper.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -281,6 +281,11 @@ Shi & Yang               Expires April 27, 2015                 [Page 5]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
+
+3.2.3.1.  Generate Jackson Parser from JSON Message
+
+   We provide a recursive binding process from a JSON object to the
+   Jackson custom parser class to be used by Jackson ObjectMapper.
 
    Type determine_type(value) {
      if (type(value) is string or number or boolean or null) {
@@ -310,18 +315,13 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    CamelCase (i.e. remove dashes, etc.); for instance variables, use
    "my" prefix, (e.g. myVariable, myNetworkMap, etc.); for the custom
    class name, if the object is an element of the array, use "Element"
-   suffix.
+   suffix; if a class already exists, we add a number after it which we
+   then remove at the next stage.
 
 3.2.3.2.  Generate YANG Model from Jackson Parser
 
    Given a Jackson Parser Java Class, the following algorithm generates
    a YANG model:
-
-
-
-
-
-
 
 
 
@@ -361,125 +361,14 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
      }
    }
 
-3.2.3.3.  Example
-
-   JSON message object:
-
-   {
-     "meta": {
-       "resource-id": "my-default-map",
-       "tag": "aab875ef69c87d012"
-     },
-     "network-map": [
-       {
-         "src": "PID1",
-         "dsts": ["PID1", "PID2", "PID3"]
-       },
-       {
-         "src": "PID2",
-         "dsts": ["PID1", "PID3"]
-       },
-       {
-         "src": "PID3",
-         "dsts": ["PID2", "PID3"]
-       }
-     ]
-   }
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 7]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
-   Result of build_parser_class(obj):
-
-   Class Message {
-     Meta myMeta;
-     ArrayList<NetworkMapElement> myNetworkMap;
-   }
-   Class Meta {
-     String myResourceId;
-     String myTag;
-   }
-   Class NetworkMapElement {
-     String mySrc;
-     ArrayList<String> myDsts;
-   }
-
-   Generated YANG model:
-
-   container meta {
-     leaf resource-id {
-       type string;
-     }
-     leaf tag {
-       type string;
-     }
-   }
-   list network-map {
-     leaf src {
-       type string;
-     }
-     leaf-list dsts {
-       type string;
-     }
-   }
-
-   This YANG model does validate the JSON document with XML-JSON
-   encoding.  The corresponding XML encoding:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 8]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
-   <?xml version="1.0" encoding="UTF-8" ?>
-   <meta>
-     <resource-id>my-default-map</resource-id>
-     <tag>aab875ef69c87d012</tag>
-   </meta>
-   <network-map>
-     <src>PID1</src>
-     <dsts>PID1</dsts>
-     <dsts>PID2</dsts>
-     <dsts>PID3</dsts>
-   </network-map>
-   <network-map>
-     <src>PID2</src>
-     <dsts>PID1</dsts>
-     <dsts>PID3</dsts>
-   </network-map>
-   <network-map>
-     <src>PID3</src>
-     <dsts>PID2</dsts>
-     <dsts>PID3</dsts>
-   </network-map>
-
-3.2.3.4.  Handling heterogeneous arrays
+3.2.3.3.  Handling heterogeneous arrays
 
    Due to Java's strong typing, handling heterogeneous arrays is
    difficult, but not impossible.  For simplicity, we provide the YANG
    model directly for heterogeneous arrays and provide guidelines for
    Jackson parsing.
 
-3.2.3.4.1.  Arrays of entirely primitive types
+3.2.3.3.1.  Arrays of entirely primitive types
 
    If the array is consisted of entirely non-object, non-value types
    type_1, type_2, ..., type_n, the corresponding YANG model is a leaf-
@@ -500,8 +389,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-
-Shi & Yang               Expires April 27, 2015                 [Page 9]
+Shi & Yang               Expires April 27, 2015                 [Page 7]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -509,7 +397,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    In Jackson, one may parse such arrays as String[] and then convert to
    whichever types needed.
 
-3.2.3.4.2.  Example
+3.2.3.3.2.  Example
 
    foo : [
      12,
@@ -525,7 +413,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
      }
    }
 
-3.2.3.4.3.  Arrays of entirely JSON objects
+3.2.3.3.3.  Arrays of entirely JSON objects
 
    If the array is consisted of entirely JSON object, we create a YANG
    grouping for each object (by following the same process as
@@ -557,12 +445,12 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 10]
+Shi & Yang               Expires April 27, 2015                 [Page 8]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
-3.2.3.4.4.  Example
+3.2.3.4.  Example
 
    foo : [
      {
@@ -570,7 +458,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
        "baz" : "abc"
      },
      {
-       "name" : "cyrus",
+       "name" : "Cyrus T. Elk",
        "year" : 1938
      }
    ]
@@ -604,10 +492,122 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
      }
    }
 
-3.2.3.5.  Concluding remarks
+3.3.  Examples
 
-   This process proves that the message encoding condition is a
-   sufficient condition for the JSON object to have a YANG model.
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 9]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+3.3.1.  ALTO cost map example
+
+   Take the cost map response from the ALTO protocol [RFC7285] as an
+   example:
+
+   {
+     "meta" : {
+       "dependent-vtags" : [
+         {"resource-id": "my-default-network-map",
+          "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+         }
+       ],
+       "cost-type" : {"cost-mode"  : "numerical",
+                      "cost-metric": "routingcost"
+       }
+     },
+     "cost-map" : {
+       "PID1": { "PID1": 1,  "PID2": 5,  "PID3": 10 },
+       "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
+       "PID3": { "PID1": 20, "PID2": 15  }
+     }
+   }
+
+   This JSON object does not have a syntactically equivalent model in
+   YANG because some of its keys are variables, e.g., the "PID1",
+   "PID2", etc.
+
+   If we change this cost map object to the following, we will be able
+   to model it.
+
+   {
+     "meta" : {
+       "dependent-vtags" : [
+         {"resource-id": "my-default-network-map",
+          "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+         }
+       ],
+       "cost-type" : {"cost-mode"  : "numerical",
+                      "cost-metric": "routingcost"
+       }
+     },
+     "cost-map" : [
+       {
+         "src":"PID1",
+         "dst-costs" : [
+           {
+             "dst": "PID1",
+             "cost" : 1
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 10]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+           },
+           {
+             "dst": "PID2",
+             "cost": 5
+           },
+           {
+             "dst": "PID3",
+             "cost": 10
+           }
+         ]
+       },
+       {
+         "src":"PID2",
+         "dst-costs" : [
+           {
+             "dst": "PID1",
+             "cost" : 5
+           },
+           {
+             "dst": "PID2",
+             "cost": 1
+           },
+           {
+             "dst": "PID3",
+             "cost": 15
+           }
+         ]
+       },
+       {
+         "src":"PID3",
+         "dst-costs" : [
+           {
+             "dst": "PID1",
+             "cost" : 20
+           },
+           {
+             "dst": "PID2",
+             "cost": 15
+           }
+         ]
+       }
+     ]
+   }
+
+   Result of build_parser_class(obj):
+
 
 
 
@@ -617,6 +617,355 @@ Shi & Yang               Expires April 27, 2015                [Page 11]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
+
+   Class Message {
+     Meta myMeta;
+     ArrayList<CostMapElement> myCostMap;
+   }
+   Class Meta {
+     ArrayList<DependentVtagsElement> myDependentVtags;
+     CostType myCostType;
+   }
+   Class DependentVtagsElement {
+     String myResourceId;
+     String myTag;
+   }
+   Class CostType {
+     String myCostMode;
+     String myCostMetric;
+   }
+   Class CostMapElement {
+     String mySrc;
+     ArrayList<DstCostsElement> myDstCosts;
+   }
+   Class DstCostsElement {
+     String myDst;
+     int myCost;
+   }
+
+   Generated YANG model:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 12]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+   container meta {
+     list dependent-vtags {
+       leaf resource-id {
+         type string;
+       }
+       leaf tag {
+         type string;
+       }
+     }
+     container cost-type {
+       leaf cost-mode {
+         type string;
+       }
+       leaf cost-metric {
+         type string;
+       }
+     }
+   }
+   list cost-map {
+     leaf src {
+       type string;
+     }
+     list dst-costs {
+       leaf dst {
+         type string;
+       }
+       leaf cost {
+         type int64;
+       }
+     }
+   }
+
+   This YANG model does validate the JSON cost map object with JSON
+   encoding defined in [draft-ietf-netmod-yang-json-01].
+
+3.3.2.  CDNi metadata example
+
+   The original JSON message is the following:
+
+{
+  "metadata": [
+    {
+      "generic-metadata-type":"application/cdni.SourceMetadata.v1+json",
+      "generic-metadata-value": {
+        "sources": [
+          {
+            "_links": {
+              "auth": {
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 13]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+                "auth-type": "application/cdni.Auth.v1+json",
+                "href": "http://metadata.ucdn.example/auth1234"
+              }
+            },
+            "endpoint": "acq1.ucdn.example",
+            "protocol": "ftp"
+          },
+          {
+            "_links": {
+              "auth": {
+                "auth-type": "application/cdni.Auth.v1+json",
+                "href": "http://metadata.ucdn.example/auth1234"
+              }
+            },
+            "endpoint": "acq2.ucdn.example",
+            "protocol": "http"
+          }
+        ]
+      }
+    },
+    {
+      "generic-metadata-type": "application/cdni.LocationACL.v1+json",
+      "generic-metadata-value": {
+        "locations": [
+          {
+            "locations": [
+              {
+                "footprint-type": "IPv4CIDR",
+                "footprint-value": "192.168.0.0/16"
+              }
+            ],
+            "action": "deny"
+          }
+        ]
+      }
+    },
+    {
+      "generic-metadata-type": "application/cdni.ProtocolACL.v1+json",
+      "generic-metadata-value": {
+        "protocols": [
+          {
+            "protocols": [
+              "ftp"
+            ],
+            "action": "deny"
+          }
+        ]
+      }
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 14]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+    }
+  ],
+  "paths": [
+    {
+      "path-pattern": {
+        "pattern": "/video/trailers/*"
+      },
+      "_links": {
+        "path-metadata": {
+          "type": "application/cdni.PathMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234/pathABC"
+        }
+      }
+    },
+    {
+      "path-pattern": {
+        "pattern": "/video/movies/*"
+      },
+      "_links": {
+        "path-metadata": {
+          "type": "application/cdni.PathMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234/pathDCE"
+        }
+      }
+    }
+  ]
+}
+
+   Result of build_parser_class(obj):
+
+
+   Class Message {
+     ArrayList<MetaDataElement> myMetaData;
+     ArrayList<PathsElement> myPaths;
+   }
+   Class MetaDataElement {
+     String myGenericMetadataType;
+     GenericMetadataValue myGenericMetadataValue;
+   }
+   Class GenericMetadataValue {
+     ArrayList<SourcesElement> mySources;
+     ArrayList<LocationsElement> myLocations;
+     ArrayList<ProtocolsElement> myProtocols;
+   }
+   Class SourcesElement {
+     _Links my_Links;
+     String myEndpoint;
+     String myProtocol;
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 15]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+   }
+   Class _Links {
+     Auth myAuth;
+   }
+   Class Auth {
+     String myAuthType;
+     String myHref;
+   }
+   Class LocationsElement {
+     ArrayList<LocationsElement2> myLocations;
+     String myAction;
+   }
+   Class LocationsElement2 {
+     String myFootprintType;
+     String myFootprintValue;
+   }
+   Class ProtocolsElement {
+     ArrayList<String> myProtocols;
+     String myAction;
+   }
+   Class PathsElement {
+     PathPattern myPathPattern;
+     _Links2 my_Links;
+   }
+   Class PathPattern {
+     String myPattern;
+   }
+   Class _Links2 {
+     PathMetadata myPathMetadata;
+   }
+   Class PathMetadata {
+     String myType;
+     String myHref;
+   }
+
+   Generated YANG model:
+
+   list metadata {
+     leaf generic-metadata-type {
+       type string;
+     }
+     container generic-metadata-value {
+       list sources {
+         container _links {
+           container auth {
+             leaf auth-type {
+               type string;
+             }
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 16]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+             leaf href {
+               type string;
+             }
+           }
+         }
+         leaf endpoint {
+           type string;
+         }
+         leaf protocol {
+           type string;
+         }
+       }
+       list locations {
+         list locations {
+           leaf footprint-type {
+             type string;
+           }
+           leaf footprint-value {
+             type string;
+           }
+         }
+         leaf action {
+           type string;
+         }
+       }
+       list protocols {
+         leaf-list protocols {
+           type string;
+         }
+         leaf action {
+           type string;
+         }
+       }
+     }
+   }
+   list paths {
+     container path-pattern {
+       leaf pattern {
+         type string;
+       }
+     }
+     container _links {
+       container path-metadata {
+         leaf type {
+           type string;
+         }
+         leaf href {
+           type string;
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 17]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+         }
+       }
+     }
+   }
+
+   This YANG model does validate the JSON cost map object with JSON
+   encoding defined in [draft-ietf-netmod-yang-json-01].
+
+3.4.  Concluding remarks
+
+   This process proves that the message encoding condition is a
+   sufficient condition for the JSON object to have a YANG model.
 
    Note the model generated is very crude and lose almost all
    constraints and all inheritance features (if any), because it focuses
@@ -651,6 +1000,16 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    working with (i.e. human intervention, i.e. looking at the protocol
    compliant msgs), such an adapter cannot be auto-generated.
 
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 18]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
 4.2.  Proof by Indistinguishability
 
    Suppose both the YANG server compliant msg m_y and the actually
@@ -666,13 +1025,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    Hence, such an adapter must be protocol-aware.
 
    A good example is the dependent-vtag in the ALTO protocol:
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 12]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
 
    "dependent-vtag" : [
      {
@@ -704,6 +1056,16 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    there can be a semantic equivalent YANG model, but there won't be a
    generic process of generating the adapter for all protocols.
 
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 19]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
 6.  Security Considerations
 
    This document does not introduce security or privacy concerns.
@@ -720,15 +1082,6 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
    [RFC7159]  Bray, T., "The JavaScript Object Notation (JSON) Data
               Interchange Format", RFC 7159, March 2014.
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 13]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
 
    [RFC7285]  Almi, R., Penno, R., Yang, Y., Kiesel, S., Previdi, S.,
               Roome, W., Shalunov, S., and R. Woundy, "Application-Layer
@@ -757,6 +1110,18 @@ Authors' Addresses
    Email: xiao.shi@yale.edu
 
 
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 20]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
    Y. Richard Yang
    Yale University
    51 Prospect St
@@ -781,4 +1146,31 @@ Authors' Addresses
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 14]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                [Page 21]
