@@ -1,6 +1,9 @@
-checkout yangtools.git
-
+=====INSTRUCTIONS=====
+checkout yangtools.git (git clone https://git.opendaylight.org/gerrit/yangtools)
+cd yangtools
 mvn clean install
+
+
 
 <dependencies>
     <dependency>

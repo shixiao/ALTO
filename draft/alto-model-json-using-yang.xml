@@ -1,0 +1,914 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE rfc SYSTEM "http://http://tools.ietf.org/tools/templates/rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc iprnotified="no" ?>
+<?rfc symrefs="yes"?>
+<?rfc compact="yes" ?>
+<?rfc subcompact="no" ?>
+<rfc category="std"
+     docName="draft-shi-alto-model-json-using-yang-00" 
+     ipr="trust200902">
+	<front>
+		<title>Modeling JSON Messages Using YANG</title>
+		<author initials="X." surname="Shi" fullname="Xiao Shi">
+			<organization abbrev="Yale University">Yale University</organization>
+			<address>
+				<postal>
+					<street>51 Prospect Street</street>
+					<city>New Haven</city>
+					<region>CT</region>
+					<code>06511</code>
+					<country>USA</country>
+				</postal>
+				<email>xiao.shi@yale.edu</email>
+			</address>
+		</author>
+		<author fullname="Y. Richard Yang" initials="Y." surname="Yang">
+		  <organization>Yale University</organization>
+		  <address>
+			<postal>
+			  <street>51 Prospect St</street>
+			  <city>New Haven</city>
+			  <code>CT</code>
+			  <country>USA</country>
+			</postal>
+			<email>yang.r.yang@gmail.com</email>
+		  </address>
+		</author>
+		<date month="October" year="2014"/>
+		<area>Networks</area>
+		<workgroup>ALTO WG</workgroup>
+		<keyword>ALTO</keyword>
+		<abstract>
+		  <t>JavaScript Object Notation (JSON) has been a popular choice as the 
+		  message encoding for many network protocol. Meanwhile, there are broad
+		  interests in the networking community to use the YANG data modeling 
+		  language <xref target="RFC6020"/> to define data store and protocol
+		  messages, so that one can use YANG related tools such as the OpenDayLight Controller.
+		  Although YANG itself is XML based, there have been efforts to model JSON
+		  content using YANG <xref target="draft-ietf-netmod-yang-json-01"/></t>
+	  
+		  <t>This documents explores the conditions under which the messages of 
+		  a JSON based protocol can have a syntactically equivalent hence interoperable
+		  YANG model.</t>
+		</abstract>
+	</front>
+	
+	<middle>
+		<section title="Introduction">
+			<t>JavaScript Object Notation (JSON) has been a popular choice as the 
+			  message encoding for many network protocols such as the 
+			  Application-Layer Traffic Optimization (ALTO) protocol
+			  <xref target="RFC7285"/>, the Content Delivery Networks 
+			  Interconnection (CDNi) protocol <xref target="RFC6707"/>, the Port
+			  Control Protocol (PCP) <xref target="RFC6887"/>, etc.</t>
+
+			  <t>Meanwhile, there are broad interests in the networking community to 
+			  use the YANG data modeling language <xref target="RFC6020"/> to define data store and protocol
+			  messages, so that one can use YANG related tools such as the OpenDayLight Controller.
+			  Although YANG itself is XML based, there have been efforts to model JSON
+			  content using YANG <xref target="draft-ietf-netmod-yang-json-01"/></t>
+		  
+			  <t>This documents explores the conditions under which the messages of 
+			  a JSON based protocol can have a syntactically equivalent hence interoperable
+			  YANG model.</t>
+		</section>
+		
+		<section title="Claim">
+			<t>A JSON based protocol message can have a syntactically equivalent
+				YANG model if and only if: </t>
+			<t>(1) the message encoding condition is met;</t>
+			<t>(2) the uri condition is met.</t>
+
+			<section title="Message Encoding Condition">
+				<t>The JSON message encoding condition is the following:</t>
+				<t>(1) At any level, there MUST NOT be a stand-alone non-object JSON value;</t>
+				<t>(2) The arrays MUST be homogeneous, i.e. the elements must be of the same type;</t>
+				<t>(3) The JSON message MUST NOT contain a variable as a key or null as a value in a
+					JSON object key-value pair; in other words, the keys in the JSON message must be
+					an already defined constant keyword in the message format of the protocol.</t>
+
+			</section>
+
+			<section title="The URI Condition">
+				<t>Some of the YANG related protocols might have URI constraints, e.g., RESTCONF.
+					However, the uri in the JSON message could be conformed to RESTCONF compliant uri;
+					alternatively the server could set up a gateway translation for uri. Hence, we
+					focus on the message encoding condition and leave this condition open.</t>
+			</section>
+
+			<section title="JSON Merge Patch Applied to Network Map Messages">
+				<t>
+					Section 11.2.1.6 of <xref target="RFC7285"/> defines the format
+					of a Network Map message. Here is a simple example:
+				</t>
+				<figure>
+				  <artwork><![CDATA[                            
+  {
+    "meta" : {
+      "vtag": {
+        "resource-id": "my-default-network-map",
+        "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+      }
+    },
+    "network-map" : {
+      "PID1" : {
+        "ipv4" : [
+          "192.0.2.0/24",
+          "198.51.100.0/25"
+        ]
+      },
+      "PID2" : {
+        "ipv4" : [ "198.51.100.128/25" ]
+      },
+      "PID3" : {
+        "ipv4" : [ "0.0.0.0/0" ],
+        "ipv6" : [ "::/0" ]
+      }
+    }
+  }
+  ]]></artwork>
+				</figure>
+				<t>
+					When applied to that message, the following Merge Patch update message
+					adds the ipv6 prefix "2000::/3" to "PID1",
+					deletes "PID2",
+					and assigns a new "tag" to the Network Map:
+				</t>
+				 <figure>
+				  <artwork><![CDATA[                            
+  {
+    "meta" : {
+      “vtag” : {
+        "tag" : "a10ce8b059740b0b2e3f8eb1d4785acd42231bfe"
+      }
+    },
+    "network-map": {
+      "PID1" : {
+        "ipv6" : [ "2000::/3" ]
+      },
+      "PID2" : null
+    }
+  }
+  ]]></artwork>
+				</figure>
+				<t>
+					Here is the updated Network Map:
+				</t>
+				<figure>
+					<artwork><![CDATA[
+  {
+    "meta" : {
+      "vtag": {
+        "resource-id": "my-default-network-map",
+        "tag": "a10ce8b059740b0b2e3f8eb1d4785acd42231bfe"
+      }
+    },
+    "network-map" : {
+      "PID1" : {
+        "ipv4" : [
+          "192.0.2.0/24",
+          "198.51.100.0/25"
+        ],
+        "ipv6" : [ "2000::/3" ]
+      },
+      "PID3" : {
+        "ipv4" : [ "0.0.0.0/0" ],
+        "ipv6" : [  "::/0" ]
+      }
+    }
+  }
+  ]]></artwork>
+			</figure>
+		   </section>
+
+			<section title="JSON Merge Patch Applied to Cost Map Messages">
+				<t>
+					Section 11.2.3.6 of <xref target="RFC7285"/> defines the format
+					of a Cost Map message. Here is a simple example:
+				</t>
+				<figure>
+				  <artwork><![CDATA[                            
+  {
+    "meta" : {
+      "dependent-vtags" : [
+        {"resource-id": "my-default-network-map",
+         "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+        }
+      ],
+      "cost-type" : {"cost-mode"  : "numerical",
+                     "cost-metric": "routingcost"
+      }
+    },
+    "cost-map" : {
+      "PID1": { "PID1": 1,  "PID2": 5,  "PID3": 10 },
+      "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
+      "PID3": { "PID1": 20, "PID2": 15  }
+    }
+  }
+  ]]></artwork>
+				</figure>
+				<t>
+					The following Merge Patch message updates that cost map
+					so that (1) PID1->PID2 is 9 instead of 5; (2)
+					PID3->PID1 is no longer available;
+					and (3) PID3->PID3 is now 1:
+				</t>
+				<figure>
+					<artwork><![CDATA[
+  {
+    "cost-map" : {
+      "PID1" : { "PID2" : 9 },
+      "PID3" : { "PID1" : null, "PID3" : 1 }
+    }
+  }
+  ]]></artwork>
+				</figure>
+				<t>
+					Here is the updated Cost Map:
+				</t>
+				<figure>
+				  <artwork><![CDATA[                            
+  {
+    "meta" : {
+      "dependent-vtags" : [
+        {"resource-id": "my-default-network-map",
+         "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+        }
+      ],
+      "cost-type" : {"cost-mode"  : "numerical",
+                     "cost-metric": "routingcost"
+      }
+    },
+    "cost-map" : {
+      "PID1": { "PID1": 1,  "PID2": 9,  "PID3": 10 },
+      "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
+      "PID3": { "PID1": 20,             "PID3": 1  }
+    }
+  }
+  ]]></artwork>
+					</figure>
+				</section>
+		</section>
+		
+		<section title="Server-Sent Events">
+		  <section title="Overview of SSEs">
+			<t>
+				Server-Sent Events <xref target="SSE"/> enable a server
+				to send new data to a client by pushing messages to the
+				client. To summarize the protocol, the client establishes
+				an HTTP connection to the server, and keeps the connection open.
+				The server continually sends messages. Messages are delimited
+				by two new-lines (this is a slight simplification of the
+				full specification), and contain three fields:
+				an event type, an id, and data. All fields are strings.
+				The data field may contain new-lines; the other fields cannot.
+				The event type and id fields are optional.
+			</t>
+			<t>
+				Here is a sample SSE stream, starting with the client request.
+				The server sends three events and then closes the stream.
+			</t>
+			<figure>
+			  <artwork><![CDATA[
+  GET /stream HTTP/1.1
+  Host: example.com
+  Accept: text/event-stream
+  
+  HTTP/1.1 200 OK
+  Connection: keep-alive
+  Content-Type: text/event-stream
+  
+  event: start
+  data: hello there
+  
+  event: middle
+  data: let's chat some more ... and more ...
+  
+  event: end
+  data: good bye
+  ]]></artwork>
+			</figure>
+		  </section>
+		  
+		  <section title="ALTO SSE Update Messages" anchor="ALTO.SSE.Messages">
+		  	<t>
+		  		In our events, the data field is a JSON message;
+		  		specifically, a Network Map, a Cost Map, or a Merge Patch
+		  		to apply to a Network or Cost Map.
+		  		Our event types have two sub-fields:
+		  		the media-type of the JSON message in the data field,
+		  		and the resource-id of the ALTO Network Map or Cost Map resource.
+		  		The media-type is
+		  		"application/alto-networkmap+json" for Network Map messages,
+		  		"application/alto-costmap+json" for Cost Map messages,
+		  		or "application/merge-patch+json" for Merge Patch messages.
+		  		The first two types are defined by <xref target="RFC7285"/>,
+		  		and the last is defined by <xref target="RFC7285"/>.
+		  	</t>
+		  	<t>
+		  		We use a JSON object to encode the sub-fields of the event type field.
+		  		That is, our event types are JSON objects with two fields,
+		  		"resource-id" and "media-type".
+		  		Formally, ALTO Update SSE event types are JSON objects of type UpdateEventType:		  		
+		  	</t>
+			<figure>
+			  <artwork><![CDATA[
+  object {
+    JSONString resource-id;
+    JSONString media-type;
+  } UpdateEventType;
+]]></artwork>
+			</figure>
+			
+			<t>
+				Note that two event types are equal iff their "resource-id" and "media-type"
+				sub-fields are equal. When comparing event types, clients MUST parse the
+				type string as a JSON object and compare those fields. Clients MUST NOT
+				do simple string comparison on the event type string.
+			</t>
+			
+			<t>
+		  		We do not use the SSE id field.
+		  	</t>
+		  		
+		  	<t>
+		  		Here examples of ALTO update events.
+		  		Note that we spread the event type over two lines for readability;
+		  		the line break should not be transmitted over the stream.
+		  	</t>
+			<figure>
+			  <artwork><![CDATA[
+  event: {"resource-id":"my-network-map",
+      "media-type":"application/alto-networkmap+json"}
+  data: { ... full Network Map message ... }
+  
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/alto-costmap+json"}
+  data: { ... full Cost Map message ... }
+  
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/merge-patch+json"}
+  data: { ... Merge Patch update for Cost Map ... }
+]]></artwork>
+			</figure>
+		  </section>
+		  	
+		  <section title="Keep-Alive Messages">
+		  	<t>
+		  		An SSE event with an empty event type is a keep-alive message.
+		  		An ALTO Server MAY send keep-alive messages as needed.
+		  		An ALTO Client MUST ignore any keep-alive messages.
+		  	</t>
+		  </section>
+			
+		</section>
+		
+		<section title="Update Stream Service" anchor="UpdateStreamService">
+			<t>
+				An Update Stream Service returns a stream of SSE messages,
+				as defined in <xref target="ALTO.SSE.Messages"/>.
+			</t>
+		  <section title="Media Type">
+		  	<t>
+		  		The media type of an ALTO Update Stream resource is "text/event-stream".
+		  	</t>
+		  </section>
+		  <section title="HTTP Method">
+		  	<t>
+		  		An ALTO Update Stream resource is requested using the HTTP GET method.
+		  	</t>
+		  </section>
+		  <section title="Accept Input Parameters">
+		  	<t>
+		  		None.
+		  	</t>
+		  </section>
+		  <section title="Capabilities">
+		  	<t>
+		  		The capabilities are defined by an object of type UpdateStreamCapabilities:
+		  	</t>
+			<figure>
+			  <artwork><![CDATA[
+  object {
+    UpdateEventType events<1..*>;
+  } UpdateEventStreamCapabilities;
+]]></artwork>
+			</figure>
+			<t>
+				This array gives the event types sent by this Update Stream.
+			</t>
+			<t>
+				If an Update Event Service's event capability list
+				has an event with a media-type of "text/merge-patch+json"
+				for a given Network Map resource-id,
+				the event capability list MUST also have an event with media-type
+				"application/alto-networkmap+json" for that resource-id.
+				Similarly, if an Update Event Service's event capability list
+				has an event with a media-type of "text/merge-patch+json"
+				for a given Cost Map resource-id,
+				the event capability list MUST also have an event with media-type
+				"application/alto-costmap+json" for that resource-id.
+			</t>
+		  </section>
+		  <section title="Uses">
+		  	<t>
+		  		An array with the resource-ids of the resources for which this stream sends updates.
+		  		This array MUST contain the resource-ids of every event type
+		  		in the "events" capability.
+		  	</t>
+		  </section>
+		  <section title="Event Order Requirements">
+		  	<t>
+		  		There are several requirements on the order in which an ALTO Server
+		  		sends SSE Update messages on the event stream:
+		  		<list style="symbols">
+		  			<t>
+		  				For any given resource-id, the ALTO Server MUST send
+		  				a full-map update event (media-type "application/alto-networkmap+json"
+		  				or "application/alto-costmap+json") before the first
+		  				Merge Patch event (media-type "application/merge-patch+json")
+		  				for that resource-id.
+		  			</t>
+		  			<t>
+		  				The ALTO Server SHOULD send full-map update events
+		  				for all resource-ids covered by this Update Stream resource
+		  				as soon as possible after the client initiates the connection.
+		  			</t>
+		  			<t>
+		  				When a Network Map changes, the ALTO Server MUST
+		  				send an update event for that Network Map
+		  				before sending the update events for any Cost Maps
+		  				that depend on that Network Map.
+		  			</t>
+		  			<t>
+		  				When a Network Map changes, the ALTO Server SHOULD
+		  				send update events for all Cost Maps
+		  				that depend on that Network Map
+		  				as soon as possible after sending
+		  				the update event for the Network Map.
+		  			</t>
+		  		</list>
+		  	</t>
+		  </section>
+		  <section title="Response">
+		  	<t>
+				Here is an example of a client's request and the server's immediate response,
+				using the Update Stream resource "my-routingcost-update-stream"
+				defined in the IRD in <xref target="IRD.example"/>.
+				This assumes the Update Stream service sends updates
+				for a Network Map with resource-id "my-network-map"
+				and an associated Cost Map with resource-id "my-routingcost-map":
+		  	</t>
+			<figure>
+			  <artwork><![CDATA[
+  GET /updates/routingcost HTTP/1.1
+  Host: alto.example.com
+  Accept: text/event-stream
+  
+  HTTP/1.1 200 OK
+  Connection: keep-alive
+  Content-Type: text/event-stream
+  
+  event: {"resource-id":"my-network-map",
+      "media-type":"application/alto-networkmap+json"}
+  data: { ... full Network Map message ... }
+  
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/alto-costmap+json"}
+  data: { ... full Cost Map message ... }
+]]></artwork>
+			</figure>
+			
+			<t>
+				After sending those two events immediately,
+				the ALTO Server will send additional events
+				as the maps change. For example, the following
+				represents a small change to the Cost Map:
+			</t>
+			<figure>
+			  <artwork><![CDATA[
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/merge-patch+json"}
+  data: {"cost-map": {"PID1" : {"PID2" : 9}}}
+]]></artwork>
+			</figure>
+			<t>
+				If a major change to the Network Map occurs,
+				the ALTO Server MAY choose to send
+				full Network and Cost Map messages
+				rather than Merge Patch messages:
+			</t>
+			<figure>
+			  <artwork><![CDATA[
+  event: {"resource-id":"my-network-map",
+      "media-type":"application/alto-networkmap+json"}
+  data: { ... full Network Map message ... }
+  
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/alto-costmap+json"}
+  data: { ... full Cost Map message ... }
+]]></artwork>
+			</figure>
+			
+		  </section>
+		  
+		  <section title="Client Actions When Receiving Update Messages">
+			<t>
+				In general, when a client receives a full-map update message
+				for a resource, the client should replace the current version
+				with the new version.
+				When a client receives a Merge Patch update message
+				for a resource, the client should apply those patches
+				to the current version of the resource.
+			</t>
+			<t>
+				However, because Cost Maps depend on Network Maps,
+				there are special considerations when a client
+				receives a Network Map update.
+				After updating the Network Map,
+				the client MUST mark all dependent Cost Maps as
+				"temporarily invalid". The client MAY NOT use those
+				Cost Maps until the client receives and applies
+				updates from the ALTO Server.
+			</t>
+			<t>
+				Note that the client MUST NOT delete the Cost Maps,
+				because the server may send a Merge Patch update message.
+			</t>
+			<t>
+				The ALTO Server SHOULD send Cost Map updates in a timely fashion.
+				However, if the client does not receive the expected Cost Map updates,
+				the client MUST close the Update Stream connection,
+				discard the Network and Cost Maps,
+				and reestablish the Update Stream.
+				Although inefficient, this recovery method is simple and reliable.
+			</t>
+		  </section>
+		</section>
+		
+		<section title="Filtered Update Stream Service">
+			<t>
+				The Filtered Update Stream service is similar to
+				the Update Stream service, except that the client
+				can select the types of update events.
+				Specifically, except as noted below, 
+				the Filtered Update Stream service is identical to
+				the Update Stream service (<xref target="UpdateStreamService"/>).
+			</t>
+			
+		  <section title="HTTP Method">
+		  	<t>
+				A Filtered ALTO Update Stream resource
+				is requested using the HTTP POST method.
+			</t>
+		  </section>
+		  <section title="Accept Input Parameters" anchor="FilteredUpdate.media-type">
+		  	<t>
+				An ALTO Client supplies filtering parameters by specifying media type
+				"application/alto-updatestreamfilter+json" with HTTP POST body
+				containing a JSON object of type ReqFilteredUpdateStream, where:
+			</t>
+			<figure>
+			  <artwork><![CDATA[
+  object {
+    UpdateEventType events<0..*>;
+  } ReqFilteredUpdateStream;
+]]></artwork>
+			</figure>
+			<t>
+				This gives the types of the events the ALTO Client wishes to receive,
+				and MUST be a subset of the "events" capability of this resource.
+				If the list is empty, the ALTO Server MUST send all event types
+				in the "events" capability of this resource.
+			</t>
+			<t>
+				If a client requests Merge Patch update events for a given resource-id,
+				the client MUST also request the corresponding full map update events
+				for that resource-id.
+			</t>
+			<t>
+				If a client requests the full map update event for given resource-id,
+				but does not request the Merge Patch update event for that resource-id,
+				then the ALTO Server MUST send full map update events whenever
+				the map changes. For Network Map resources, the ALTO Server SHOULD
+				send the full map as soon as it would have sent the Merge Patch event.
+				For Cost Map resources, the ALTO Server MAY delay sending the full Cost Map
+				until more changes are available.
+			</t>
+		  </section>
+		  <section title="Response">
+		  	<t>
+				Here is an example of a client's request and the server's immediate response,
+				using the Filtered Update Stream resource "my-allcosts-update-stream"
+				defined in the IRD in <xref target="IRD.example"/>.
+				The client requests updates for the Network Map
+				and the "routingcost" Cost Map,
+				but does not want updates for the "hopcount" Cost Map:
+		  	</t>
+			<figure>
+			  <artwork><![CDATA[
+  POST /updates/routingcost-hopcount HTTP/1.1
+  Host: alto.example.com
+  Accept: text/event-stream
+  Content-Type: application/alto-updatestreamfilter+json
+  Content-Length: ###
+  
+  { "events": [
+    {"media-type": "application/alto-networkmap+json",
+     "resource-id": "my-network-map"},
+    {"media-type": "application/alto-costmap+json",
+     "resource-id": "my-routingcost-map"},
+    {"media-type": "application/merge-patch+json",
+     "resource-id": "my-routingcost-map"}
+  ]}
+  
+  
+  HTTP/1.1 200 OK
+  Connection: keep-alive
+  Content-Type: text/event-stream
+  
+  event: {"resource-id":"my-network-map",
+      "media-type":"application/alto-networkmap+json"}
+  data: { ... full Network Map message ... }
+  
+  event: {"resource-id":"my-routingcost-map",
+      "media-type":"application/alto-costmap+json"}
+  data: { ... full Cost Map message ... }
+]]></artwork>
+			</figure>
+			<t>
+				After that, the ALTO Server sends updates for the Network Map
+				and "routingcost" Cost Map as they become available.
+			</t>
+		  </section>
+		</section>
+
+		<section title="IRD Example" anchor="IRD.example">
+		  	<t>
+		  		Here is an example of an IRD that offers both regular and Filtered
+		  		Update Stream services.
+		  		The unfiltered Update Stream
+		  		provides updates for the Network Map
+		  		and "routingcost" Cost Map.
+		  		The Filtered Update Stream
+		  		provides update to both those maps,
+		  		plus the "hopcount" Cost Map.
+		  	</t>
+		  	<figure>
+		  		<artwork><![CDATA[
+  "my-network-map": {
+    "uri": "http://alto.example.com/networkmap",
+    "media-type": "application/alto-networkmap+json",
+  },
+  "my-routingcost-map": {
+    "uri": "http://alto.example.com/costmap",
+    "media-type": "application/alto-costmap+json",
+    "uses": ["my-networkmap+json"],
+    "capabilities": {
+      "cost-type-names": ["num-routingcost"]
+    }
+  },
+  "my-hopcount-map": {
+    "uri": "http://alto.example.com/costmap",
+    "media-type": "application/alto-costmap+json",
+    "uses": ["my-networkmap+json"],
+    "capabilities": {
+      "cost-type-names": ["num-hopcount"]
+    }
+  },
+  "my-routingcost-update-stream": {
+    "uri": "http://alto.example.com/updates/routingcost",
+    "media-type": "text/event-stream",
+    "uses": ["network-map", "routingcost-map"],
+    "capabilities": {
+      "events": [
+        {"media-type": "application/alto-networkmap+json",
+         "resource-id": "my-network-map"},
+        {"media-type": "application/alto-costmap+json",
+         "resource-id": "my-routingcost-map"},
+        {"media-type": "application/merge-patch+json",
+         "resource-id": "my-routingcost-map"},
+      ]
+    }
+  },
+  "my-allcosts-update-stream": {
+    "uri": "http://alto.example.com/updates/routingcost-hopcount",
+    "media-type": "text/event-stream",
+    "uses": ["network-map", "routingcost-map", "hopcount-map"],
+    "accepts": "application/alto-updatestreamfilter+json",
+    "capabilities": {
+      "events": [
+        {"media-type": "application/alto-networkmap+json",
+         "resource-id": "my-network-map"},
+        {"media-type": "application/alto-costmap+json",
+         "resource-id": "my-routingcost-map"},
+        {"media-type": "application/merge-patch+json",
+         "resource-id": "my-routingcost-map"},
+        {"media-type": "application/alto-costmap+json",
+         "resource-id": "my-hopcount-map"},
+        {"media-type": "application/merge-patch+json",
+         "resource-id": "my-hopcount-map"}
+      ]
+    }
+  }
+  ]]></artwork>
+			</figure>
+		</section>
+		
+		<section title="Design Decisions and Discussion">
+		  <section title="Not Allowing Stream Restart">
+			<t>
+				If an update stream is closed accidentally,
+				when the client reconnects, the server must
+				resend the full maps.
+				This is clearly inefficient.
+				To avoid that inefficiency,
+				the SSE specification allows a server to assign an id
+				to each event. When a client reconnects,
+				the client can present the id of the last successfully
+				received event, and the server restarts with the
+				next event.
+			</t>
+			<t>
+				However, that mechanism adds a lot of complication.
+				The server would have to save SSE messages in a buffer,
+				in case clients reconnect.
+				But that mechanism will never be perfect:
+				if the client waits too long to reconnect,
+				or if the client's last id is bogus,
+				then the server will have to resend the complete maps anyway.
+			</t>
+			<t>
+				In short, using event ids to avoid resending the full map
+				adds a lot of complication to avoid a situation which is
+				hopefully very rare. Hence we decided to keep it simple.
+			</t>
+		  </section>
+		  
+		  <section title="Is Incremental Update Useful for Network Maps?">
+		  	<t>
+		  		It is not clear whether incremental update (that is, Merge Patch update)
+		  		is useful for Network Maps. For minor changes, such as moving a prefix
+		  		from one PID to another, it might be useful. But more involved changes
+		  		to the Network Map are likely to be "flag days": they represent a completely
+		  		new Network Map, rather than a simple, well-defined change.
+		  	</t>
+		  	<t>
+		  		This is not to say that Network Map updates are not useful.
+		  		Clearly Network Maps will change, and update events are necessary
+		  		to inform clients of the new map.
+		  		But we expect most Network Map updates will be full updates
+		  		with full Network Map message, rather than incremental Merge Patch
+		  		updates.
+		  	</t>
+		  	<t>
+		  		Note that while we allow a server to use Merge Patch on Network Maps,
+		  		we do not require the server to do so.
+		  	</t> 
+		  </section>
+		</section>
+		
+		<section title="Security Considerations">
+			<t>
+				Allowing persistent update stream connections
+				does enable a new class of Denial-of-Service attacks.
+				An ALTO Server MAY choose to limit the number of active streams,
+				and reject new requests when that threshold	is reached.
+				In this case the server should return
+				the HTTP status "503 Service Unavailable".
+			</t>
+			<t>
+				Alternatively an ALTO Server MAY return
+				the HTTP status "307 Temporary Redirect"
+				to redirect the client to another ALTO Server
+				which can better handle a large number of update streams.
+			</t>
+			<t>
+				This extension does not introduce any privacy issues
+				not already present in the ALTO protocol.
+			</t>
+		</section>
+
+		<section anchor="IANA" title="IANA Considerations">
+			<t>
+				This draft defines a new media-type, "application/alto-updatestreamfilter+json",
+				as described in <xref target="FilteredUpdate.media-type"/>.
+				That type must be registered with IANA.
+			</t>
+			<t>
+				All other media-types used in this document have already been registered,
+				either for ALTO or JSON Merge Patch.
+			</t>
+		</section>
+		
+	</middle>
+	
+	<back>
+		<references>
+		
+		  <!--
+			<reference anchor="RFC5226">
+				<front>
+					<title>Guidelines for Writing an IANA Considerations Section in RFCs</title>
+					<author initials="T." surname="Narten" fullname="T. Narten"/>
+					<author initials="H." surname="Alvestrand" fullname="H. Alvestrand"/>
+					<date month="May" year="2008"/>
+				</front>
+				<seriesInfo name="RFC" value="5226" />
+				<seriesInfo name="BCP" value="26" />
+			</reference>
+		  -->
+		  
+			<reference anchor="RFC6707">
+				<front>
+					<title>Content Distribution Network Interconnection (CDNi) Problem Statement</title>
+					<author initials="B." surname="Niven-Jenkins" fullname="B. Niven-Jenkins"/>
+					<author initials="F." surname="Le Faucheur" fullname="F. Le Faucheur"/>
+					<author initials="N." surname="Bitar" fullname="N. Bitar"/>
+					<date month="September" year="2012"/>
+				</front>
+				<seriesInfo name="RFC" value="6707" />
+			</reference>
+			<reference anchor="RFC7159">
+				<front>
+					<title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+					<author initials="T." surname="Bray" fullname="T. Bray"/>
+					<date month="March" year="2014"/>
+				</front>
+				<seriesInfo name="RFC" value="7159" />
+			</reference>
+			<reference anchor="RFC7285">
+				<front>
+					<title>Application-Layer Traffic Optimization (ALTO) Protocol</title>
+					<author initials="R." surname="Almi" fullname="R. Alimi"/>
+					<author initials="R." surname="Penno" fullname="R. Penno"/>
+					<author initials="Y." surname="Yang" fullname="Y. Yang"/>
+					<author initials="S." surname="Kiesel" fullname="S. Kiesel"/>
+					<author initials="S." surname="Previdi" fullname="S. Previdi"/>
+					<author initials="W." surname="Roome" fullname="W. Roome"/>
+					<author initials="S." surname="Shalunov" fullname="S. Shalunov"/>
+					<author initials="R." surname="Woundy" fullname="R. Woundy"/>
+					<date month="September" year="2014"/>
+				</front>
+				<seriesInfo name="RFC" value="7285" />
+			</reference>
+			<reference anchor="RFC6887">
+				<front>
+					<title>Port Control Protocol</title>
+					<author initials="D." surname="Wing, Ed." fullname="D. Wing, Ed."/>
+					<author initials="S." surname="Cheshire" fullname="S. Cheshire"/>
+					<author initials="M." surname="Boucadair" fullname="M. Boucadair"/>
+					<author initials="R." surname="Penno" fullname="R. Penno"/>
+					<author initials="P." surname="Selkirk" fullname="P. Selkirk"/>
+					<date month="April" year="2013"/>
+				</front>
+				<seriesInfo name="RFC" value="6887" />
+			</reference>
+			<reference anchor="SSE">
+				<front>
+					<title>Server-Sent Events (W3C)</title>
+					<author initials="I." surname="Hickson" fullname="Ian Hickson"/>
+					<date month="December" year="2012"/>
+				</front>
+				<!-- http://www.w3.org/TR/eventsource/ -->
+			</reference>
+			<reference anchor="RFC5789">
+				<front>
+					<title>PATCH Method for HTTP</title>
+					<author initials="L." surname="Dusseault" fullname="L. Dusseault"/>
+					<author initials="J." surname="Snell" fullname="J. Snell"/>
+					<date month="March" year="2010"/>
+				</front>
+				<seriesInfo name="RFC" value="5789" />
+			</reference>
+
+			<reference anchor="RFC7386">
+				<front>
+					<title>JSON Merge Patch</title>
+					<author initials="P." surname="Hoffman" fullname="P. Hoffman"/>
+					<author initials="J." surname="Snell" fullname="J. Snell"/>
+					<date month="October" year="2014"/>
+				</front>
+				<seriesInfo name="RFC" value="7386" />
+			</reference>
+
+			<reference anchor="RFC6020">
+				<front>
+					<title>YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)</title>
+					<author initials="M." surname="Bjorklund Ed." fullname="M. Bjorklund Ed."/>
+					<date month="October" year="2010"/>
+				</front>
+				<seriesInfo name="RFC" value="6020" />
+			</reference>
+
+			<reference anchor="draft-ietf-netmod-yang-json-01">
+				<front>
+					<title>JSON Encoding of Data Modeled with YANG</title>
+					<author initials="L." surname="Lhotka" fullname="L. Lhotka"/>
+					<date month="October" year="2014"/>
+				</front>
+			</reference>
+		</references>
+	</back>
+</rfc>
