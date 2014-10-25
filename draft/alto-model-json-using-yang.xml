@@ -1,5 +1,5 @@
 <?xml version="1.0"  encoding="UTF-8"?>
-<!DOCTYPE rfc SYSTEM "http://http://tools.ietf.org/tools/templates/rfc2629.dtd">
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
 <?rfc toc="yes"?>
 <?rfc iprnotified="no" ?>
 <?rfc symrefs="yes"?>
