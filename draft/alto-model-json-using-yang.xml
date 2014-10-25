@@ -6,7 +6,7 @@
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
 <rfc category="info"
-     docName="draft-shi-alto-model-json-using-yang-00" 
+     docName="draft-shi-model-json-msg-yang-00" 
      ipr="trust200902">
 	<front>
 		<title>Modeling JSON Messages Using YANG</title>

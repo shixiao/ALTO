@@ -9,7 +9,7 @@ Expires: April 27, 2015                                 October 24, 2014
 
 
                    Modeling JSON Messages Using YANG
-                draft-shi-alto-model-json-using-yang-00
+                    draft-shi-model-json-msg-yang-00
 
 Abstract
 
