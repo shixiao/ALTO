@@ -4,7 +4,7 @@
 
 ALTO WG                                                           X. Shi
 Internet-Draft                                                   Y. Yang
-Intended status: Standards Track                         Yale University
+Intended status: Informational                           Yale University
 Expires: April 27, 2015                                 October 24, 2014
 
 
@@ -22,9 +22,14 @@ Abstract
    have been efforts to model JSON content using YANG
    [draft-ietf-netmod-yang-json-01]
 
-   This documents explores the conditions under which the messages of a
-   JSON based protocol can have a syntactically equivalent hence
-   interoperable YANG model.
+   This document explores the conditions under which the messages of a
+   JSON based protocol can have a syntactically equivalent and hence
+   interoperable YANG model.  In particular, this document shows that
+   any JSON protocol message with stand-alone non-object JSON values,
+   certain JSON arrays of elements of mixed types, or non-keyword keys
+   in key-value pairs cannot have a syntactically equivalent YANG model.
+   It also applies these conditions to the ALTO and CDNi protocol
+   messages as examples.
 
 Status of This Memo
 
@@ -43,13 +48,8 @@ Status of This Memo
 
    This Internet-Draft will expire on April 27, 2015.
 
-Copyright Notice
 
-   Copyright (c) 2014 IETF Trust and the persons identified as the
-   document authors.  All rights reserved.
 
-   This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
 
 
 
@@ -58,6 +58,13 @@ Shi & Yang               Expires April 27, 2015                 [Page 1]
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
+Copyright Notice
+
+   Copyright (c) 2014 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
@@ -68,32 +75,44 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
    2.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
      2.1.  Message Encoding Condition  . . . . . . . . . . . . . . .   3
-     2.2.  The URI Condition . . . . . . . . . . . . . . . . . . . .   3
-   3.  Proof of syntactic equivalence conditions . . . . . . . . . .   4
-     3.1.  The necessity of the message encoding condition . . . . .   4
-       3.1.1.  Condition (1) . . . . . . . . . . . . . . . . . . . .   4
-       3.1.2.  Condition (2) . . . . . . . . . . . . . . . . . . . .   4
-       3.1.3.  Condition (3) . . . . . . . . . . . . . . . . . . . .   4
-       3.1.4.  Conclusion  . . . . . . . . . . . . . . . . . . . . .   4
-     3.2.  The sufficiency of the message encoding condition . . . .   4
-       3.2.1.  Motivation of using Jackson data binding  . . . . . .   5
-       3.2.2.  The message encoding condition in Jackson terms . . .   5
-       3.2.3.  Proof . . . . . . . . . . . . . . . . . . . . . . . .   5
-     3.3.  Examples  . . . . . . . . . . . . . . . . . . . . . . . .   9
-       3.3.1.  ALTO cost map example . . . . . . . . . . . . . . . .  10
-       3.3.2.  CDNi metadata example . . . . . . . . . . . . . . . .  13
-     3.4.  Concluding remarks  . . . . . . . . . . . . . . . . . . .  18
-   4.  Semantic Equivalence  . . . . . . . . . . . . . . . . . . . .  18
-     4.1.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . .  18
-     4.2.  Proof by Indistinguishability . . . . . . . . . . . . . .  19
-   5.  Ramifications . . . . . . . . . . . . . . . . . . . . . . . .  19
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  20
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  20
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  20
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
+       2.1.1.  Conditions  . . . . . . . . . . . . . . . . . . . . .   3
+       2.1.2.  Application of the Message Encoding Condition . . . .   4
+     2.2.  The URI Condition . . . . . . . . . . . . . . . . . . . .   5
+   3.  Proof of syntactic equivalence conditions . . . . . . . . . .   5
+     3.1.  The necessity of the message encoding condition . . . . .   6
+       3.1.1.  Condition (1) . . . . . . . . . . . . . . . . . . . .   6
+       3.1.2.  Condition (2) . . . . . . . . . . . . . . . . . . . .   6
+       3.1.3.  Condition (3) . . . . . . . . . . . . . . . . . . . .   6
+       3.1.4.  Conclusion  . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  The sufficiency of the message encoding condition . . . .   6
+       3.2.1.  Motivation of using Jackson data binding  . . . . . .   7
+       3.2.2.  The message encoding condition in Jackson terms . . .   7
+       3.2.3.  Proof . . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.3.  Examples  . . . . . . . . . . . . . . . . . . . . . . . .  11
+       3.3.1.  ALTO cost map example . . . . . . . . . . . . . . . .  12
+       3.3.2.  CDNi metadata example . . . . . . . . . . . . . . . .  15
+     3.4.  Concluding remarks  . . . . . . . . . . . . . . . . . . .  20
+   4.  Semantic Equivalence  . . . . . . . . . . . . . . . . . . . .  20
+     4.1.  Claim . . . . . . . . . . . . . . . . . . . . . . . . . .  20
+     4.2.  Proof by Indistinguishability . . . . . . . . . . . . . .  21
+   5.  Ramifications . . . . . . . . . . . . . . . . . . . . . . . .  21
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  22
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  22
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  22
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  22
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 2]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
 1.  Introduction
 
@@ -106,22 +125,21 @@ Table of Contents
    Meanwhile, there are broad interests in the networking community to
    use the YANG data modeling language [RFC6020] to define data store
    and protocol messages, so that one can use YANG related tools such as
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 2]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
    the OpenDayLight Controller.  Although YANG itself is XML based,
    there have been efforts to model JSON content using YANG
    [draft-ietf-netmod-yang-json-01]
 
-   This documents explores the conditions under which the messages of a
+   This document explores the conditions under which the messages of a
    JSON based protocol can have a syntactically equivalent hence
    interoperable YANG model, and provides a conversion process from the
-   JSON message to the YANG model.
+   JSON message to the YANG model.  In particular, this document shows
+   that any JSON protocol message with stand-alone non-object JSON
+   values, certain JSON arrays of elements of mixed types, or non-
+   keyword keys in key-value pairs cannot have a syntactically
+   equivalent YANG model.  It also applies these conditions to the ALTO
+   and CDNi protocol messages as examples.  For protocols that do not
+   have syntactically equivalent YANG models, we also explore the
+   possibility of a semantically equivalent YANG model.
 
 2.  Claim
 
@@ -139,9 +157,18 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 2.1.  Message Encoding Condition
 
+2.1.1.  Conditions
+
    The JSON message encoding condition is the following:
 
    (1)  The message MUST be a JSON object.
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 3]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
    (2)  The arrays MUST be either all objects, or all non-object non-
         array types, i.e. false, null, true, number, string;
@@ -150,6 +177,83 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
         a value in a JSON object key-value pair; in other words, the
         keys in the JSON message must be an already defined constant
         keyword in the message format of the protocol.
+
+2.1.2.  Application of the Message Encoding Condition
+
+2.1.2.1.  ALTO Network Map Example
+
+   {
+     "meta" : {
+       "vtag": {
+         "resource-id": "my-default-network-map",
+          "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+       }
+     },
+     "network-map" : {
+       "PID1" : {
+         "ipv4" : [
+           "192.0.2.0/24",
+           "198.51.100.0/25"
+         ]
+       },
+       "PID2" : {
+         "ipv4" : [
+           "198.51.100.128/25"
+         ]
+       },
+       "PID3" : {
+         "ipv4" : [
+           "0.0.0.0/0"
+         ],
+         "ipv6" : [
+           "::/0"
+         ]
+       }
+     }
+   }
+
+   Some of the keys (e.g.  "PID1", "PID2", "PID3") in this JSON object
+   are not pre-defined keywords, which violated Condition (3).  Hence it
+   cannot have a syntactically equivalent YANG Model.
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 4]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
+
+2.1.2.2.  CDNi Metadata Example
+
+   {
+     "hosts": [
+       {
+         "host": "video.example.com",
+         "_links": {
+           "host-metadata" : {
+             "type": "application/cdni.HostMetadata.v1+json",
+             "href": "http://metadata.ucdn.example/host1234"
+           }
+         }
+       },
+       {
+         "host": "images.example.com",
+         "_links": {
+           "host-metadata" : {
+             "type": "application/cdni.HostMetadata.v1+json",
+             "href": "http://metadata.ucdn.example/host5678"
+           }
+         }
+       }
+     ]
+   }
+
+   This JSON object, as specified in Section 6.4.2 in [CDNiMetadata],
+   satisfies all three message encoding conditions.  Hence it is
+   possible to model it using YANG.
 
 2.2.  The URI Condition
 
@@ -161,19 +265,22 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    In case these constraints are in place, to resolve the issue, the uri
    in the JSON message could be conformed to constraint-compliant uri;
    alternatively, the server could set up a gateway translation for uri.
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 3]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
    Hence, for now we focus only on the message encoding condition and
    leave this condition open.
 
 3.  Proof of syntactic equivalence conditions
+
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 5]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
 3.1.  The necessity of the message encoding condition
 
@@ -218,17 +325,18 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    message that is compliant with the protocol we are trying to model,
    to a custom java class that can be used for Jackson data binding,
    then to a YANG model.  Note that the middle step of translating to
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 4]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
    and from the custom parser class is not necessary, but it is useful.
    This also implies which data binding/JSON parser we use does not
    matter.
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 6]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
 3.2.1.  Motivation of using Jackson data binding
 
@@ -270,22 +378,21 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 3.2.3.  Proof
 
-
-
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                 [Page 5]
-
-Internet-Draft      Modeling JSON Messages Using YANG       October 2014
-
-
 3.2.3.1.  Generate Jackson Parser from JSON Message
 
    We provide a recursive binding process from a JSON object to the
    Jackson custom parser class to be used by Jackson ObjectMapper.
+
+
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 7]
+
+Internet-Draft      Modeling JSON Messages Using YANG       October 2014
+
 
    Type determine_type(value) {
      if (type(value) is string or number or boolean or null) {
@@ -333,7 +440,12 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 6]
+
+
+
+
+
+Shi & Yang               Expires April 27, 2015                 [Page 8]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -389,7 +501,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 7]
+Shi & Yang               Expires April 27, 2015                 [Page 9]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -445,7 +557,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 8]
+Shi & Yang               Expires April 27, 2015                [Page 10]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -501,7 +613,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 9]
+Shi & Yang               Expires April 27, 2015                [Page 11]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -557,7 +669,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 10]
+Shi & Yang               Expires April 27, 2015                [Page 12]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -613,7 +725,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 11]
+Shi & Yang               Expires April 27, 2015                [Page 13]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -669,7 +781,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 12]
+Shi & Yang               Expires April 27, 2015                [Page 14]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -725,7 +837,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 13]
+Shi & Yang               Expires April 27, 2015                [Page 15]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -781,7 +893,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 14]
+Shi & Yang               Expires April 27, 2015                [Page 16]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -837,7 +949,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 15]
+Shi & Yang               Expires April 27, 2015                [Page 17]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -893,7 +1005,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 16]
+Shi & Yang               Expires April 27, 2015                [Page 18]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -949,7 +1061,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 17]
+Shi & Yang               Expires April 27, 2015                [Page 19]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1005,7 +1117,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 18]
+Shi & Yang               Expires April 27, 2015                [Page 20]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1061,7 +1173,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 19]
+Shi & Yang               Expires April 27, 2015                [Page 21]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1079,6 +1191,11 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
    [RFC6707]  Niven-Jenkins, B., Le Faucheur, F., and N. Bitar, "Content
               Distribution Network Interconnection (CDNi) Problem
               Statement", RFC 6707, September 2012.
+
+   [CDNiMetadata]
+              Niven-Jenkins, B., Murray, R., Caulfield, M., Leung, K.,
+              and K. Ma, "CDN Interconnection Metadata", RFC 6707, July
+              2014.
 
    [RFC7159]  Bray, T., "The JavaScript Object Notation (JSON) Data
               Interchange Format", RFC 7159, March 2014.
@@ -1112,12 +1229,7 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-Shi & Yang               Expires April 27, 2015                [Page 20]
+Shi & Yang               Expires April 27, 2015                [Page 22]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1173,4 +1285,4 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 21]
+Shi & Yang               Expires April 27, 2015                [Page 23]

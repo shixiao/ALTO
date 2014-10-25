@@ -5,7 +5,7 @@
 <?rfc symrefs="yes"?>
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
-<rfc category="std"
+<rfc category="info"
      docName="draft-shi-alto-model-json-using-yang-00" 
      ipr="trust200902">
 	<front>
@@ -48,9 +48,13 @@
 		  Although YANG itself is XML based, there have been efforts to model JSON
 		  content using YANG <xref target="draft-ietf-netmod-yang-json-01"/></t>
 	  
-		  <t>This documents explores the conditions under which the messages of 
-		  a JSON based protocol can have a syntactically equivalent hence interoperable
-		  YANG model.</t>
+		  <t>This document explores the conditions under which the messages of 
+		  a JSON based protocol can have a syntactically equivalent and hence interoperable
+		  YANG model. In particular, this document shows that any JSON protocol message with
+		  stand-alone non-object JSON values, certain JSON arrays of elements of mixed types, or 
+		  non-keyword keys in key-value pairs cannot have a syntactically equivalent
+		  YANG model. It also applies these conditions to the ALTO and CDNi protocol
+		  messages as examples.</t>
 		</abstract>
 	</front>
 	
@@ -69,10 +73,15 @@
 			  Although YANG itself is XML based, there have been efforts to model JSON
 			  content using YANG <xref target="draft-ietf-netmod-yang-json-01"/></t>
 		  
-			  <t>This documents explores the conditions under which the messages of 
+			  <t>This document explores the conditions under which the messages of 
 			  a JSON based protocol can have a syntactically equivalent hence interoperable
 			  YANG model, and provides a conversion process from the JSON message to
-			  the YANG model.</t>
+			  the YANG model. In particular, this document shows that any JSON protocol message with
+			  stand-alone non-object JSON values, certain JSON arrays of elements of mixed types, or 
+			  non-keyword keys in key-value pairs cannot have a syntactically equivalent
+			  YANG model. It also applies these conditions to the ALTO and CDNi protocol
+			  messages as examples. For protocols that do not have syntactically equivalent YANG models,
+			  we also explore the possibility of a semantically equivalent YANG model.</t>
 		</section>
 		
 		<section title="Claim">
@@ -85,15 +94,83 @@
 			<t>(2) the uri condition is met.</t>
 
 			<section title="Message Encoding Condition">
-				<t>The JSON message encoding condition is the following:</t>
-				<t>
-				<list style="format (%d)">
-				<t>The message MUST be a JSON object.</t>
-				<t>The arrays MUST be either all objects, or all non-object non-array types, i.e. false, null, true, number, string;</t>
-				<t>The JSON message MUST NOT contain a variable as a key or null as a value in a
-					JSON object key-value pair; in other words, the keys in the JSON message must be
-					an already defined constant keyword in the message format of the protocol.</t>
-				</list></t>
+				<section title="Conditions">
+					<t>The JSON message encoding condition is the following:</t>
+					<t>
+					<list style="format (%d)">
+					<t>The message MUST be a JSON object.</t>
+					<t>The arrays MUST be either all objects, or all non-object non-array types, i.e. false, null, true, number, string;</t>
+					<t>The JSON message MUST NOT contain a variable as a key or null as a value in a
+						JSON object key-value pair; in other words, the keys in the JSON message must be
+						an already defined constant keyword in the message format of the protocol.</t>
+					</list></t>
+				</section>
+				<section title="Application of the Message Encoding Condition">
+					<section title="ALTO Network Map Example">
+
+<figure><artwork><![CDATA[                            
+{
+  "meta" : {
+    "vtag": {
+      "resource-id": "my-default-network-map",
+       "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+    }
+  },
+  "network-map" : {
+    "PID1" : {
+      "ipv4" : [
+        "192.0.2.0/24",
+        "198.51.100.0/25"
+      ]
+    },
+    "PID2" : {
+      "ipv4" : [
+        "198.51.100.128/25"
+      ]
+    },
+    "PID3" : {
+      "ipv4" : [
+        "0.0.0.0/0"
+      ],
+      "ipv6" : [
+        "::/0"
+      ]
+    }
+  }
+}
+]]></artwork></figure>
+
+<t>Some of the keys (e.g. "PID1", "PID2", "PID3") in this JSON object are not pre-defined keywords, which violated Condition (3). Hence it cannot have a syntactically equivalent YANG Model.</t>
+
+					</section>
+					<section title="CDNi Metadata Example">
+<figure><artwork><![CDATA[                            
+{
+  "hosts": [
+    {
+      "host": "video.example.com",
+      "_links": {
+        "host-metadata" : {
+          "type": "application/cdni.HostMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234"
+        }
+      }
+    },
+    {
+      "host": "images.example.com",
+      "_links": {
+        "host-metadata" : {
+          "type": "application/cdni.HostMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host5678"
+        }
+      }
+    }
+  ]
+}
+]]></artwork></figure>
+<t>This JSON object, as specified in Section 6.4.2 in <xref target="CDNiMetadata"/>, satisfies all three message encoding conditions. Hence it is possible to model it using YANG.</t>
+					</section>
+				</section>
 			</section>
 
 			<section title="The URI Condition">
@@ -846,6 +923,18 @@ list paths {
 					<author initials="F." surname="Le Faucheur" fullname="F. Le Faucheur"/>
 					<author initials="N." surname="Bitar" fullname="N. Bitar"/>
 					<date month="September" year="2012"/>
+				</front>
+				<seriesInfo name="RFC" value="6707" />
+			</reference>
+			<reference anchor="CDNiMetadata">
+				<front>
+					<title>CDN Interconnection Metadata</title>
+					<author initials="B." surname="Niven-Jenkins" fullname="B. Niven-Jenkins"/>
+					<author initials="R." surname="Murray" fullname="R. Murray"/>
+					<author initials="M." surname="Caulfield" fullname="M. Caulfield"/>
+					<author initials="K." surname="Leung" fullname="K. Leung"/>
+					<author initials="K." surname="Ma" fullname="K. Ma"/>
+					<date month="July" year="2014"/>
 				</front>
 				<seriesInfo name="RFC" value="6707" />
 			</reference>
