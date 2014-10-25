@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-	<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
-		<filtered-network-map-service xmlns="urn:ietf:params:xml:ns:yang:alto-service">
-			<pids>PID1</pids>
-			<pids>PID2</pids>
-		</filtered-network-map-service>
-	</rpc>
-	

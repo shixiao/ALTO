@@ -345,17 +345,27 @@
 		  		In our events, the data field is a JSON message;
 		  		specifically, a Network Map, a Cost Map, or a Merge Patch
 		  		to apply to a Network or Cost Map.
-		  		Our event types have two sub-fields:
+		  	</t>
+		  	<t>
+		  		Our event types uniquely identifies an event. They can be used by the
+		  		clients to demultiplex the events and use the appropriate handlers.
+		  		The event types have two sub-fields:
 		  		the media-type of the JSON message in the data field,
-		  		and the resource-id of the ALTO Network Map or Cost Map resource.
+		  		and the unique resource id of the ALTO resource.
+		  		The former identifies the type of the update and the latter uniquely identifies
+		  		an ALTO resource object. For GET resources such as network maps and cost maps, 
+		  		the resource-id defined in the ALTO protocol suffices. For POST resources,
+		  		a combination of the resource-id and input parameters is necessary, which we
+		  		will define in future versions of this document.
+		  	</t>
+		  	<t>
 		  		The media-types are
 		  		"application/alto-networkmap+json" for Network Map messages,
 		  		"application/alto-costmap+json" for Cost Map messages,
 		  		or "application/merge-patch+json" for Merge Patch messages.
 		  		The first two types are defined by <xref target="RFC7285"/>,
-		  		and the last is defined by <xref target="RFC7285"/>.
+		  		and the last is defined by <xref target="RFC7386"/>. 
 		  	</t>
-			
 			<t>
 		  		We do not use the SSE id field.
 		  	</t>

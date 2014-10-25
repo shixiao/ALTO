@@ -14,20 +14,16 @@ module alto-service {
   contact "alto@ietf.org";
 
   description 
-    "This module defines a data model for the ALTO services
-     defined in RFC7285.";
+    "This module defines a semantically equivalent data model
+     for the ALTO services defined in RFC7285.";
 
   /* Potential issue for future EXTENSION: YANG 1.0 is unable to
    * augment a typedef or enum type. e.g., there is not a good way to
    * add a cost metric or type of address if this document is
    * fixed. We have marked such places with "EXTENSION." */
 
-  revision 2014-10-09 {
-    description "v1. pending review";
-  }
-
-  revision 2014-09-24 {
-    description "Initial revision. betw Michael and Xiao";
+  revision 2014-10-24 {
+    description "Initial version.";
   }
   
   /********************
@@ -476,9 +472,11 @@ module alto-service {
     }
     leaf uri {
       type inet:uri;
+      mandatory true;
     }
     leaf media-type {
       type media-type;
+      mandatory true;
     }
   }
 
@@ -531,6 +529,7 @@ module alto-service {
         key "dst";
         leaf cost {
           type alto-cost;
+          mandatory true;
           description
             "Cost from source to destination.";
         }
@@ -555,33 +554,27 @@ module alto-service {
         } InfoResourceCostMap : ResponseEntityBase;";
   }
 
-  container IRD {
-    config false;
-    leaf uri {
-      type inet:uri;
-    }
-    leaf media-type {
-      type media-type;
+  /* Information Resource Directory */
+  grouping IRD-grouping {
+    container meta {
     }
     list resources {
       key resource-id;
       leaf resource-id {
         type resource-id;
-        //TODO: ideally, this should be a leafref to the resource-id
-        //in various resources, e.g. network-map/meta/vtag/resource-id
-        //but this might need much more complicated conditioning.
-        //Also need to try to enforce this resource-id matches the uri
-        //and media-type of that resource. Not sure how to yet.
+        mandatory true;
       }
       leaf uri {
         type leafref {
           path "/resource/uri";
         }
+        mandatory true;
       }
       leaf media-type {
         type leafref {
           path "/resource/media-type";
         }
+        mandatory true;
       }
       description
         "IRDResourceEntry. RFC7285 9.2.2." +
@@ -603,16 +596,35 @@ module alto-service {
     }
   }
 
-  /* meta */
-  augment "/IRD" {
-    container meta {
-      uses cost-types;
-      leaf default-alto-network-map {
-        type leafref {
-          path "../../../IRD/resources/resource-id";
-        }
-      }
+  container IRD {
+    config false;
+    leaf uri {
+      type inet:uri;
+      mandatory true;
     }
+    leaf media-type {
+      type media-type;
+      mandatory true;
+    }
+    uses IRD-grouping;
+  }
+
+  /* meta */
+  grouping IRD-meta {
+    uses cost-types;
+    leaf default-alto-network-map {
+      type leafref {
+        path "/IRD/resources/resource-id";
+      }
+      mandatory true;
+    }
+  }
+
+  augment "/IRD/meta" {
+    uses IRD-meta;
+  }
+  augment "/IRD-service/output/IRD-service/meta" {
+    uses IRD-meta;
   }
 
   augment "/resource/meta" {
@@ -674,9 +686,9 @@ module alto-service {
       "and ./accepts = 'application/alto-networkmapfilter+json') " +
       "or (./media-type = 'application/alto-networkmap+json' " +
       "and ./accepts != '')";
-    // the logic is that the following structures can be present ONLY
-    // when the above conditions are satisfied. Not sure how to place
-    // different restrictions on different conditions.
+    /* the logic is that the following structures can be present ONLY
+     * when the above conditions are satisfied. Not sure how to place
+     * different restrictions on different conditions. */
     uses uses;
   }
   augment "/IRD/resources" {
@@ -700,18 +712,18 @@ module alto-service {
       when "current()";
       leaf-list cost-type-names {
         type cost-type-name;
-        min-elements 1; // if added, capabilities becomes mandatory in cost-map.
+        min-elements 1;
         max-elements 1;
       }
       leaf-list prop-types {
         type endpoint-property-type;
       }
+      // EXTENSION: add other costmap capabilities here.
       description
         "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
         " object {
             JSONString cost-type-names<1..1>;
           } CostMapCapabilities;";
-      // TODO: model other CostMapCapabilities, if provided
     }
   }
 
@@ -756,19 +768,27 @@ module alto-service {
       leaf cost-constraints {
         type boolean;
       }
+      // EXTENSION: model other costmap capabilities HERE
       description
         "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
         " object {
             JSONString cost-type-names<1..*>;
             JSONBool cost-constraints;
           } FilteredCostMapCapabilities;";
-    // TODO: model other CostMapCapabilities, if provided
     }
   }
 
   /************************************
    * RPC                              *
    ************************************/
+
+  rpc IRD-service {
+    output {
+      container IRD-service {
+        uses IRD-grouping;
+      }
+    }
+  }
 
   rpc endpoint-property-service {
     description
@@ -804,9 +824,11 @@ module alto-service {
             key property-type;
             leaf property-type {
               type endpoint-property-type;
+              mandatory true;
             }
             leaf property {
               type endpoint-property-value;
+              mandatory true;
             }
             description
               "EndpointProps. RFC7285 Sec. 11.4.1.6." +
@@ -970,13 +992,14 @@ module alto-service {
             leaf dst {
               type typed-endpoint-address;
               description
-                  "Destination endpoint address.";
+                "Destination endpoint address.";
             }
             key "dst";
             leaf cost {
               type alto-cost;
-                description
-                  "Cost from source to destination.";
+              mandatory true;
+              description
+                "Cost from source to destination.";
             }
             description
               "The list represents the inner part of the cost matrix." +
