@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="2">
+		<filtered-cost-map-service xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+			<meta>
+				<dependent-vtags>
+					<resource-id>my-default-network-map</resource-id>
+					<tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+				</dependent-vtags>
+				<cost-type>
+					<cost-mode>numerical</cost-mode>
+					<cost-metric>routingcost</cost-metric>
+				</cost-type>
+			</meta>
+			<cost-map>
+				<src>PID1</src>
+				<dst-costs>
+					<dst>PID1</dst>
+					<cost>0</cost>
+				</dst-costs>
+				<dst-costs>
+					<dst>PID2</dst>
+					<cost>1</cost>
+				</dst-costs>
+				<dst-costs>
+					<dst>PID3</dst>
+					<cost>2</cost>
+				</dst-costs>
+			</cost-map>
+		</filtered-cost-map-service>
+	</rpc-reply>

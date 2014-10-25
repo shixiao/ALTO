@@ -347,6 +347,9 @@ module alto-service {
         }
         // EXTENSION: other options here
       }
+      type string {
+        pattern "priv:[\w\-:@]+";
+      }
     }
     description
       "Global endpoint property. RFC7285 Sec. 10.8.2." +
@@ -364,7 +367,7 @@ module alto-service {
   typedef resource-specific-endpoint-property {
     type string {
       length "3..97"; //len(resource-id) + 1 + len(global-property)
-      pattern "[\w\-:@\.]+\.[\w\-:_]+"; // resource-id.property
+      pattern "(priv:)?[\w\-:@\.]+\.[\w\-:_]+"; // resource-id.property
     }
     description
       "Resource-specific endpoint property.";
@@ -635,8 +638,16 @@ module alto-service {
         "Cost type.";
     }
   }
+  augment "/cost-map-service/output/cost-map-service/meta" {
+    container cost-type {
+      uses cost-type;
+      description
+        "Cost type.";
+    }
+  }
 
-  augment "/filtered-cost-map-service/output/filtered-cost-map-service/meta" {
+  augment "/filtered-cost-map-service/output/"
+        + "filtered-cost-map-service/meta" {
     container cost-type {
       uses cost-type;
       description
@@ -659,12 +670,13 @@ module alto-service {
       min-elements 1;
     }
   }
+
   augment "/resource" {
     when ".";
     uses accepts;
   }
-  augment "/IRD/resources" {
-    when ".";
+
+  grouping IRD-accepts {
     leaf-list accepts {
       type leafref {
         path "/resource/accepts";
@@ -672,37 +684,14 @@ module alto-service {
     }
   }
 
-  /* uses */
-  grouping uses {
-    leaf-list uses {
-      type resource-id;
-      min-elements 1;
-    }
-  }
-  augment "/resource" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    /* the logic is that the following structures can be present ONLY
-     * when the above conditions are satisfied. Not sure how to place
-     * different restrictions on different conditions. */
-    uses uses;
-  }
   augment "/IRD/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    leaf-list uses {
-      type leafref {
-        path "/resource/uses";
-      }
-    }
+    when ".";
+    uses IRD-accepts;
+  }
+
+  augment "/IRD-service/output/IRD-service/resources" {
+    when ".";
+    uses IRD-accepts;
   }
 
   /* capabilities */
@@ -727,7 +716,7 @@ module alto-service {
     }
   }
 
-  augment "/IRD/resources" {
+  grouping IRD-capabilities {
     container capabilities {
       leaf cost-constraints {
         type boolean;
@@ -743,6 +732,14 @@ module alto-service {
         }
       }
     }
+  }
+
+  augment "/IRD/resources" {
+    uses IRD-capabilities;
+  }
+
+  augment "/IRD-service/output/IRD-service/resources" {
+    uses IRD-capabilities;
   }
 
   augment "/endpoint-property-service/output/endpoint-property-service" {
@@ -778,14 +775,104 @@ module alto-service {
     }
   }
 
+  /* uses */
+  grouping uses {
+    leaf-list uses {
+      type resource-id;
+      min-elements 1;
+    }
+  }
+  augment "/resource" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    /* the logic is that the following structures can be present ONLY
+     * when the above conditions are satisfied. Not sure how to place
+     * different restrictions on different conditions. */
+    uses uses;
+  }
+
+  grouping IRD-uses {
+    leaf-list uses {
+      type leafref {
+        path "/resource/uses";
+      }
+    }
+  }
+
+  augment "/IRD/resources" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    uses IRD-uses;
+  }
+
+  augment "/IRD-service/output/IRD-service/resources" {
+    when "(./media-type = 'application/alto-endpointprop+json') " +
+      "or (./media-type = 'application/alto-costmap+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts = 'application/alto-networkmapfilter+json') " +
+      "or (./media-type = 'application/alto-networkmap+json' " +
+      "and ./accepts != '')";
+    uses IRD-uses;
+  }
+
   /************************************
-   * RPC                              *
+   * RPCs                             *
    ************************************/
 
   rpc IRD-service {
     output {
       container IRD-service {
         uses IRD-grouping;
+      }
+    }
+  }
+
+  rpc network-map-service {
+    input {
+      leaf uri {
+        type leafref {
+          path "/resource/uri";
+        }
+        mandatory true;
+        description
+          "The uri of the request for the full network map.";
+      }
+    }
+    output {
+      container network-map-service {
+        container meta {
+          uses meta;
+        }
+        uses network-map;
+      }
+    }
+  }
+
+  rpc cost-map-service {
+    input {
+      leaf uri {
+        type leafref {
+          path "/resource/uri";
+        }
+        mandatory true;
+        description
+          "The uri of the request for the full network map.";
+      }
+    }
+    output {
+      container cost-map-service {
+        container meta {
+          uses meta;
+        }
+        uses cost-map;
       }
     }
   }

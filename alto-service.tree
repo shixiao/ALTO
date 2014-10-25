@@ -27,10 +27,10 @@ module: alto-service
    |  |     +--ro dst     pid-name
    |  |     +--ro cost    alto-cost
    |  +--ro accepts*        media-type
-   |  +--ro uses*           resource-id
    |  +--ro capabilities
-   |     +--ro cost-type-names*   cost-type-name
-   |     +--ro prop-types*        endpoint-property-type
+   |  |  +--ro cost-type-names*   cost-type-name
+   |  |  +--ro prop-types*        endpoint-property-type
+   |  +--ro uses*           resource-id
    +--ro IRD
       +--ro uri           inet:uri
       +--ro media-type    media-type
@@ -46,26 +46,76 @@ module: alto-service
          +--ro uri             leafref
          +--ro media-type      leafref
          +--ro accepts*        leafref
-         +--ro uses*           leafref
          +--ro capabilities
-            +--ro cost-constraints?   boolean
-            +--ro cost-type-names*    leafref
-            +--ro prop-types*         leafref
+         |  +--ro cost-constraints?   boolean
+         |  +--ro cost-type-names*    leafref
+         |  +--ro prop-types*         leafref
+         +--ro uses*           leafref
 rpcs:
    +---x IRD-service                     
    |  +--ro output    
    |     +--ro IRD-service
-   |     |  +--ro meta
-   |     |  +--ro resources* [resource-id]
-   |     |     +--ro resource-id    resource-id
-   |     |     +--ro uri            leafref
-   |     |     +--ro media-type     leafref
-   |     +--ro cost-types* [cost-type-name]
-   |     |  +--ro cost-type-name    cost-type-name
-   |     |  +--ro cost-mode         cost-mode
-   |     |  +--ro cost-metric       cost-metric
-   |     |  +--ro description?      string
-   |     +--ro default-alto-network-map    leafref
+   |        +--ro meta
+   |        |  +--ro cost-types* [cost-type-name]
+   |        |  |  +--ro cost-type-name    cost-type-name
+   |        |  |  +--ro cost-mode         cost-mode
+   |        |  |  +--ro cost-metric       cost-metric
+   |        |  |  +--ro description?      string
+   |        |  +--ro default-alto-network-map    leafref
+   |        +--ro resources* [resource-id]
+   |           +--ro resource-id     resource-id
+   |           +--ro uri             leafref
+   |           +--ro media-type      leafref
+   |           +--ro accepts*        leafref
+   |           +--ro capabilities
+   |           |  +--ro cost-constraints?   boolean
+   |           |  +--ro cost-type-names*    leafref
+   |           |  +--ro prop-types*         leafref
+   |           +--ro uses*           leafref
+   +---x network-map-service             
+   |  +--ro input     
+   |  |  +--ro uri    leafref
+   |  +--ro output    
+   |     +--ro network-map-service
+   |        +--ro meta
+   |        |  +--ro (dependent)?
+   |        |     +--:(dependent)
+   |        |     |  +--ro dependent-vtags*
+   |        |     |     +--ro resource-id    resource-id
+   |        |     |     +--ro tag            string
+   |        |     +--:(independent)
+   |        |        +--ro vtag
+   |        |           +--ro resource-id    resource-id
+   |        |           +--ro tag            string
+   |        +--ro network-map* [pid]
+   |           +--ro pid                       pid-name
+   |           +--ro endpoint-address-group* [address-type]
+   |              +--ro address-type       endpoint-address-type
+   |              +--ro endpoint-prefix*   endpoint-prefix
+   +---x cost-map-service                
+   |  +--ro input     
+   |  |  +--ro uri    leafref
+   |  +--ro output    
+   |     +--ro cost-map-service
+   |        +--ro meta
+   |        |  +--ro (dependent)?
+   |        |  |  +--:(dependent)
+   |        |  |  |  +--ro dependent-vtags*
+   |        |  |  |     +--ro resource-id    resource-id
+   |        |  |  |     +--ro tag            string
+   |        |  |  +--:(independent)
+   |        |  |     +--ro vtag
+   |        |  |        +--ro resource-id    resource-id
+   |        |  |        +--ro tag            string
+   |        |  +--ro cost-type
+   |        |     +--ro cost-mode      cost-mode
+   |        |     +--ro cost-metric    cost-metric
+   |        |     +--ro description?   string
+   |        +--ro cost-map* [src]
+   |           +--ro src          pid-name
+   |           +--ro dst-costs* [dst]
+   |              +--ro dst     pid-name
+   |              +--ro cost    alto-cost
    +---x endpoint-property-service       
    |  +--ro input     
    |  |  +--ro properties*   endpoint-property-type

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+		<resource xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+			<uri>http://alto.example.com/networkmap</uri>
+			<media-type>application/alto-networkmap+json</media-type>
+			<meta>
+				<vtag>
+					<resource-id>my-default-network-map</resource-id>
+					<tag>da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785</tag>
+				</vtag>
+			</meta>
+			<network-map>
+				<pid>PID1</pid>
+				<endpoint-address-group>
+					<address-type>ipv4</address-type>
+					<endpoint-prefix>192.0.2.0/24</endpoint-prefix>
+					<endpoint-prefix>198.51.100.0/25</endpoint-prefix>
+				</endpoint-address-group>
+			</network-map>
+			<network-map>
+				<pid>PID2</pid>
+				<endpoint-address-group>
+					<address-type>ipv4</address-type>
+					<endpoint-prefix>198.51.100.128/25</endpoint-prefix>
+				</endpoint-address-group>
+			</network-map>
+			<network-map>
+				<pid>PID3</pid>
+				<endpoint-address-group>
+					<address-type>ipv4</address-type>
+					<endpoint-prefix>0.0.0.0/0</endpoint-prefix>
+				</endpoint-address-group>
+				<endpoint-address-group>
+					<address-type>ipv6</address-type>
+					<endpoint-prefix>::/0</endpoint-prefix>
+				</endpoint-address-group>
+			</network-map>
+		</resource>
+		<IRD xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+			<uri>http://alto.example.com/directory</uri>
+			<media-type>application/alto-directory+json</media-type>
+			<meta>
+				<cost-types>
+					<cost-type-name>num-routing</cost-type-name>
+					<cost-mode>numerical</cost-mode>
+					<cost-metric>routingcost</cost-metric>
+					<description>My default</description>
+				</cost-types>
+				<cost-types>
+					<cost-type-name>num-hop</cost-type-name>
+					<cost-mode>numerical</cost-mode>
+					<cost-metric>hopcount</cost-metric>
+				</cost-types>
+				<cost-types>
+					<cost-type-name>ord-routing</cost-type-name>
+					<cost-mode>ordinal</cost-mode>
+					<cost-metric>routingcost</cost-metric>
+				</cost-types>
+				<cost-types>
+					<cost-type-name>ord-hop</cost-type-name>
+					<cost-mode>ordinal</cost-mode>
+					<cost-metric>hopcount</cost-metric>
+				</cost-types>
+				<default-alto-network-map>my-default-network-map</default-alto-network-map>
+			</meta>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>my-default-network-map</resource-id>
+				<uri>http://alto.example.com/networkmap</uri>
+				<media-type>application/alto-networkmap+json</media-type>
+			</resources>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>numerical-routing-cost-map</resource-id>
+				<uri>http://alto.example.com/costmap/num/routingcost</uri>
+				<media-type>application/alto-costmap+json</media-type>
+				<capabilities>
+					<cost-type-names>num-routing</cost-type-names>
+				</capabilities>
+				<uses>my-default-network-map</uses>
+			</resources>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>numerical-hopcount-cost-map</resource-id>
+				<uri>http://alto.example.com/costmap/num/hopcount</uri>
+				<media-type>application/alto-costmap+json</media-type>
+				<capabilities>
+					<cost-type-names>num-hop</cost-type-names>
+				</capabilities>
+				<uses>my-default-network-map</uses>
+			</resources>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>custom-maps-resources</resource-id>
+				<uri>http://custom.alto.example.com/maps</uri>
+				<media-type>application/alto-directory+json</media-type>
+			</resources>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>endpoint-property</resource-id>
+				<uri>http://alto.example.com/endpointprop/lookup</uri>
+				<media-type>application/alto-endpointprop+json</media-type>
+				<accepts>application/alto-endpointpropparams+json</accepts>
+				<capabilities>
+					<prop-types>my-default-network-map.pid</prop-types>
+					<prop-types>priv:ietf-example-prop</prop-types>
+				</capabilities>
+			</resources>
+			<resources xmlns="urn:ietf:params:xml:ns:yang:alto-service">
+				<resource-id>endpoint-cost</resource-id>
+				<uri>http://alto.example.com/endpointcost/lookup</uri>
+				<media-type>application/alto-endpointcost+json</media-type>
+				<accepts>application/alto-endpointcostparams+json</accepts>
+				<capabilities>
+					<cost-constraints>true</cost-constraints>
+					<cost-type-names>num-routing</cost-type-names>
+					<cost-type-names>num-hop</cost-type-names>
+					<cost-type-names>ord-routing</cost-type-names>
+					<cost-type-names>ord-hop</cost-type-names>
+				</capabilities>
+			</resources>
+		</IRD>
+	</data>
+	
