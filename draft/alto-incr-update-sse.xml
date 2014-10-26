@@ -341,6 +341,23 @@
 		  </section>
 		  
 		  <section title="ALTO SSE Update Messages" anchor="ALTO.SSE.Messages">
+		  	<section title="Unique Resource ID of an ALTO Object">
+		  		<t>
+		  			In the ALTO protocol, the resource-id uniquely identifies an ALTO information
+		  			resource. However, there could be multiple resource response objects that belong to the
+		  			same resource. For example, a network map could have multiple response objects given 
+		  			different filters; in endpoint cost or property services, the input parameters determine
+		  			the response.
+		  		</t>
+		  		<t>
+		  			For GET resources such as (full) network maps and cost maps, the resource-id
+		  			defined in the ALTO protocol uniquely identifies an ALTO resource object.
+		  			For POST resources, a combination of the resource-id and input parameters is necessary to
+		  			uniquely identify an ALTO response object. We will define this in future versions 
+		  			of this document.
+		  		</t>
+		  	</section>
+		  	<section title="ALTO SSE Update Message Format">
 		  	<t>
 		  		In our events, the data field is a JSON message;
 		  		specifically, a Network Map, a Cost Map, or a Merge Patch
@@ -353,10 +370,7 @@
 		  		the media-type of the JSON message in the data field,
 		  		and the unique resource id of the ALTO resource.
 		  		The former identifies the type of the update and the latter uniquely identifies
-		  		an ALTO resource object. For GET resources such as network maps and cost maps, 
-		  		the resource-id defined in the ALTO protocol suffices. For POST resources,
-		  		a combination of the resource-id and input parameters is necessary, which we
-		  		will define in future versions of this document.
+		  		an ALTO resource object. 
 		  	</t>
 		  	<t>
 		  		The media-types are
@@ -381,7 +395,7 @@
 			</figure>
 		  		
 		  	<t>
-		  		Here examples of ALTO update events.
+		  		Here is an example of ALTO update events.
 		  	</t>
 			<figure>
 			  <artwork><![CDATA[
@@ -395,6 +409,7 @@
   data: { ... Merge Patch update for Cost Map ... }
 ]]></artwork>
 			</figure>
+			</section>
 		  </section>
 		  	
 		  <section title="Keep-Alive Messages">
@@ -647,7 +662,10 @@
 				for any resources which the client already has.
 				If those versions are still current,
 				the server SHOULD NOT send the full version of that resource
-				at startup.
+				at startup. If the versions are not current but the server is able to compute 
+				a patch to update the client's resource from the version that the client has
+				to the current version, it is RECOMMMENDED that the server sends such an update.
+				If the server chooses to do so, the server MUST send it at start up.
 			</t>
 			<t>
 				If a client requests Merge Patch update events for a given resource-id,

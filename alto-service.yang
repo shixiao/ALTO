@@ -56,19 +56,19 @@ module alto-service {
            "2001:db8:0:2::/64"
          ]
 
-   To handle the proceeding, we need definitions in the following order:
+   To handle the proceeding, we need the following definitions:
       ipv4-address (e.g., 192.0.2.0, already defined in rfc6991), 
       ipv6-address (already defined in rfc6991), 
       ipv4-prefix (e.g., 192.0.2.0/24, already defined in rfc6991), 
       ipv6-prefix (defined in rfc6991), 
-      typed-ipv4-address (e.g., ipv4:192.0.2.1, to be defined in this module) 
+      typed-ipv4-address (e.g., ipv4:192.0.2.1, to be defined below) 
       typed-ipv6-address
       typed-ipv4-prefix-list (e.g., "ipv4": [
            "192.0.2.0/24",
            "198.51.100.0/25"
          ],
 
-  ***************************************************************************/
+  *******************************************************************/
 
   /* 
      First define typed-ipv4-address and typed-ipv6-address, as used
@@ -85,9 +85,10 @@ module alto-service {
   typedef typed-ipv4-address {
     type string {
         pattern
-          'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
-         +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-         + '(%[\p{N}\p{L}]+)?';
+          'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|'
+        + '2[0-4][0-9]|25[0-5])\.){3}'
+        + '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+        + '(%[\p{N}\p{L}]+)?';
       }
   }
 
@@ -154,7 +155,7 @@ module alto-service {
   typedef endpoint-prefix {
     type inet:ip-prefix;
     description
-      "endpoint prefix, identical to the ip-prefix definition in RFC6991.";
+      "endpoint prefix, identical to ip-prefix defined in RFC6991.";
   }
 
   grouping endpoint-address-group {
@@ -204,8 +205,8 @@ module alto-service {
     description
       "Name for the PID." +
       "RFC7285, Section 10.1. Note: the '.' separator MUST NOT be" +
-      "used unless specifically indicated in RFC7285 or an extension" +
-      "document.";
+      "used unless specifically indicated in RFC7285 or an" +
+      " extension document.";
   }
 
   typedef resource-id {
@@ -246,8 +247,8 @@ module alto-service {
       cost-mode
       and an optional description component.
 
-    In the IRD, one can name each cost type. Such info is collected in
-     a hash map called cost types.
+    In the IRD, one can name each cost type. Such info is collected
+    in a hash map called cost types.
   *************************************/
 
   typedef cost-metric {
@@ -269,7 +270,8 @@ module alto-service {
       }
     }
     description
-      "Cost metric. for type string, 'priv:' reserved for Private Use.";
+      "Cost metric. for type string,
+      'priv:' reserved for Private Use.";
   }
 
   typedef cost-mode {
@@ -435,16 +437,14 @@ module alto-service {
     }
   }
 
-  typedef alto-cost {
-    type decimal64 {
-      fraction-digits 6;
+  grouping alto-cost {
+    anyxml cost {
+      mandatory true;
+      description
+        "ALTO cost is a JSONValue, which could be
+        an object, array, string, etc. (Ref: RFC 7159 Sec.3.)";
     }
-    description
-      "ALTO costs, currently only integer values. " +
-      "According to RFC 7285, alto-cost should be a JSONValue, which could be
-       an object, array, string, etc. (Ref: RFC 7159 Sec.3.)";
   }
-
 
   typedef constraint {
     type string {
@@ -530,9 +530,7 @@ module alto-service {
             "Destination PID.";
         }
         key "dst";
-        leaf cost {
-          type alto-cost;
-          mandatory true;
+        uses alto-cost {
           description
             "Cost from source to destination.";
         }
@@ -655,7 +653,8 @@ module alto-service {
     }
   }
 
-  augment "/endpoint-cost-service/output/endpoint-cost-service/meta" {
+  augment "/endpoint-cost-service/output/"
+        + "endpoint-cost-service/meta" {
     container cost-type {
       uses cost-type;
       description
@@ -742,7 +741,8 @@ module alto-service {
     uses IRD-capabilities;
   }
 
-  augment "/endpoint-property-service/output/endpoint-property-service" {
+  augment "/endpoint-property-service/output/"
+        + "endpoint-property-service" {
     leaf-list capabilities {
       when ".";
       type endpoint-property-type;
@@ -755,7 +755,8 @@ module alto-service {
     }
   }
 
-  augment "/filtered-cost-map-service/output/filtered-cost-map-service" {
+  augment "/filtered-cost-map-service/output/"
+        + "filtered-cost-map-service" {
     container capabilities {
       when ".";
       leaf-list cost-type-names {
@@ -998,16 +999,6 @@ module alto-service {
               PIDName dsts<0..*>;
             } PIDFilter;";
       }
-      /*
-      // TODO: optional constraint JSON strings RFC7285 Sec. 11.3.2.3
-      description
-        "ReqFilteredCostMap. RFC7285 Sec. 11.3.2.3." +
-        " object {
-            CostType   cost-type;
-            [JSONString constraints<0..*>;]
-            [PIDFilter  pids;]
-          } ReqFilteredCostMap;";
-      */
     }
     output {
       container filtered-cost-map-service {
@@ -1045,7 +1036,7 @@ module alto-service {
             "Destination endpoint addresses.";
         }
         description
-          " EndpointFilter: Endpoint addresses. RFC7285 Sec. 11.5.1.3." +
+          " EndpointFilter: Endpoint addr. RFC7285 Sec. 11.5.1.3." +
           " object {
               [TypedEndpointAddr srcs<0..*>;]
               [TypedEndpointAddr dsts<0..*>;]
@@ -1082,9 +1073,7 @@ module alto-service {
                 "Destination endpoint address.";
             }
             key "dst";
-            leaf cost {
-              type alto-cost;
-              mandatory true;
+            uses alto-cost {
               description
                 "Cost from source to destination.";
             }

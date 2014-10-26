@@ -25,7 +25,7 @@ module: alto-service
    |  |  +--ro src          pid-name
    |  |  +--ro dst-costs* [dst]
    |  |     +--ro dst     pid-name
-   |  |     +--ro cost    alto-cost
+   |  |     +--ro cost    
    |  +--ro accepts*        media-type
    |  +--ro capabilities
    |  |  +--ro cost-type-names*   cost-type-name
@@ -115,7 +115,7 @@ rpcs:
    |           +--ro src          pid-name
    |           +--ro dst-costs* [dst]
    |              +--ro dst     pid-name
-   |              +--ro cost    alto-cost
+   |              +--ro cost    
    +---x endpoint-property-service       
    |  +--ro input     
    |  |  +--ro properties*   endpoint-property-type
@@ -189,7 +189,7 @@ rpcs:
    |        |  +--ro src          pid-name
    |        |  +--ro dst-costs* [dst]
    |        |     +--ro dst     pid-name
-   |        |     +--ro cost    alto-cost
+   |        |     +--ro cost    
    |        +--ro capabilities
    |           +--ro cost-type-names*    cost-type-name
    |           +--ro cost-constraints?   boolean
@@ -223,4 +223,4 @@ rpcs:
                +--ro src          typed-endpoint-address
                +--ro dst-costs* [dst]
                   +--ro dst     typed-endpoint-address
-                  +--ro cost    alto-cost
+                  +--ro cost    
