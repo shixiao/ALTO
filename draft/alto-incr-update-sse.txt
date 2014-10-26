@@ -5,9 +5,9 @@
 ALTO WG                                                         W. Roome
 Internet-Draft                                            Alcatel-Lucent
 Intended status: Standards Track                                  X. Shi
-Expires: April 27, 2015                                          Y. Yang
+Expires: April 28, 2015                                          Y. Yang
                                                          Yale University
-                                                        October 24, 2014
+                                                        October 25, 2014
 
 
                         ALTO Incremental Updates
@@ -21,13 +21,15 @@ Abstract
    clients.  This allows applications to make informed decisions, for
    example when selecting a target host from a set of candidates.
 
-   Therefore an ALTO Server provides network and cost maps to its
-   clients.  However, those maps can be very large, and portions of
-   those maps may change frequently (cost maps in particular).
+   Therefore an ALTO Server provides information resources to its
+   clients, such as network maps and cost maps.  However, those
+   resources can be very large, and portions of those maps may change
+   frequently (cost maps in particular).
 
-   This draft presents a method to provide incremental updates for these
-   maps.  The goal is to reduce the load on the ALTO Client and Server
-   by transmitting just the updated portions of those maps.
+   This draft presents a method to provide incremental updates for ALTO
+   information resources.  The goal is to reduce the load on the ALTO
+   Client and Server by transmitting just the updated portions of these
+   resources.
 
 Status of This Memo
 
@@ -44,16 +46,14 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 27, 2015.
+   This Internet-Draft will expire on April 28, 2015.
 
 
 
 
 
 
-
-
-Roome, et al.            Expires April 27, 2015                 [Page 1]
+Roome, et al.            Expires April 28, 2015                 [Page 1]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -83,19 +83,21 @@ Table of Contents
    3.  Server-Sent Events  . . . . . . . . . . . . . . . . . . . . .   7
      3.1.  Overview of SSEs  . . . . . . . . . . . . . . . . . . . .   7
      3.2.  ALTO SSE Update Messages  . . . . . . . . . . . . . . . .   8
+       3.2.1.  Unique Resource ID of an ALTO Object  . . . . . . . .   8
+       3.2.2.  ALTO SSE Update Message Format  . . . . . . . . . . .   8
      3.3.  Keep-Alive Messages . . . . . . . . . . . . . . . . . . .   9
    4.  Update Stream Service . . . . . . . . . . . . . . . . . . . .   9
      4.1.  Media Type  . . . . . . . . . . . . . . . . . . . . . . .   9
      4.2.  HTTP Method . . . . . . . . . . . . . . . . . . . . . . .   9
-     4.3.  Accept Input Parameters . . . . . . . . . . . . . . . . .   9
-     4.4.  Capabilities  . . . . . . . . . . . . . . . . . . . . . .   9
+     4.3.  Accept Input Parameters . . . . . . . . . . . . . . . . .  10
+     4.4.  Capabilities  . . . . . . . . . . . . . . . . . . . . . .  10
      4.5.  Uses  . . . . . . . . . . . . . . . . . . . . . . . . . .  10
      4.6.  Event Order Requirements  . . . . . . . . . . . . . . . .  10
-     4.7.  Response  . . . . . . . . . . . . . . . . . . . . . . . .  10
-     4.8.  Client Actions When Receiving Update Messages . . . . . .  11
+     4.7.  Response  . . . . . . . . . . . . . . . . . . . . . . . .  11
+     4.8.  Client Actions When Receiving Update Messages . . . . . .  12
    5.  Filtered Update Stream Service  . . . . . . . . . . . . . . .  12
-     5.1.  HTTP Method . . . . . . . . . . . . . . . . . . . . . . .  12
-     5.2.  Accept Input Parameters . . . . . . . . . . . . . . . . .  12
+     5.1.  HTTP Method . . . . . . . . . . . . . . . . . . . . . . .  13
+     5.2.  Accept Input Parameters . . . . . . . . . . . . . . . . .  13
      5.3.  Response  . . . . . . . . . . . . . . . . . . . . . . . .  13
    6.  IRD Example . . . . . . . . . . . . . . . . . . . . . . . . .  14
    7.  Design Decisions and Discussion . . . . . . . . . . . . . . .  16
@@ -104,32 +106,36 @@ Table of Contents
      7.3.  Is Incremental Update Useful for Network Maps?  . . . . .  17
    8.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
    9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  17
-   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  17
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  18
 
 
 
-Roome, et al.            Expires April 27, 2015                 [Page 2]
+Roome, et al.            Expires April 28, 2015                 [Page 2]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
+
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  17
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  18
 
 1.  Introduction
 
    The Application-Layer Traffic Optimization (ALTO) [RFC7285] protocol
    provides network related information to client applications so that
-   clients may make informed decisions.  An ALTO Server provides network
-   and cost maps, which may be very large and change very frequently.
+   clients may make informed decisions.  An ALTO Server provides
+   information resources such as network maps and cost maps.  However,
+   these resources may be very large, and portions of these resources
+   may change frequently (cost maps in particular).
 
-   Instead of having the clients request for a new complete network map
-   or cost map every time, an incremental update from the server is much
-   more efficient.  The goals are to reduce the load on the ALTO Client
-   and Server by efficiently transmitting only the updated portions of
-   those maps, and to provide timely updates to clients.
+   Instead of having the clients request for a new complete resource
+   every time the resource updates itself, an incremental update from
+   the server is much more efficient.  The goals are to reduce the load
+   on the ALTO Client and Server by efficiently transmitting only the
+   updated portions of those maps, and to provide timely updates to
+   clients.
 
    This draft uses the JSON Merge Patch message format [RFC7386] to
-   encode the incremental update messages for network maps and cost
-   maps, and uses Server-Sent Events (SSE) as the transport mechanism to
+   encode the incremental update messages for the information resources,
+   and uses Server-Sent Events (SSE) as the transport mechanism to
    deliver those updates to clients.
 
 2.  Incremental Update Message Format
@@ -159,13 +165,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                 [Page 3]
+Roome, et al.            Expires April 28, 2015                 [Page 3]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -221,7 +221,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                 [Page 4]
+Roome, et al.            Expires April 28, 2015                 [Page 4]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -277,7 +277,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                 [Page 5]
+Roome, et al.            Expires April 28, 2015                 [Page 5]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -333,7 +333,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                 [Page 6]
+Roome, et al.            Expires April 28, 2015                 [Page 6]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -389,7 +389,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                 [Page 7]
+Roome, et al.            Expires April 28, 2015                 [Page 7]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -413,15 +413,48 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 3.2.  ALTO SSE Update Messages
 
+3.2.1.  Unique Resource ID of an ALTO Object
+
+   In the ALTO protocol, the resource-id uniquely identifies an ALTO
+   information resource.  However, there could be multiple resource
+   response objects that belong to the same resource.  For example, a
+   network map could have multiple response objects given different
+   filters; in endpoint cost or property services, the input parameters
+   determine the response.
+
+   For GET resources such as (full) network maps and cost maps, the
+   resource-id defined in the ALTO protocol uniquely identifies an ALTO
+   resource object.  For POST resources, a combination of the resource-
+   id and input parameters is necessary to uniquely identify an ALTO
+   response object.  We will define this in future versions of this
+   document.
+
+3.2.2.  ALTO SSE Update Message Format
+
    In our events, the data field is a JSON message; specifically, a
    Network Map, a Cost Map, or a Merge Patch to apply to a Network or
-   Cost Map.  Our event types have two sub-fields: the media-type of the
-   JSON message in the data field, and the resource-id of the ALTO
-   Network Map or Cost Map resource.  The media-types are "application/
-   alto-networkmap+json" for Network Map messages, "application/alto-
-   costmap+json" for Cost Map messages, or "application/merge-
-   patch+json" for Merge Patch messages.  The first two types are
-   defined by [RFC7285], and the last is defined by [RFC7285].
+   Cost Map.
+
+   Our event types uniquely identifies an event.  They can be used by
+   the clients to demultiplex the events and use the appropriate
+   handlers.  The event types have two sub-fields: the media-type of the
+   JSON message in the data field, and the unique resource id of the
+   ALTO resource.  The former identifies the type of the update and the
+   latter uniquely identifies an ALTO resource object.
+
+
+
+
+Roome, et al.            Expires April 28, 2015                 [Page 8]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
+
+   The media-types are "application/alto-networkmap+json" for Network
+   Map messages, "application/alto-costmap+json" for Cost Map messages,
+   or "application/merge-patch+json" for Merge Patch messages.  The
+   first two types are defined by [RFC7285], and the last is defined by
+   [RFC7386].
 
    We do not use the SSE id field.
 
@@ -430,7 +463,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
          media-type , resource-id
 
-   Here examples of ALTO update events.
+   Here is an example of ALTO update events.
 
      event: application/alto-networkmap+json,my-network-map
      data: { ... full Network Map message ... }
@@ -440,15 +473,6 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
      event: application/merge-patch+json,my-routingcost-map
      data: { ... Merge Patch update for Cost Map ... }
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                 [Page 8]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
 
 3.3.  Keep-Alive Messages
 
@@ -470,6 +494,17 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
    An ALTO Update Stream resource is requested using the HTTP GET
    method.
+
+
+
+
+
+
+
+Roome, et al.            Expires April 28, 2015                 [Page 9]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
 
 4.3.  Accept Input Parameters
 
@@ -496,16 +531,6 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    Map resource-id, the event capability list MUST also have an event
    with media-type "application/alto-costmap+json" for that resource-id.
 
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                 [Page 9]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
-
 4.5.  Uses
 
    An array with the resource-ids of the resources for which this stream
@@ -527,6 +552,16 @@ Internet-Draft          ALTO Incremental Updates            October 2014
       resource-ids covered by this Update Stream resource as soon as
       possible after the client initiates the connection.
 
+
+
+
+
+
+Roome, et al.            Expires April 28, 2015                [Page 10]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
+
    o  When a Network Map changes, the ALTO Server MUST send an update
       event for that Network Map before sending the update events for
       any Cost Maps that depend on that Network Map.
@@ -543,24 +578,6 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    Stream service sends updates for a Network Map with resource-id "my-
    network-map" and an associated Cost Map with resource-id "my-
    routingcost-map":
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                [Page 10]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
 
      GET /updates/routingcost HTTP/1.1
      Host: alto.example.com
@@ -594,6 +611,13 @@ Internet-Draft          ALTO Incremental Updates            October 2014
      event: application/alto-costmap+json,my-routingcost-map
      data: { ... full Cost Map message ... }
 
+
+
+Roome, et al.            Expires April 28, 2015                [Page 11]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
+
 4.8.  Client Actions When Receiving Update Messages
 
    In general, when a client receives a full-map update message for a
@@ -609,15 +633,6 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    One approach is for the ALTO Client to save the Network Map update
    message in a buffer, and continue to use the previous Network Map,
    and the associated Cost Maps, until the client receives the update
-
-
-
-
-Roome, et al.            Expires April 27, 2015                [Page 11]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
-
    messages for all of those Cost Maps.  The client then applies all
    Network and Cost Map updates atomically.
 
@@ -647,6 +662,18 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    events.  Specifically, except as noted below, the Filtered Update
    Stream service is identical to the Update Stream service (Section 4).
 
+
+
+
+
+
+
+
+Roome, et al.            Expires April 28, 2015                [Page 12]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
+
 5.1.  HTTP Method
 
    A Filtered ALTO Update Stream resource is requested using the HTTP
@@ -666,21 +693,17 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    The "events" field gives the types of the events the ALTO Client
    wishes to receive.  These events MUST be a subset of the "events"
    capability of this resource.  If the "events" list is omitted, the
-
-
-
-Roome, et al.            Expires April 27, 2015                [Page 12]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
-
    ALTO Server MUST send all event types in the "events" capability of
    this resource.
 
    The "vtags" field gives the version tags, as defined in Section 10.3
    of [RFC7285], for any resources which the client already has.  If
    those versions are still current, the server SHOULD NOT send the full
-   version of that resource at startup.
+   version of that resource at startup.  If the versions are not current
+   but the server is able to compute a patch to update the client's
+   resource from the version that the client has to the current version,
+   it is RECOMMMENDED that the server sends such an update.  If the
+   server chooses to do so, the server MUST send it at start up.
 
    If a client requests Merge Patch update events for a given resource-
    id, the client MUST also request the corresponding full map update
@@ -699,36 +722,19 @@ Internet-Draft          ALTO Incremental Updates            October 2014
    Here is an example of a client's request and the server's immediate
    response, using the Filtered Update Stream resource "my-allcosts-
    update-stream" defined in the IRD in Section 6.  The client requests
+
+
+
+Roome, et al.            Expires April 28, 2015                [Page 13]
+
+Internet-Draft          ALTO Incremental Updates            October 2014
+
+
    updates for the Network Map and the "routingcost" Cost Map, but does
    not want updates for the "hopcount" Cost Map.  The "vtags" field
    gives the client's version of the Network Map.  Because that version
    is still current, the server does not send the full Network Map
    update event at the beginning of the stream:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                [Page 13]
-
-Internet-Draft          ALTO Incremental Updates            October 2014
-
 
      POST /updates/routingcost-hopcount HTTP/1.1
      Host: alto.example.com
@@ -775,13 +781,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-
-
-
-
-
-
-Roome, et al.            Expires April 27, 2015                [Page 14]
+Roome, et al.            Expires April 28, 2015                [Page 14]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -837,7 +837,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                [Page 15]
+Roome, et al.            Expires April 28, 2015                [Page 15]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -893,7 +893,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                [Page 16]
+Roome, et al.            Expires April 28, 2015                [Page 16]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -949,7 +949,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 27, 2015                [Page 17]
+Roome, et al.            Expires April 28, 2015                [Page 17]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -1005,4 +1005,4 @@ Authors' Addresses
 
 
 
-Roome, et al.            Expires April 27, 2015                [Page 18]
+Roome, et al.            Expires April 28, 2015                [Page 18]

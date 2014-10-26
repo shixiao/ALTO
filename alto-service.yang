@@ -555,6 +555,49 @@ module alto-service {
         } InfoResourceCostMap : ResponseEntityBase;";
   }
 
+
+  /* Endpoint Property Map */
+  augment "/resource" {
+    when "./media-type = 'application/alto-endpointprop+json' ";
+    uses endpoint-property-map;
+  }
+
+  grouping endpoint-property-map {
+    list endpoint-properties {
+      key endpoint;
+      leaf endpoint {
+        type typed-endpoint-address;
+        mandatory true;
+      }
+      list properties {
+        key property-type;
+        leaf property-type {
+          type endpoint-property-type;
+          mandatory true;
+        }
+        leaf property {
+          type endpoint-property-value;
+          mandatory true;
+        }
+        description
+          "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+          " object {
+              EndpointPropertyType -> JSONValue;
+            } EndpointProps;";
+      }
+      description
+        "EndpointPropertyMapData. Sec. 11.4.1.6." +
+        " object-map {
+            TypedEndpointAddr -> EndpointProps;
+          } EndpointPropertyMapData;";
+    }
+    description
+      "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+      " object {
+          EndpointPropertyMapData endpoint-properties;
+        } InfoResourceEndpointProperties : ResponseEntityBase;";
+  }
+
   /* Information Resource Directory */
   grouping IRD-grouping {
     container meta {
@@ -903,38 +946,7 @@ module alto-service {
         container meta {
           uses meta;
         }
-        list endpoint-properties {
-          key endpoint;
-          leaf endpoint {
-            type typed-endpoint-address;
-          }
-          list properties {
-            key property-type;
-            leaf property-type {
-              type endpoint-property-type;
-              mandatory true;
-            }
-            leaf property {
-              type endpoint-property-value;
-              mandatory true;
-            }
-            description
-              "EndpointProps. RFC7285 Sec. 11.4.1.6." +
-              " object {
-                  EndpointPropertyType -> JSONValue;
-                } EndpointProps;";
-          }
-          description
-            "EndpointPropertyMapData. Sec. 11.4.1.6." +
-            " object-map {
-                TypedEndpointAddr -> EndpointProps;
-              } EndpointPropertyMapData;";
-        }
-        description
-          "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
-          " object {
-              EndpointPropertyMapData endpoint-properties;
-            } InfoResourceEndpointProperties : ResponseEntityBase;";
+        uses endpoint-property-map;
       }
     }
   }

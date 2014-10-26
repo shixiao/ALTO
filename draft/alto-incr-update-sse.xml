@@ -62,15 +62,15 @@
 		  for example when selecting a target host
 		  from a set of candidates.</t>
 
-		  <t>Therefore an ALTO Server provides network and cost maps to its
-		  clients. However, those maps can be very large,
+		  <t>Therefore an ALTO Server provides information resources to its
+		  clients, such as network maps and cost maps. However, those resources can be very large,
 		  and portions of those maps may change frequently
 		  (cost maps in particular).</t>
 	  
 		  <t>This draft presents a method to provide incremental
-		  updates for these maps. The goal is to reduce the load
+		  updates for ALTO information resources. The goal is to reduce the load
 		  on the ALTO Client and Server by transmitting just the
-		  updated portions of those maps.</t>
+		  updated portions of these resources.</t>
 		</abstract>
 	</front>
 	
@@ -81,13 +81,13 @@
 				<xref target="RFC7285"/> protocol
 				provides network related information to client
 				applications so that clients may make informed
-				decisions. An ALTO Server provides network and cost
-				maps, which may be very large and change very
-				frequently.
+				decisions. An ALTO Server provides information resources such as
+				network maps and cost maps. However, these resources may be very large,
+				and portions of these resources may change frequently (cost maps in particular).
 			</t>
 			<t>
-				Instead of having the clients request for a new complete network map or
-				cost map every time, an incremental update from the server is much more
+				Instead of having the clients request for a new complete resource every time
+				the resource updates itself, an incremental update from the server is much more
 				efficient. The goals are to reduce the load on the ALTO Client and Server
 				by efficiently transmitting only the updated portions of those maps,
 				and to provide timely updates to clients.
@@ -95,7 +95,7 @@
 			<t>
 				This draft uses the JSON Merge Patch message format
 				<xref target="RFC7386"/> to encode the
-				incremental update messages for network maps and cost maps,
+				incremental update messages for the information resources,
 				and uses Server-Sent Events (SSE) as the transport mechanism
 				to deliver those updates to clients.
 			</t>
