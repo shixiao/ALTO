@@ -2,19 +2,19 @@
 
 
 
-ALTO WG                                                           X. Shi
+ALTO Working Group                                                X. Shi
 Internet-Draft                                                   Y. Yang
 Intended status: Informational                           Yale University
-Expires: April 27, 2015                                 October 24, 2014
+Expires: April 30, 2015                                 October 27, 2014
 
 
                    Modeling JSON Messages Using YANG
-                    draft-shi-model-json-msg-yang-00
+                      draft-shi-alto-yang-json-00
 
 Abstract
 
    JavaScript Object Notation (JSON) has been a popular choice as the
-   message encoding for many network protocol.  Meanwhile, there are
+   message encoding for many network protocols.  Meanwhile, there are
    broad interests in the networking community to use the YANG data
    modeling language [RFC6020] to define data store and protocol
    messages, so that one can use YANG related tools such as the
@@ -46,14 +46,14 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 27, 2015.
+   This Internet-Draft will expire on April 30, 2015.
 
 
 
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 1]
+Shi & Yang               Expires April 30, 2015                 [Page 1]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 2]
+Shi & Yang               Expires April 30, 2015                 [Page 2]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -165,7 +165,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 3]
+Shi & Yang               Expires April 30, 2015                 [Page 3]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -221,7 +221,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 4]
+Shi & Yang               Expires April 30, 2015                 [Page 4]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -277,7 +277,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 5]
+Shi & Yang               Expires April 30, 2015                 [Page 5]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -333,7 +333,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 6]
+Shi & Yang               Expires April 30, 2015                 [Page 6]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -389,7 +389,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 7]
+Shi & Yang               Expires April 30, 2015                 [Page 7]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -445,7 +445,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 8]
+Shi & Yang               Expires April 30, 2015                 [Page 8]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -501,7 +501,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                 [Page 9]
+Shi & Yang               Expires April 30, 2015                 [Page 9]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -557,7 +557,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 10]
+Shi & Yang               Expires April 30, 2015                [Page 10]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -613,7 +613,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 11]
+Shi & Yang               Expires April 30, 2015                [Page 11]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -669,7 +669,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 12]
+Shi & Yang               Expires April 30, 2015                [Page 12]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -725,7 +725,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 13]
+Shi & Yang               Expires April 30, 2015                [Page 13]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -781,7 +781,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 14]
+Shi & Yang               Expires April 30, 2015                [Page 14]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -837,7 +837,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 15]
+Shi & Yang               Expires April 30, 2015                [Page 15]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -893,7 +893,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 16]
+Shi & Yang               Expires April 30, 2015                [Page 16]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -949,7 +949,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 17]
+Shi & Yang               Expires April 30, 2015                [Page 17]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1005,7 +1005,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 18]
+Shi & Yang               Expires April 30, 2015                [Page 18]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1061,7 +1061,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 19]
+Shi & Yang               Expires April 30, 2015                [Page 19]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1117,7 +1117,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 20]
+Shi & Yang               Expires April 30, 2015                [Page 20]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1173,7 +1173,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 21]
+Shi & Yang               Expires April 30, 2015                [Page 21]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1194,8 +1194,7 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
    [CDNiMetadata]
               Niven-Jenkins, B., Murray, R., Caulfield, M., Leung, K.,
-              and K. Ma, "CDN Interconnection Metadata", RFC 6707, July
-              2014.
+              and K. Ma, "CDN Interconnection Metadata", July 2014.
 
    [RFC7159]  Bray, T., "The JavaScript Object Notation (JSON) Data
               Interchange Format", RFC 7159, March 2014.
@@ -1205,10 +1204,10 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
               Traffic Optimization (ALTO) Protocol", RFC 7285, September
               2014.
 
-   [RFC6887]  Wing, Ed., D., Cheshire, S., Boucadair, M., Penno, R., and
+   [RFC6887]  Wing, D., Ed., Cheshire, S., Boucadair, M., Penno, R., and
               P. Selkirk, "Port Control Protocol", RFC 6887, April 2013.
 
-   [RFC6020]  Bjorklund Ed., M., "YANG - A Data Modeling Language for
+   [RFC6020]  Bjorklund, M., Ed., "YANG - A Data Modeling Language for
               the Network Configuration Protocol (NETCONF)", RFC 6020,
               October 2010.
 
@@ -1229,7 +1228,8 @@ Authors' Addresses
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 22]
+
+Shi & Yang               Expires April 30, 2015                [Page 22]
 
 Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
@@ -1285,4 +1285,4 @@ Internet-Draft      Modeling JSON Messages Using YANG       October 2014
 
 
 
-Shi & Yang               Expires April 27, 2015                [Page 23]
+Shi & Yang               Expires April 30, 2015                [Page 23]

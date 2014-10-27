@@ -6,7 +6,7 @@
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
 <rfc category="info"
-     docName="draft-shi-model-json-msg-yang-00" 
+     docName="draft-shi-alto-yang-json-00" 
      ipr="trust200902">
 	<front>
 		<title>Modeling JSON Messages Using YANG</title>
@@ -37,11 +37,11 @@
 		</author>
 		<date month="October" year="2014"/>
 		<area>Networks</area>
-		<workgroup>ALTO WG</workgroup>
+		<workgroup>ALTO Working Group</workgroup>
 		<keyword>ALTO</keyword>
 		<abstract>
 		  <t>JavaScript Object Notation (JSON) has been a popular choice as the 
-		  message encoding for many network protocol. Meanwhile, there are broad
+		  message encoding for many network protocols. Meanwhile, there are broad
 		  interests in the networking community to use the YANG data modeling 
 		  language <xref target="RFC6020"/> to define data store and protocol
 		  messages, so that one can use YANG related tools such as the OpenDayLight Controller.
@@ -936,7 +936,6 @@ list paths {
 					<author initials="K." surname="Ma" fullname="K. Ma"/>
 					<date month="July" year="2014"/>
 				</front>
-				<seriesInfo name="RFC" value="6707" />
 			</reference>
 			<reference anchor="RFC7159">
 				<front>
@@ -964,7 +963,7 @@ list paths {
 			<reference anchor="RFC6887">
 				<front>
 					<title>Port Control Protocol</title>
-					<author initials="D." surname="Wing, Ed." fullname="D. Wing, Ed."/>
+					<author initials="D." surname="Wing" role="editor" fullname="D. Wing"/>
 					<author initials="S." surname="Cheshire" fullname="S. Cheshire"/>
 					<author initials="M." surname="Boucadair" fullname="M. Boucadair"/>
 					<author initials="R." surname="Penno" fullname="R. Penno"/>
@@ -977,7 +976,7 @@ list paths {
 			<reference anchor="RFC6020">
 				<front>
 					<title>YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)</title>
-					<author initials="M." surname="Bjorklund Ed." fullname="M. Bjorklund Ed."/>
+					<author initials="M." surname="Bjorklund" role="editor" fullname="M. Bjorklund"/>
 					<date month="October" year="2010"/>
 				</front>
 				<seriesInfo name="RFC" value="6020" />

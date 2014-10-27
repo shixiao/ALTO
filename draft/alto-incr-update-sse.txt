@@ -5,9 +5,9 @@
 ALTO WG                                                         W. Roome
 Internet-Draft                                            Alcatel-Lucent
 Intended status: Standards Track                                  X. Shi
-Expires: April 29, 2015                                          Y. Yang
+Expires: April 30, 2015                                          Y. Yang
                                                          Yale University
-                                                        October 26, 2014
+                                                        October 27, 2014
 
 
                         ALTO Incremental Updates
@@ -46,14 +46,14 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 29, 2015.
+   This Internet-Draft will expire on April 30, 2015.
 
 
 
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 1]
+Roome, et al.            Expires April 30, 2015                 [Page 1]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 2]
+Roome, et al.            Expires April 30, 2015                 [Page 2]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -165,7 +165,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 3]
+Roome, et al.            Expires April 30, 2015                 [Page 3]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -221,7 +221,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 4]
+Roome, et al.            Expires April 30, 2015                 [Page 4]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -277,7 +277,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 5]
+Roome, et al.            Expires April 30, 2015                 [Page 5]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -333,7 +333,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 6]
+Roome, et al.            Expires April 30, 2015                 [Page 6]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -389,7 +389,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 7]
+Roome, et al.            Expires April 30, 2015                 [Page 7]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -398,18 +398,18 @@ Internet-Draft          ALTO Incremental Updates            October 2014
      Host: example.com
      Accept: text/event-stream
 
-     HTTP/1.1 200 OK
-     Connection: keep-alive
-     Content-Type: text/event-stream
+       HTTP/1.1 200 OK
+       Connection: keep-alive
+       Content-Type: text/event-stream
 
-     event: start
-     data: hello there
+       event: start
+       data: hello there
 
-     event: middle
-     data: let's chat some more ... and more ...
+       event: middle
+       data: let's chat some more ... and more ...
 
-     event: end
-     data: good bye
+       event: end
+       data: good bye
 
 3.2.  ALTO SSE Update Messages
 
@@ -445,7 +445,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 8]
+Roome, et al.            Expires April 30, 2015                 [Page 8]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -501,7 +501,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                 [Page 9]
+Roome, et al.            Expires April 30, 2015                 [Page 9]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -557,7 +557,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 10]
+Roome, et al.            Expires April 30, 2015                [Page 10]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -613,7 +613,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 11]
+Roome, et al.            Expires April 30, 2015                [Page 11]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -669,7 +669,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 12]
+Roome, et al.            Expires April 30, 2015                [Page 12]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -725,7 +725,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 13]
+Roome, et al.            Expires April 30, 2015                [Page 13]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -781,7 +781,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 14]
+Roome, et al.            Expires April 30, 2015                [Page 14]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -837,7 +837,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 15]
+Roome, et al.            Expires April 30, 2015                [Page 15]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -893,7 +893,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 16]
+Roome, et al.            Expires April 30, 2015                [Page 16]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -949,7 +949,7 @@ Internet-Draft          ALTO Incremental Updates            October 2014
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 17]
+Roome, et al.            Expires April 30, 2015                [Page 17]
 
 Internet-Draft          ALTO Incremental Updates            October 2014
 
@@ -1005,4 +1005,4 @@ Authors' Addresses
 
 
 
-Roome, et al.            Expires April 29, 2015                [Page 18]
+Roome, et al.            Expires April 30, 2015                [Page 18]
