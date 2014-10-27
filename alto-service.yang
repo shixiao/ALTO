@@ -215,7 +215,7 @@ module alto-service {
       "Resource-ID.";
   }
 
-  grouping version-tag {
+  grouping vtag {
     leaf resource-id {
       type resource-id;
       mandatory true;
@@ -236,6 +236,13 @@ module alto-service {
           ResourceID resource-id;
           JSONString tag;
         } VersionTag;";
+  }
+
+  grouping dependent-vtags {
+    list dependent-vtags {
+      uses vtag;
+      min-elements 1;
+    }
   }
 
  /*************************************
@@ -393,33 +400,10 @@ module alto-service {
  /*************************************
   * Definitions for response header
   *************************************/
-  grouping meta {
-    choice dependent {
-      // multiple vtags
-      case dependent {
-        list dependent-vtags {
-          uses version-tag;
-          description
-            "Version tags.";
-        }
-      }
-      case independent {
-        container vtag {
-          uses version-tag;
-          description
-            "Version tag.";
-        }
-      }
-    }
-    description
-      "Meta information. RFC7285 Sec. 8.4.1." + 
-      "object-map { JSONString -> JSONValue } ResponseMeta;";
-  }
 
   typedef media-type {
     type union {
       type string {
-        // TODO: restrict more? RFC 7285, Sec. 14.1?
         pattern "application/alto\-.*";   
       }
       type enumeration {
@@ -455,41 +439,136 @@ module alto-service {
       "same unit as cost-metric, IEEE 754 2008 floating point.";
   }
 
-  /****************************************************
-     DATA INSTANCES of all ALTO information resources
+  /******************************************
+    Groupings for ALTO information resource
+  *******************************************/
 
-     unfiltered network-maps, unfiltered cost-maps are all instances
-     of resources. IRD is also modeled as data.
-
-     The design uses augment as the basic approach to implement
-     inheritance.
-   ****************************************************/
-
-  /* base type */
-  list resource {
-    config false;
-    // ResponseEntityBase; Note: resource-id for network/cost maps are
-    // in their meta, see the augment statements below.
-    container meta {
-      uses meta;
-    }
-    leaf uri {
-      type inet:uri;
+  /* meta */
+  grouping IRD-meta {
+    uses cost-types;
+    leaf default-alto-network-map {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
       mandatory true;
     }
-    leaf media-type {
+  }
+
+  grouping network-map-meta {
+    container vtag {
+      uses vtag;
+    }
+  }
+
+  grouping cost-map-meta {
+    uses dependent-vtags {
+      refine dependent-vtags {
+        max-elements 1;
+      }
+    }
+    container cost-type {
+      uses cost-type;
+    }
+  }
+
+  grouping endpoint-property-meta {
+    uses dependent-vtags;
+  }
+
+  /* accepts (optional) */
+  grouping accepts {
+    leaf-list accepts {
       type media-type;
-      mandatory true;
+      min-elements 1;
     }
   }
 
-  /* network-map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-networkmap+json' ";
-    uses network-map;
+  /* capabilities (capabilities) */
+  grouping IRD-capabilities {
+    container capabilities {
+      leaf cost-constraints {
+        type boolean;
+      }
+      leaf-list cost-type-names {
+        type cost-type-name;
+      }
+      leaf-list prop-types {
+        type endpoint-property-type;
+      }
+    }
   }
 
+  /* uses (optional) */
+  grouping uses {
+    leaf-list uses {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
+      min-elements 1;
+    }
+  }
+
+  /* Information Resource Directory Grouping */
+  grouping IRD {
+    container meta {
+      uses IRD-meta;
+    }
+    uses IRD-data;
+  }
+
+  grouping IRD-data {
+    list resources {
+      key resource-id;
+      leaf resource-id {
+        type resource-id;
+        mandatory true;
+      }
+      leaf uri {
+        type inet:uri;
+        mandatory true;
+      }
+      leaf media-type {
+        type media-type;
+        mandatory true;
+      }
+      uses accepts {
+        when "current()";
+      }
+      uses IRD-capabilities {
+        when "current()";
+      }
+      uses uses {
+        when "current()";
+      }
+      description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;" +
+        "InformationResourceDirectory. RFC7285 9.2.2." +
+        " object {
+            IRDResourceEntries resources;
+          } InfoResourceDirectory : ResponseEntityBase;";
+    }
+  }
+
+  /* Network Map Grouping */
   grouping network-map {
+    container meta {
+      uses network-map-meta;
+    }
+    uses network-map-data;
+  }
+
+  grouping network-map-data {
     list network-map {
       key "pid";
       leaf pid {
@@ -509,13 +588,15 @@ module alto-service {
        } InfoResourceNetworkMap : ResponseEntityBase;";
   }
 
-  /* cost map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    uses cost-map;
+  /* Cost Map Grouping */
+  grouping cost-map {
+    container meta {
+      uses cost-map-meta;
+    }
+    uses cost-map-data;
   }
 
-  grouping cost-map {
+  grouping cost-map-data {
     list cost-map {
       leaf src {
         type pid-name;
@@ -555,14 +636,15 @@ module alto-service {
         } InfoResourceCostMap : ResponseEntityBase;";
   }
 
-
-  /* Endpoint Property Map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-endpointprop+json' ";
-    uses endpoint-property-map;
+  /* Endpoint Property Map Grouping */
+  grouping endpoint-property-map {
+    container meta {
+      uses endpoint-property-meta;
+    }
+    uses endpoint-property-map-data;
   }
 
-  grouping endpoint-property-map {
+  grouping endpoint-property-map-data {
     list endpoint-properties {
       key endpoint;
       leaf endpoint {
@@ -598,274 +680,43 @@ module alto-service {
         } InfoResourceEndpointProperties : ResponseEntityBase;";
   }
 
-  /* Information Resource Directory */
-  grouping IRD-grouping {
-    container meta {
-    }
-    list resources {
-      key resource-id;
-      leaf resource-id {
-        type resource-id;
-        mandatory true;
-      }
-      leaf uri {
-        type leafref {
-          path "/resource/uri";
-        }
-        mandatory true;
-      }
-      leaf media-type {
-        type leafref {
-          path "/resource/media-type";
-        }
-        mandatory true;
-      }
-      description
-        "IRDResourceEntry. RFC7285 9.2.2." +
-        " object {
-            JSONString      uri;
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;" +
-        "IRDResourceEntries. RFC7285 9.2.2." +
-        " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;" +
-        "InformationResourceDirectory. RFC7285 9.2.2." +
-        " object {
-            IRDResourceEntries resources;
-          } InfoResourceDirectory : ResponseEntityBase;";
-    }
-  }
+  /****************************************************
+     DATA INSTANCES of all ALTO information resources
 
-  container IRD {
+     unfiltered network-maps, unfiltered cost-maps are all instances
+     of resources. IRD is also modeled as data.
+
+     The design uses augment as the basic approach to implement
+     inheritance.
+   ****************************************************/
+
+  container resources {
     config false;
-    leaf uri {
-      type inet:uri;
-      mandatory true;
-    }
-    leaf media-type {
-      type media-type;
-      mandatory true;
-    }
-    uses IRD-grouping;
-  }
 
-  /* meta */
-  grouping IRD-meta {
-    uses cost-types;
-    leaf default-alto-network-map {
-      type leafref {
-        path "/IRD/resources/resource-id";
-      }
-      mandatory true;
+    /* Information Resource Directory */
+    container IRD {
+      uses IRD;
     }
-  }
 
-  augment "/IRD/meta" {
-    uses IRD-meta;
-  }
-  augment "/IRD-service/output/IRD-service/meta" {
-    uses IRD-meta;
-  }
-
-  augment "/resource/meta" {
-    when "../media-type = 'application/alto-costmap+json' ";
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
+    list network-maps {
+      unique "meta/vtag/resource-id meta/vtag/tag";
+      uses network-map;
     }
-  }
-  augment "/cost-map-service/output/cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
+
+    list cost-maps {
+      /*
+        The dependent-vtags and cost-types in the meta uniquely
+        identify a cost map. However, the unique statement in YANG
+        does not allow reference to a list (dependent-vtags).
+      */
+      uses cost-map;
+    }
+
+    container endpoint-property-map {
+      uses endpoint-property-map;
     }
   }
 
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  augment "/endpoint-cost-service/output/"
-        + "endpoint-cost-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  /* accepts (optional) */
-  grouping accepts {
-    leaf-list accepts {
-      type media-type;
-      min-elements 1;
-    }
-  }
-
-  augment "/resource" {
-    when ".";
-    uses accepts;
-  }
-
-  grouping IRD-accepts {
-    leaf-list accepts {
-      type leafref {
-        path "/resource/accepts";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  /* capabilities */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    container capabilities {
-      when "current()";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-        max-elements 1;
-      }
-      leaf-list prop-types {
-        type endpoint-property-type;
-      }
-      // EXTENSION: add other costmap capabilities here.
-      description
-        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
-        " object {
-            JSONString cost-type-names<1..1>;
-          } CostMapCapabilities;";
-    }
-  }
-
-  grouping IRD-capabilities {
-    container capabilities {
-      leaf cost-constraints {
-        type boolean;
-      }
-      leaf-list cost-type-names {
-        type leafref {
-          path "/resource/capabilities/cost-type-names";
-        }
-      }
-      leaf-list prop-types {
-        type leafref {
-          path "/resource/capabilities/prop-types";
-        }
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/endpoint-property-service/output/"
-        + "endpoint-property-service" {
-    leaf-list capabilities {
-      when ".";
-      type endpoint-property-type;
-      min-elements 1;
-      description
-        "Sec. 11.4.1.4." +
-        " object {
-            EndpointPropertyType prop-types<1..*>;
-          } EndpointPropertyCapabilities;";
-    }
-  }
-
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service" {
-    container capabilities {
-      when ".";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-      }
-      leaf cost-constraints {
-        type boolean;
-      }
-      // EXTENSION: model other costmap capabilities HERE
-      description
-        "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
-        " object {
-            JSONString cost-type-names<1..*>;
-            JSONBool cost-constraints;
-          } FilteredCostMapCapabilities;";
-    }
-  }
-
-  /* uses */
-  grouping uses {
-    leaf-list uses {
-      type resource-id;
-      min-elements 1;
-    }
-  }
-  augment "/resource" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    /* the logic is that the following structures can be present ONLY
-     * when the above conditions are satisfied. Not sure how to place
-     * different restrictions on different conditions. */
-    uses uses;
-  }
-
-  grouping IRD-uses {
-    leaf-list uses {
-      type leafref {
-        path "/resource/uses";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    uses IRD-uses;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    uses IRD-uses;
-  }
 
   /************************************
    * RPCs                             *
@@ -874,7 +725,7 @@ module alto-service {
   rpc IRD-service {
     output {
       container IRD-service {
-        uses IRD-grouping;
+        uses IRD;
       }
     }
   }
@@ -883,7 +734,7 @@ module alto-service {
     input {
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -892,9 +743,6 @@ module alto-service {
     }
     output {
       container network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
     }
@@ -904,7 +752,7 @@ module alto-service {
     input {
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -913,68 +761,30 @@ module alto-service {
     }
     output {
       container cost-map-service {
-        container meta {
-          uses meta;
-        }
         uses cost-map;
-      }
-    }
-  }
-
-  rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint";
-    input {
-      leaf-list properties {
-        type endpoint-property-type;
-        min-elements 1;
-      }
-      leaf-list endpoints {
-        type typed-endpoint-address;
-        min-elements 1;
-      }
-      /*
-      description
-        " object {
-            EndpointPropertyType  properties<1..*>;
-            TypedEndpointAddr     endpoints<1..*>;
-          } ReqEndpointProp;";
-      */
-    }
-    output {
-      container endpoint-property-service {
-        container meta {
-          uses meta;
-        }
-        uses endpoint-property-map;
       }
     }
   }
 
   rpc filtered-network-map-service {
     description
-      "inquiries on filtered network map";
+      "inquiries on filtered network map" +
+      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+        " object {
+            PIDName pids<0..*>;
+            [AddressType address-types<0..*>;]
+          } ReqFilteredNetworkMap;";
     input {
       leaf-list pids {
+        must "current()";
         type pid-name;
       }
       leaf-list address-types {
         type endpoint-address-type;
       }
-      /*
-      description
-        "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
-        " object {
-            PIDName pids<0..*>;
-            [AddressType address-types<0..*>;]
-          } ReqFilteredNetworkMap;";
-      */
     }
     output {
       container filtered-network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
     }
@@ -983,13 +793,11 @@ module alto-service {
   rpc filtered-cost-map-service {
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
-        when "/resource/capabilities/cost-constraints = true";
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
@@ -1014,29 +822,56 @@ module alto-service {
     }
     output {
       container filtered-cost-map-service {
-        container meta {
-          uses meta;
-          description
-            "Meta information.";
-        }
         uses cost-map;
       }
     }
   }
 
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint" +
+      " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+    input {
+      leaf-list properties {
+        type endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type typed-endpoint-address;
+        min-elements 1;
+      }
+    }
+    output {
+      container endpoint-property-service {
+        uses endpoint-property-map;
+      }
+    }
+  }
+
+
   rpc endpoint-cost-service {
+    description
+      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
+      " object {
+          CostType          cost-type;
+          [JSONString       constraints<0..*>;]
+          EndpointFilter    endpoints;
+        } ReqEndpointCostMap;";
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
         description
           "RFC7285 Sec. 11.5.1.3.";
       }
-      container pids {
+      container endpoints {
+        must "current()";
         leaf-list srcs {
           type typed-endpoint-address;
           description
@@ -1054,22 +889,13 @@ module alto-service {
               [TypedEndpointAddr dsts<0..*>;]
             } EndpointFilter;";
       }
-      /*
-      description
-        "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
-        " object {
-            CostType          cost-type;
-            [JSONString       constraints<0..*>;]
-            EndpointFilter    endpoints;
-          } ReqEndpointCostMap;";
-      */
     }
     output {
       container endpoint-cost-service {
         container meta {
-          uses meta;
-          description
-            "Meta information.";
+          container cost-type {
+            uses cost-type;
+          }
         }
         list endpoint-cost-map {
           leaf src {

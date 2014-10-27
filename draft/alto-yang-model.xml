@@ -10,7 +10,9 @@
      docName="draft-shi-alto-yang-model-00" 
      ipr="trust200902">
   <front>
-    <title>A YANG Data Model for the ALTO Protocol</title>
+    <title abbrev="YANG Model for Base ALTO Data and Services">
+      A YANG Data Model for Base ALTO Data and Services
+    </title>
     <author initials="X." surname="Shi" fullname="Xiao Shi">
       <organization abbrev="Yale University">Yale University</organization>
       <address>
@@ -42,10 +44,17 @@
     <keyword>ALTO</keyword>
     <abstract>
       <t>
-        This document defines a YANG data model for the Application-Layer Traffic Optimiztion
-        (ALTO) protocol <xref target="RFC7285"/>. This data model includes state data and the
-        remote procedure calls for the ALTO services. The goal is to utilize YANG related tools
-        and building robust and resilient implementation of ALTO services in less time.
+        The Application-Layer Traffic Optimization (ALTO) protocol <xref target="RFC7285"/> 
+        defines a set of network information services, including the network-map service, 
+        the cost-map service, the filtered map services, the endpoint property service, and the endpoint cost service. A meta service, called the information resource directory (IRD) service, 
+        allows an ALTO server to provide ALTO clients with meta information (e.g., the access URI) 
+        about each resource and service it provides. <xref target="RFC7285"/> uses a RESTful 
+        design and encodes client request parameters and server responses using JSON. One may 
+        consider that most of these services are based on data maintained at an ALTO 
+        server. Hence, in this document, we explore how one may use the data modeling 
+        language YANG <xref target="RFC6020"/> to specify the services defined in <xref target="RFC7285"/>. We first use YANG base specification for data instance description and RPC specification 
+        of ALTO services. We then consider the "standard operations" defined in 
+        NETCONF/RESTCONF to evaluate potential integration.
       </t>
     </abstract>
   </front>
@@ -53,87 +62,134 @@
   <middle>
     <section title="Introduction">
       <t>
-        The Application Layer Traffic Optimization (ALTO) protocol <xref target="RFC7285"/>
-        aims to provide network information with the goal of modifying network resource 
-        consumption patterns while maintaining or improving application performance.
+        This document explores how one may use the data modeling language YANG <xref target="RFC6020"/> 
+        to specify the network information services defined in the Application-Layer Traffic 
+        Optimization (ALTO) protocol <xref target="RFC7285"/>. In particular, this work is 
+        motivated by the recent substantial interest in the networking community to use YANG 
+        in networking protocol specification and development. This interest is highly justified, 
+        given that the potential benefits of using a formal specification can be multifold, 
+        including both precision and the potential of automation. However, at the same time, 
+        data modeling languages are generally domain specific languages (DSL) and hence are restricted by 
+        their specific domains. For example, YANG is developed in the specific domain of modeling 
+        configuration and state data stored at network devices. ALTO information does not fit in this 
+        domain but is highly related: ALTO information should be derived from network configuration 
+        and state data. Hence, modeling ALTO using YANG provides an interesting exercise on how one 
+        may apply YANG slightly outside its original domain.
       </t>
       <t>
-        YANG as defined in <xref target="RFC6020"/> is a data modeling language used to 
-        model configuration and state data manipulated by the Network Configuration 
-        Protocol (NETCONF), NETCONF remote procedure calls, and NETCONF notifications.
+        The initial goal of this document was to produce an ALTO specification using YANG so 
+        that the YANG specification of ALTO, which we refer to as ALTO/YANG, and the original 
+        specification <xref target="RFC7285"/> can interoperate. We refer to an interop specification 
+        as a syntactically equivalent specification. In other words, the ALTO/YANG specification 
+        produces the same behavior as that of the original specification. Unfortunately, as we 
+        have shown in <xref target="draft-shi-model-json-msg-yang-00"/>, even without the need to 
+        consider other components such as NETCONF/RESTCONF to construct a complete YANG system, the 
+        basic encoding rule of YANG already makes syntactic equivalence infeasible. In particular, 
+        <xref target="RFC7285"/> makes extensive use of the common key-value store abstraction in 
+        its JSON object encoding. But such encoding cannot be generated using the existing YANG/JSON 
+        encoding. As a result, the focus of this document is on using YANG to define semantically 
+        equivalent ALTO services. We still strive that the syntax generated by ALTO/YANG is 
+        close to that of <xref target="RFC7285"/>.
       </t>
+      
       <t>
-        This document defines a YANG data model for the ALTO protocol. This data model includes state data and the remote procedure calls for the ALTO services. The goal is to utilize YANG related tools
-        and building robust and resilient implementation of ALTO services in less time.
+        The rest of this document is organized as follows. In Section 2, we provide an overview 
+        of our design objective and the overall structure of ALTO/YANG. In Section 3, we discuss 
+        specific design issues that we have encountered. The detailed specification of ALTO/YANG 
+        is in Appendix A.
       </t>
-      <t>
-        As proven in <xref target="draft-shi-model-json-msg-yang-00"/>, it is impossible to
-        have a syntactically equivalent YANG model for some of the ALTO protocol messages.
-        Therefore, we aim to have a semantically equivalent model, and strive to get the
-        syntax as close as possible.
-      </t>
+
     </section>
     
-    <section title="Model Structure">
-      <t>
-        The structure of the ALTO data model is depicted in the
-        following diagram.  Brackets enclose list keys, "ro" means operational state data, and "?"
-        designates optional nodes.
+    <section title="Design and Structure Overview of ALTO/YANG">
+    
+     <t>
+      Our design tries to use YANG in 3 aspects: data instance description, RPC specification, 
+      and standard operations. The RPC specification aspect is easy to understand: it allows 
+      precise specification and automation of RPC input/output data serialization and deserialization. 
+      To appreciate the data instance description and standard operations aspects, one can make an 
+      analogy with database. In relational database, one uses SQL to describe the data schema 
+      (e.g., in CREATE TABLE). We refer to this as the data description aspect. SQL also has 
+      defined statements such as SELECT, INSERT, UPDATE, and DELETE. We refer to this as the 
+      standard operations aspect. Given a DBMS implementing the SQL statements, one's tasks 
+      of introducing a new set of data to be managed are substantially reduced (i.e., define 
+      the schema and then use the supported statements to retrieve and manipulate the data).  
+    </t>
+      
+    <t>
+      First consider the data instance description aspect. The following diagram first lists the data instances, 
+      under resources, that an ALTO server may maintain. We use the word "may" because an ALTO server 
+      may not physically store such data. For example, a cost map could be generated on the fly, and 
+      hence can be in a sense a virtual data table. One may observe from our specified instances that we 
+      do not specify a data instance to support the endpoint cost service (ECS), as this can be highly 
+      inefficient. For ECS, the value of YANG is mainly in RPC specification. This may be considered 
+      trespassing on implementation when we design ALTO/YANG, as there may not be such instances 
+      or not stored in the format that we specifyy.
       </t>
+
+      <t>
+        Next consider both RPC specification and standard operations, as they are related. In other words, if an RPC can be implemented using a standard operation, we should not specify the RPC. The second half of the diagram lists the RPCs that we define, assuming no standard operations.  
+      </t>
+
+      <t>
+        An interesting design question is whether we can reduce the RPCs if there are standard operations. Unfortunately, YANG itself does define any specific operations. NETCONF and RESTCONF provide specific operations, and we explore them in the next section.
+      </t>
+
 <figure><artwork><![CDATA[                            
 module: alto-service
-   +--ro resource*
-   |  +--ro meta
-   |  |  +--ro (dependent)?
-   |  |  |  +--:(dependent)
-   |  |  |  |  +--ro dependent-vtags*
-   |  |  |  |     +--ro resource-id    resource-id
-   |  |  |  |     +--ro tag            string
-   |  |  |  +--:(independent)
-   |  |  |     +--ro vtag
-   |  |  |        +--ro resource-id    resource-id
-   |  |  |        +--ro tag            string
-   |  |  +--ro cost-type
-   |  |     +--ro cost-mode      cost-mode
-   |  |     +--ro cost-metric    cost-metric
-   |  |     +--ro description?   string
-   |  +--ro uri             inet:uri
-   |  +--ro media-type      media-type
-   |  +--ro network-map* [pid]
-   |  |  +--ro pid                       pid-name
-   |  |  +--ro endpoint-address-group* [address-type]
-   |  |     +--ro address-type       endpoint-address-type
-   |  |     +--ro endpoint-prefix*   endpoint-prefix
-   |  +--ro cost-map* [src]
-   |  |  +--ro src          pid-name
-   |  |  +--ro dst-costs* [dst]
-   |  |     +--ro dst     pid-name
-   |  |     +--ro cost    
-   |  +--ro accepts*        media-type
-   |  +--ro capabilities
-   |  |  +--ro cost-type-names*   cost-type-name
-   |  |  +--ro prop-types*        endpoint-property-type
-   |  +--ro uses*           resource-id
-   +--ro IRD
-      +--ro uri           inet:uri
-      +--ro media-type    media-type
-      +--ro meta
-      |  +--ro cost-types* [cost-type-name]
-      |  |  +--ro cost-type-name    cost-type-name
-      |  |  +--ro cost-mode         cost-mode
-      |  |  +--ro cost-metric       cost-metric
-      |  |  +--ro description?      string
-      |  +--ro default-alto-network-map    leafref
-      +--ro resources* [resource-id]
-         +--ro resource-id     resource-id
-         +--ro uri             leafref
-         +--ro media-type      leafref
-         +--ro accepts*        leafref
-         +--ro capabilities
-         |  +--ro cost-constraints?   boolean
-         |  +--ro cost-type-names*    leafref
-         |  +--ro prop-types*         leafref
-         +--ro uses*           leafref
+   +--ro resources
+      +--ro IRD
+      |  +--ro meta
+      |  |  +--ro cost-types* [cost-type-name]
+      |  |  |  +--ro cost-type-name    cost-type-name
+      |  |  |  +--ro cost-mode         cost-mode
+      |  |  |  +--ro cost-metric       cost-metric
+      |  |  |  +--ro description?      string
+      |  |  +--ro default-alto-network-map    leafref
+      |  +--ro resources* [resource-id]
+      |     +--ro resource-id     resource-id
+      |     +--ro uri             inet:uri
+      |     +--ro media-type      media-type
+      |     +--ro accepts*        media-type
+      |     +--ro capabilities
+      |     |  +--ro cost-constraints?   boolean
+      |     |  +--ro cost-type-names*    cost-type-name
+      |     |  +--ro prop-types*         endpoint-property-type
+      |     +--ro uses*           leafref
+      +--ro network-maps*
+      |  +--ro meta
+      |  |  +--ro vtag
+      |  |     +--ro resource-id    resource-id
+      |  |     +--ro tag            string
+      |  +--ro network-map* [pid]
+      |     +--ro pid                       pid-name
+      |     +--ro endpoint-address-group* [address-type]
+      |        +--ro address-type       endpoint-address-type
+      |        +--ro endpoint-prefix*   endpoint-prefix
+      +--ro cost-maps*
+      |  +--ro meta
+      |  |  +--ro dependent-vtags*
+      |  |  |  +--ro resource-id    resource-id
+      |  |  |  +--ro tag            string
+      |  |  +--ro cost-type
+      |  |     +--ro cost-mode      cost-mode
+      |  |     +--ro cost-metric    cost-metric
+      |  |     +--ro description?   string
+      |  +--ro cost-map* [src]
+      |     +--ro src          pid-name
+      |     +--ro dst-costs* [dst]
+      |        +--ro dst     pid-name
+      |        +--ro cost    
+      +--ro endpoint-property-map
+         +--ro meta
+         |  +--ro dependent-vtags*
+         |     +--ro resource-id    resource-id
+         |     +--ro tag            string
+         +--ro endpoint-properties* [endpoint]
+            +--ro endpoint      typed-endpoint-address
+            +--ro properties* [property-type]
+               +--ro property-type    endpoint-property-type
+               +--ro property         endpoint-property-value
 rpcs:
    +---x IRD-service                     
    |  +--ro output    
@@ -147,13 +203,13 @@ rpcs:
    |        |  +--ro default-alto-network-map    leafref
    |        +--ro resources* [resource-id]
    |           +--ro resource-id     resource-id
-   |           +--ro uri             leafref
-   |           +--ro media-type      leafref
-   |           +--ro accepts*        leafref
+   |           +--ro uri             inet:uri
+   |           +--ro media-type      media-type
+   |           +--ro accepts*        media-type
    |           +--ro capabilities
    |           |  +--ro cost-constraints?   boolean
-   |           |  +--ro cost-type-names*    leafref
-   |           |  +--ro prop-types*         leafref
+   |           |  +--ro cost-type-names*    cost-type-name
+   |           |  +--ro prop-types*         endpoint-property-type
    |           +--ro uses*           leafref
    +---x network-map-service             
    |  +--ro input     
@@ -161,15 +217,9 @@ rpcs:
    |  +--ro output    
    |     +--ro network-map-service
    |        +--ro meta
-   |        |  +--ro (dependent)?
-   |        |     +--:(dependent)
-   |        |     |  +--ro dependent-vtags*
-   |        |     |     +--ro resource-id    resource-id
-   |        |     |     +--ro tag            string
-   |        |     +--:(independent)
-   |        |        +--ro vtag
-   |        |           +--ro resource-id    resource-id
-   |        |           +--ro tag            string
+   |        |  +--ro vtag
+   |        |     +--ro resource-id    resource-id
+   |        |     +--ro tag            string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -181,15 +231,9 @@ rpcs:
    |  +--ro output    
    |     +--ro cost-map-service
    |        +--ro meta
-   |        |  +--ro (dependent)?
-   |        |  |  +--:(dependent)
-   |        |  |  |  +--ro dependent-vtags*
-   |        |  |  |     +--ro resource-id    resource-id
-   |        |  |  |     +--ro tag            string
-   |        |  |  +--:(independent)
-   |        |  |     +--ro vtag
-   |        |  |        +--ro resource-id    resource-id
-   |        |  |        +--ro tag            string
+   |        |  +--ro dependent-vtags*
+   |        |  |  +--ro resource-id    resource-id
+   |        |  |  +--ro tag            string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -199,28 +243,6 @@ rpcs:
    |           +--ro dst-costs* [dst]
    |              +--ro dst     pid-name
    |              +--ro cost    
-   +---x endpoint-property-service       
-   |  +--ro input     
-   |  |  +--ro properties*   endpoint-property-type
-   |  |  +--ro endpoints*    typed-endpoint-address
-   |  +--ro output    
-   |     +--ro endpoint-property-service
-   |        +--ro meta
-   |        |  +--ro (dependent)?
-   |        |     +--:(dependent)
-   |        |     |  +--ro dependent-vtags*
-   |        |     |     +--ro resource-id    resource-id
-   |        |     |     +--ro tag            string
-   |        |     +--:(independent)
-   |        |        +--ro vtag
-   |        |           +--ro resource-id    resource-id
-   |        |           +--ro tag            string
-   |        +--ro endpoint-properties* [endpoint]
-   |        |  +--ro endpoint      typed-endpoint-address
-   |        |  +--ro properties* [property-type]
-   |        |     +--ro property-type    endpoint-property-type
-   |        |     +--ro property         endpoint-property-value
-   |        +--ro capabilities*          endpoint-property-type
    +---x filtered-network-map-service    
    |  +--ro input     
    |  |  +--ro pids*            pid-name
@@ -228,15 +250,9 @@ rpcs:
    |  +--ro output    
    |     +--ro filtered-network-map-service
    |        +--ro meta
-   |        |  +--ro (dependent)?
-   |        |     +--:(dependent)
-   |        |     |  +--ro dependent-vtags*
-   |        |     |     +--ro resource-id    resource-id
-   |        |     |     +--ro tag            string
-   |        |     +--:(independent)
-   |        |        +--ro vtag
-   |        |           +--ro resource-id    resource-id
-   |        |           +--ro tag            string
+   |        |  +--ro vtag
+   |        |     +--ro resource-id    resource-id
+   |        |     +--ro tag            string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -255,27 +271,33 @@ rpcs:
    |  +--ro output    
    |     +--ro filtered-cost-map-service
    |        +--ro meta
-   |        |  +--ro (dependent)?
-   |        |  |  +--:(dependent)
-   |        |  |  |  +--ro dependent-vtags*
-   |        |  |  |     +--ro resource-id    resource-id
-   |        |  |  |     +--ro tag            string
-   |        |  |  +--:(independent)
-   |        |  |     +--ro vtag
-   |        |  |        +--ro resource-id    resource-id
-   |        |  |        +--ro tag            string
+   |        |  +--ro dependent-vtags*
+   |        |  |  +--ro resource-id    resource-id
+   |        |  |  +--ro tag            string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
    |        |     +--ro description?   string
    |        +--ro cost-map* [src]
-   |        |  +--ro src          pid-name
-   |        |  +--ro dst-costs* [dst]
-   |        |     +--ro dst     pid-name
-   |        |     +--ro cost    
-   |        +--ro capabilities
-   |           +--ro cost-type-names*    cost-type-name
-   |           +--ro cost-constraints?   boolean
+   |           +--ro src          pid-name
+   |           +--ro dst-costs* [dst]
+   |              +--ro dst     pid-name
+   |              +--ro cost    
+   +---x endpoint-property-service       
+   |  +--ro input     
+   |  |  +--ro properties*   endpoint-property-type
+   |  |  +--ro endpoints*    typed-endpoint-address
+   |  +--ro output    
+   |     +--ro endpoint-property-service
+   |        +--ro meta
+   |        |  +--ro dependent-vtags*
+   |        |     +--ro resource-id    resource-id
+   |        |     +--ro tag            string
+   |        +--ro endpoint-properties* [endpoint]
+   |           +--ro endpoint      typed-endpoint-address
+   |           +--ro properties* [property-type]
+   |              +--ro property-type    endpoint-property-type
+   |              +--ro property         endpoint-property-value
    +---x endpoint-cost-service           
       +--ro input     
       |  +--ro cost-type
@@ -283,21 +305,12 @@ rpcs:
       |  |  +--ro cost-metric    cost-metric
       |  |  +--ro description?   string
       |  +--ro constraints*   constraint
-      |  +--ro pids
+      |  +--ro endpoints
       |     +--ro srcs*   typed-endpoint-address
       |     +--ro dsts*   typed-endpoint-address
       +--ro output    
          +--ro endpoint-cost-service
             +--ro meta
-            |  +--ro (dependent)?
-            |  |  +--:(dependent)
-            |  |  |  +--ro dependent-vtags*
-            |  |  |     +--ro resource-id    resource-id
-            |  |  |     +--ro tag            string
-            |  |  +--:(independent)
-            |  |     +--ro vtag
-            |  |        +--ro resource-id    resource-id
-            |  |        +--ro tag            string
             |  +--ro cost-type
             |     +--ro cost-mode      cost-mode
             |     +--ro cost-metric    cost-metric
@@ -311,18 +324,13 @@ rpcs:
     </section> <!-- Model Structure Section -->
 
     <section title="Non-Trivial Specification Efforts">
-      <section title="Key-Value Store: JSON encoding issues with XML-based YANG">
+      <section title="YANG Expressiveness Issues">
+        <section title="Limitation on Modeling JSON key-value store">
         <t>
-          ALTO is a JSON based protocol. One of the most basic data structures in JSON 
-          is a key-value store (i.e. a JSON map object). It is useful because of its 
-          efficiency, inherent uniqueness constraint on the keys, and its natural 
-          conversion to and from structures such as indexed database tables or hashmaps.
+          ALTO is a JSON based protocol and makes extensive use of JSON key-value store, which is useful because of its efficiency, inherent uniqueness constraint on the keys, and its natural correspondence to and from structures such as indexed database tables or hashmaps.
         </t>
         <t>
-          Such maps are used extensively in the ALTO Protocol. For example, the network
-          map is defined as a key-value store to enforce that each source endpoint has
-          a unique name (PID). Here is an example network map in Section 11.2.1.7 of 
-          <xref target="RFC7285"/>.
+          For example, the network map is defined as mapping from a PID to an endpoint address group. Here is an example network map in Section 11.2.1.7 of <xref target="RFC7285"/>.
         </t>
 <figure><artwork><![CDATA[                            
 "network-map" : {
@@ -349,8 +357,7 @@ rpcs:
 ]]></artwork></figure>
         <t>
           As pointed out in <xref target="draft-shi-model-json-msg-yang-00"/>, such JSON objects cannot
-          be modeled in YANG. One may model an array with a unique index in YANG with the "list" statement
-          with the "key" substatement, like the following:
+          be modeled in YANG. To achieve the semantical equivalence, we took the approach of modeling it as a "list" with a unique index ("key) in YANG.
         </t>
 <figure><artwork><![CDATA[                            
 list network-map {
@@ -413,147 +420,40 @@ list network-map {
         <t>
           <list style="format (%d)">
             <t>
-              The YANG-validated JSON message is not syntactically equivalent to the ALTO protocol
-              message, which means without a translation process, a YANG server will not interoperate
-              with an ALTO protocol <xref target="RFC7285"/> compliant server.
-            </t>
-            <t>
-              It is unclear from the JSON text that pid is the key to the list network-map;
+              From the YANG validated JSON message alone, it is unclear that the "pid" field is the key
+              to the list "network-map";
             </t>
             <t>
               The YANG-validated JSON message is much more verbose, which increases 
               the payload, especially when the model scales.
             </t>
             <t>
-              The consistency between address-type and endpoint-prefix is not enforced in the YANG model.
+              The consistency between address-type and endpoint-prefix is not enforced in the above YANG model.
             </t>
           </list>
         </t>
       </section> <!-- key-value store -->
+      <section title="Limits of Leafrefs">
+        <t>
+          Leafrefs in YANG are heavily tied with XML and XPATH expressions. However, leafrefs cannot 
+          refer to an rpc node (or structures within a rpc node). For example, referring to the input parameters
+          in rpc input from rpc output could be very useful.
+        </t>
+      </section>
+
+      </section> <!-- expressiveness issues -->
       
-      <section title="Modeling Constraints in YANG models">
+      <section title="Extensibility Issues">
         <section title="String Pattern Extensibility">
           <t>
-            One can use the "pattern" substatement of the type "string" to put restrictions on a YANG string.
-            However, for strings that have inherant relationships, one cannot extend the pattern. We use
-            TypedEndpointAddress in <xref target="RFC7285"/> as an example to explain the limits.
+            For string types that have inherant relationships (e.g., extension, concatenation), it is useful to be able to extend the patterns of the strings for modularity and extensibility. For example, TypedEndpointAddress in <xref target="RFC7285"/> is defined as a string of the format AddressType, followed by the ':' separator, followed by a ip-address EndpointAddress. Definitions of the pattern of an ip-address is readily available in Common YANG Data Types <xref target="RFC6991"/>. It is not possible in YANG to inherit, extend, or refer to a pattern of a different string type. Another example is the resource-specific endpoint property, which is defined as a resource ID, followed by the '.' separator (U+002E), followed by a name obeying the same rules as for global endpoint property names.
           </t>
-          <section title="ALTO definition of TypedEndpointAddress">
-            <t>
-              The ALTO Protocol defines a TypedEndpointAddress in Section 10.4.1. <xref target="RFC7285"/>
-              as a string of the format AddressType:EndpointAddr, with the ':' character as a delimiter,
-              in order to accommodate different types of addresses: ipv4, ipv6, MAC addresses, etc.
-              For example, "ipv4:127.0.0.1" or "ipv6:21DA:D3:0:2F3B:2AA:FF:FE28:9C5A".
-            </t>
-          </section>
-          <section title="ip-address in ietf-inet-types">
-            <t>
-              The ip-address type is defined in Common YANG Data Types <xref target="RFC6991"/> as the union of
-              ipv4-address and ipv6-address, which means an ip-address could be either. The ipv4-address, for
-              example, has a rather complicated regular expression to restrict the string.
-            </t>
-<figure><artwork><![CDATA[                            
-typedef ip-address {
-  type union {
-    type inet:ipv4-address;
-    type inet:ipv6-address;
-  }
-}
-
-typedef ipv4-address {
-  type string {
-    pattern
-      '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
-    +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-    + '(%[\p{N}\p{L}]+)?';
-  }
-}
-]]></artwork></figure>
-          </section>
-          <section title="Modeling TypedEndpointAddress in YANG">
-            <t>
-              Ideally, the typed address should be defined using the inet:ip-address
-              by concatenating the prefixes "ipv4:" and "ipv6:" onto the inet:ip-address,
-              like the following:
-            </t>
-<figure><artwork><![CDATA[                            
-pattern "ipv4:<pattern for inet:ipv4-address>";
-]]></artwork></figure>
-            <t>
-              However, it is impossible to extend, inherit, or refer to a pattern statement
-              in YANG, which reduces extensibility and modularity of the model.
-            </t>
-          </section>
-          <section title="Other Applications">
-            <t>
-              Similar instances include resource-specific endpoint properties in Section 10.8.1. of
-              <xref target="RFC7285"/>, which is defined as a resource ID, followed by the '.' separator
-              (U+002E), followed by a name obeying the same rules as for global endpoint property names.
-            </t>
-          </section>
         </section> <!-- String extensibility -->
-        
-        <section title="Limits of Leafrefs">
-          <t>
-            Leafrefs in YANG are heavily tied with XML and XPATH expressions. However, leafrefs cannot 
-            refer to an rpc node (or structures within a rpc node). For example, referring to the input parameters
-            in rpc input from rpc output could be very useful.
-          </t>
-        </section>
-        
-        <section title="Inheritance">
-          <t>
-            The ALTO protocol frequently uses inheritance in its informal specification. It is a common data modeling
-            strategy to improve modularity and extensibility. For example, ALTO defines a base class structure for 
-            all information resources.
-          </t>
-          <t>
-            Although inheritance is not introduced in YANG as a formal concept, there are two major approaches to model
-            inheritance (or extend and modularize structures): 1) "grouping" and "uses" statements; 2) "augment" and "refine"
-            statements. But either approach has its limitations.
-          </t>
-          <t>
-            There are certain limitations to what a "refine" statement could do (for good reason), e.g. refine 
-            statements cannot remove nodes. When augmenting a base structure, there can only be one node of a certain name in all
-            "sub-classes". In the following example, this YANG model will not validate because the two augment statments try
-            to add an "extension" container to the base class under different conditions. This is equivalent to the functionalities of #ifdefs in C/C++, or having different variables or methods in extended classes in object-oriented languages.
-          </t>
-<figure><artwork><![CDATA[                            
-===invalid YANG model===
-container base-class {
-  // empty base structure
-}
-
-augment "/base-class" {
-  when "../media-type = 'type-a'";
-  container extension {
-    // structures for type-a
-  }
-}
-
-augment "/base-class" {
-  when "../media-type = 'type-b'";
-  container extention {
-    // structures for type-b
-  }
-}
-===invalid YANG model===
-]]></artwork></figure>
-        </section>
         
         <section title="Type Extensibility">
           <t>
             YANG is unable to augment a typedef or enum type. Hence there is not a good way to
             add a cost metric or type of address if the model is fixed.
-          </t>
-        </section>
-
-        <section title="Data Instances vs. RPCs">
-          <t>
-            A distinction between data model and rpc is necessary for leafref restrictions.
-            For example, to put together the IRD (Information Resource Directory), the IRD 
-            entries references the URIs and media-types of each resource (network map or cost map),
-            hence the resource must be a data model, not entirely in a rpc.
           </t>
         </section>
       </section>
@@ -565,72 +465,15 @@ augment "/base-class" {
           Using tools like pyang (https://code.google.com/p/pyang/), we can validate not only the 
           YANG module, but also translate the module to DSDL schema and validate instance documents.
           The limitation is that pyang can only validate XML files and the JSON-XML translation is not
-          well-defined. We provide a few examples of pyang-validated ALTO examples in the appendix.
+          well-defined. We provide a few examples of pyang-validated ALTO messages in the appendix.
         </t>
       </section>
       <section title="Code Generator">
         <t>
           With the infrastructure provided by NETCONF, RESTCONF, and OpenDayLight (ODL) products, 
           another major advantage of using a YANG model is automatic code generation, both for the 
-          server side and the client side. We use ODL code generation as an example.
+          server side and the client side. 
         </t>
-        <section title="OpenDayLight yangtools and Code Generator">
-          <t>
-            The OpenDayLight yangtools automatically generates a Java OSGi bundle according to the YANG model.
-            One still needs to manually provide implementation details for server computation and producing 
-            RPC responses.
-          </t>
-          <section title="Overview">
-            <t>
-              For type definitions and groupings in YANG, ODL generates classes and data structures corresponding
-              to the YANG data structures; For data instances, ODL generates interfaces and builders in the bundle,
-              while the data store is created when loading the module into ODL; For RPCs, ODL generates interfaces
-              and builders.
-            </t>
-          </section>
-          <section title="Advantages">
-            <t>
-              <list style="format (%d)">
-                <t>
-                  The server code is mostly auto-generated, and it integrates into ODL controller seamlessly.
-                </t>
-                <t>
-                  The datastore is created and managed upon loading the OSGi bundle into ODL.
-                </t>
-                <t>
-                  ODL controller has incorporated a json parser that processes request/response JSON messages into 
-                  the generated Java classes and/or data structures.
-                </t>
-                <t>
-                  ODL does enforce all the restrictions that are expressed in the YANG model into the generated code.
-                </t>
-              </list>
-            </t>
-          </section>
-          <section title="Issues and Open Questions">
-            <t>
-              <list style="format (%d)">
-                <t>
-                  Lack of client side support: using the generated OSGi bundle in ODL controller on the server side
-                  is fairly easy. However, for a client who does not need the controller infrastracture, it is much easier
-                  to implement a JSON parser of its own (byusing Jackson or gson, for example).
-                </t>
-                <t>
-                  Implementation complexity: ODL still requires the user to manually supply "bundle activators." In 
-                  implementing the server computation, because of the builder classes generated for each data structure,
-                  the process can be redundant and somewhat tedious.
-                </t>
-                <t>
-                  Complicated wiring.
-                </t>
-                <t>
-                  Questions on extension and customization: what happens if the user wants to change the internal data
-                  store schema?
-                </t>
-              </list>
-            </t>
-          </section>
-        </section>
       </section>
     </section>
 
@@ -942,7 +785,7 @@ module alto-service {
       "Resource-ID.";
   }
 
-  grouping version-tag {
+  grouping vtag {
     leaf resource-id {
       type resource-id;
       mandatory true;
@@ -963,6 +806,13 @@ module alto-service {
           ResourceID resource-id;
           JSONString tag;
         } VersionTag;";
+  }
+
+  grouping dependent-vtags {
+    list dependent-vtags {
+      uses vtag;
+      min-elements 1;
+    }
   }
 
  /*************************************
@@ -1120,33 +970,10 @@ module alto-service {
  /*************************************
   * Definitions for response header
   *************************************/
-  grouping meta {
-    choice dependent {
-      // multiple vtags
-      case dependent {
-        list dependent-vtags {
-          uses version-tag;
-          description
-            "Version tags.";
-        }
-      }
-      case independent {
-        container vtag {
-          uses version-tag;
-          description
-            "Version tag.";
-        }
-      }
-    }
-    description
-      "Meta information. RFC7285 Sec. 8.4.1." + 
-      "object-map { JSONString -> JSONValue } ResponseMeta;";
-  }
 
   typedef media-type {
     type union {
       type string {
-        // TODO: restrict more? RFC 7285, Sec. 14.1?
         pattern "application/alto\-.*";   
       }
       type enumeration {
@@ -1182,41 +1009,136 @@ module alto-service {
       "same unit as cost-metric, IEEE 754 2008 floating point.";
   }
 
-  /****************************************************
-     DATA INSTANCES of all ALTO information resources
+  /******************************************
+    Groupings for ALTO information resource
+  *******************************************/
 
-     unfiltered network-maps, unfiltered cost-maps are all instances
-     of resources. IRD is also modeled as data.
-
-     The design uses augment as the basic approach to implement
-     inheritance.
-   ****************************************************/
-
-  /* base type */
-  list resource {
-    config false;
-    // ResponseEntityBase; Note: resource-id for network/cost maps are
-    // in their meta, see the augment statements below.
-    container meta {
-      uses meta;
-    }
-    leaf uri {
-      type inet:uri;
+  /* meta */
+  grouping IRD-meta {
+    uses cost-types;
+    leaf default-alto-network-map {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
       mandatory true;
     }
-    leaf media-type {
+  }
+
+  grouping network-map-meta {
+    container vtag {
+      uses vtag;
+    }
+  }
+
+  grouping cost-map-meta {
+    uses dependent-vtags {
+      refine dependent-vtags {
+        max-elements 1;
+      }
+    }
+    container cost-type {
+      uses cost-type;
+    }
+  }
+
+  grouping endpoint-property-meta {
+    uses dependent-vtags;
+  }
+
+  /* accepts (optional) */
+  grouping accepts {
+    leaf-list accepts {
       type media-type;
-      mandatory true;
+      min-elements 1;
     }
   }
 
-  /* network-map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-networkmap+json' ";
-    uses network-map;
+  /* capabilities (capabilities) */
+  grouping IRD-capabilities {
+    container capabilities {
+      leaf cost-constraints {
+        type boolean;
+      }
+      leaf-list cost-type-names {
+        type cost-type-name;
+      }
+      leaf-list prop-types {
+        type endpoint-property-type;
+      }
+    }
   }
 
+  /* uses (optional) */
+  grouping uses {
+    leaf-list uses {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
+      min-elements 1;
+    }
+  }
+
+  /* Information Resource Directory Grouping */
+  grouping IRD {
+    container meta {
+      uses IRD-meta;
+    }
+    uses IRD-data;
+  }
+
+  grouping IRD-data {
+    list resources {
+      key resource-id;
+      leaf resource-id {
+        type resource-id;
+        mandatory true;
+      }
+      leaf uri {
+        type inet:uri;
+        mandatory true;
+      }
+      leaf media-type {
+        type media-type;
+        mandatory true;
+      }
+      uses accepts {
+        when "current()";
+      }
+      uses IRD-capabilities {
+        when "current()";
+      }
+      uses uses {
+        when "current()";
+      }
+      description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;" +
+        "InformationResourceDirectory. RFC7285 9.2.2." +
+        " object {
+            IRDResourceEntries resources;
+          } InfoResourceDirectory : ResponseEntityBase;";
+    }
+  }
+
+  /* Network Map Grouping */
   grouping network-map {
+    container meta {
+      uses network-map-meta;
+    }
+    uses network-map-data;
+  }
+
+  grouping network-map-data {
     list network-map {
       key "pid";
       leaf pid {
@@ -1236,13 +1158,15 @@ module alto-service {
        } InfoResourceNetworkMap : ResponseEntityBase;";
   }
 
-  /* cost map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    uses cost-map;
+  /* Cost Map Grouping */
+  grouping cost-map {
+    container meta {
+      uses cost-map-meta;
+    }
+    uses cost-map-data;
   }
 
-  grouping cost-map {
+  grouping cost-map-data {
     list cost-map {
       leaf src {
         type pid-name;
@@ -1282,274 +1206,87 @@ module alto-service {
         } InfoResourceCostMap : ResponseEntityBase;";
   }
 
-  /* Information Resource Directory */
-  grouping IRD-grouping {
+  /* Endpoint Property Map Grouping */
+  grouping endpoint-property-map {
     container meta {
+      uses endpoint-property-meta;
     }
-    list resources {
-      key resource-id;
-      leaf resource-id {
-        type resource-id;
+    uses endpoint-property-map-data;
+  }
+
+  grouping endpoint-property-map-data {
+    list endpoint-properties {
+      key endpoint;
+      leaf endpoint {
+        type typed-endpoint-address;
         mandatory true;
       }
-      leaf uri {
-        type leafref {
-          path "/resource/uri";
+      list properties {
+        key property-type;
+        leaf property-type {
+          type endpoint-property-type;
+          mandatory true;
         }
-        mandatory true;
-      }
-      leaf media-type {
-        type leafref {
-          path "/resource/media-type";
+        leaf property {
+          type endpoint-property-value;
+          mandatory true;
         }
-        mandatory true;
+        description
+          "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+          " object {
+              EndpointPropertyType -> JSONValue;
+            } EndpointProps;";
       }
       description
-        "IRDResourceEntry. RFC7285 9.2.2." +
-        " object {
-            JSONString      uri;
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;" +
-        "IRDResourceEntries. RFC7285 9.2.2." +
+        "EndpointPropertyMapData. Sec. 11.4.1.6." +
         " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;" +
-        "InformationResourceDirectory. RFC7285 9.2.2." +
-        " object {
-            IRDResourceEntries resources;
-          } InfoResourceDirectory : ResponseEntityBase;";
+            TypedEndpointAddr -> EndpointProps;
+          } EndpointPropertyMapData;";
     }
+    description
+      "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+      " object {
+          EndpointPropertyMapData endpoint-properties;
+        } InfoResourceEndpointProperties : ResponseEntityBase;";
   }
 
-  container IRD {
+  /****************************************************
+     DATA INSTANCES of all ALTO information resources
+
+     unfiltered network-maps, unfiltered cost-maps are all instances
+     of resources. IRD is also modeled as data.
+
+     The design uses augment as the basic approach to implement
+     inheritance.
+   ****************************************************/
+
+  container resources {
     config false;
-    leaf uri {
-      type inet:uri;
-      mandatory true;
-    }
-    leaf media-type {
-      type media-type;
-      mandatory true;
-    }
-    uses IRD-grouping;
-  }
 
-  /* meta */
-  grouping IRD-meta {
-    uses cost-types;
-    leaf default-alto-network-map {
-      type leafref {
-        path "/IRD/resources/resource-id";
-      }
-      mandatory true;
+    /* Information Resource Directory */
+    container IRD {
+      uses IRD;
     }
-  }
 
-  augment "/IRD/meta" {
-    uses IRD-meta;
-  }
-  augment "/IRD-service/output/IRD-service/meta" {
-    uses IRD-meta;
-  }
-
-  augment "/resource/meta" {
-    when "../media-type = 'application/alto-costmap+json' ";
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
+    list network-maps {
+      unique "meta/vtag/resource-id meta/vtag/tag";
+      uses network-map;
     }
-  }
-  augment "/cost-map-service/output/cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
+
+    list cost-maps {
+      /*
+        The dependent-vtags and cost-types in the meta uniquely
+        identify a cost map. However, the unique statement in YANG
+        does not allow reference to a list (dependent-vtags).
+      */
+      uses cost-map;
+    }
+
+    container endpoint-property-map {
+      uses endpoint-property-map;
     }
   }
 
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  augment "/endpoint-cost-service/output/"
-        + "endpoint-cost-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  /* accepts (optional) */
-  grouping accepts {
-    leaf-list accepts {
-      type media-type;
-      min-elements 1;
-    }
-  }
-
-  augment "/resource" {
-    when ".";
-    uses accepts;
-  }
-
-  grouping IRD-accepts {
-    leaf-list accepts {
-      type leafref {
-        path "/resource/accepts";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  /* capabilities */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    container capabilities {
-      when "current()";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-        max-elements 1;
-      }
-      leaf-list prop-types {
-        type endpoint-property-type;
-      }
-      // EXTENSION: add other costmap capabilities here.
-      description
-        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
-        " object {
-            JSONString cost-type-names<1..1>;
-          } CostMapCapabilities;";
-    }
-  }
-
-  grouping IRD-capabilities {
-    container capabilities {
-      leaf cost-constraints {
-        type boolean;
-      }
-      leaf-list cost-type-names {
-        type leafref {
-          path "/resource/capabilities/cost-type-names";
-        }
-      }
-      leaf-list prop-types {
-        type leafref {
-          path "/resource/capabilities/prop-types";
-        }
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/endpoint-property-service/output/"
-        + "endpoint-property-service" {
-    leaf-list capabilities {
-      when ".";
-      type endpoint-property-type;
-      min-elements 1;
-      description
-        "Sec. 11.4.1.4." +
-        " object {
-            EndpointPropertyType prop-types<1..*>;
-          } EndpointPropertyCapabilities;";
-    }
-  }
-
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service" {
-    container capabilities {
-      when ".";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-      }
-      leaf cost-constraints {
-        type boolean;
-      }
-      // EXTENSION: model other costmap capabilities HERE
-      description
-        "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
-        " object {
-            JSONString cost-type-names<1..*>;
-            JSONBool cost-constraints;
-          } FilteredCostMapCapabilities;";
-    }
-  }
-
-  /* uses */
-  grouping uses {
-    leaf-list uses {
-      type resource-id;
-      min-elements 1;
-    }
-  }
-  augment "/resource" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    /* the logic is that the following structures can be present ONLY
-     * when the above conditions are satisfied. Not sure how to place
-     * different restrictions on different conditions. */
-    uses uses;
-  }
-
-  grouping IRD-uses {
-    leaf-list uses {
-      type leafref {
-        path "/resource/uses";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    uses IRD-uses;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    uses IRD-uses;
-  }
 
   /************************************
    * RPCs                             *
@@ -1558,7 +1295,7 @@ module alto-service {
   rpc IRD-service {
     output {
       container IRD-service {
-        uses IRD-grouping;
+        uses IRD;
       }
     }
   }
@@ -1567,7 +1304,7 @@ module alto-service {
     input {
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -1576,9 +1313,6 @@ module alto-service {
     }
     output {
       container network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
     }
@@ -1588,7 +1322,7 @@ module alto-service {
     input {
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -1597,99 +1331,30 @@ module alto-service {
     }
     output {
       container cost-map-service {
-        container meta {
-          uses meta;
-        }
         uses cost-map;
-      }
-    }
-  }
-
-  rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint";
-    input {
-      leaf-list properties {
-        type endpoint-property-type;
-        min-elements 1;
-      }
-      leaf-list endpoints {
-        type typed-endpoint-address;
-        min-elements 1;
-      }
-      /*
-      description
-        " object {
-            EndpointPropertyType  properties<1..*>;
-            TypedEndpointAddr     endpoints<1..*>;
-          } ReqEndpointProp;";
-      */
-    }
-    output {
-      container endpoint-property-service {
-        container meta {
-          uses meta;
-        }
-        list endpoint-properties {
-          key endpoint;
-          leaf endpoint {
-            type typed-endpoint-address;
-          }
-          list properties {
-            key property-type;
-            leaf property-type {
-              type endpoint-property-type;
-              mandatory true;
-            }
-            leaf property {
-              type endpoint-property-value;
-              mandatory true;
-            }
-            description
-              "EndpointProps. RFC7285 Sec. 11.4.1.6." +
-              " object {
-                  EndpointPropertyType -> JSONValue;
-                } EndpointProps;";
-          }
-          description
-            "EndpointPropertyMapData. Sec. 11.4.1.6." +
-            " object-map {
-                TypedEndpointAddr -> EndpointProps;
-              } EndpointPropertyMapData;";
-        }
-        description
-          "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
-          " object {
-              EndpointPropertyMapData endpoint-properties;
-            } InfoResourceEndpointProperties : ResponseEntityBase;";
       }
     }
   }
 
   rpc filtered-network-map-service {
     description
-      "inquiries on filtered network map";
+      "inquiries on filtered network map" +
+      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+        " object {
+            PIDName pids<0..*>;
+            [AddressType address-types<0..*>;]
+          } ReqFilteredNetworkMap;";
     input {
       leaf-list pids {
+        must "current()";
         type pid-name;
       }
       leaf-list address-types {
         type endpoint-address-type;
       }
-      /*
-      description
-        "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
-        " object {
-            PIDName pids<0..*>;
-            [AddressType address-types<0..*>;]
-          } ReqFilteredNetworkMap;";
-      */
     }
     output {
       container filtered-network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
     }
@@ -1698,13 +1363,11 @@ module alto-service {
   rpc filtered-cost-map-service {
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
-        when "/resource/capabilities/cost-constraints = true";
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
@@ -1729,29 +1392,56 @@ module alto-service {
     }
     output {
       container filtered-cost-map-service {
-        container meta {
-          uses meta;
-          description
-            "Meta information.";
-        }
         uses cost-map;
       }
     }
   }
 
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint" +
+      " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+    input {
+      leaf-list properties {
+        type endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type typed-endpoint-address;
+        min-elements 1;
+      }
+    }
+    output {
+      container endpoint-property-service {
+        uses endpoint-property-map;
+      }
+    }
+  }
+
+
   rpc endpoint-cost-service {
+    description
+      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
+      " object {
+          CostType          cost-type;
+          [JSONString       constraints<0..*>;]
+          EndpointFilter    endpoints;
+        } ReqEndpointCostMap;";
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
         description
           "RFC7285 Sec. 11.5.1.3.";
       }
-      container pids {
+      container endpoints {
+        must "current()";
         leaf-list srcs {
           type typed-endpoint-address;
           description
@@ -1769,22 +1459,13 @@ module alto-service {
               [TypedEndpointAddr dsts<0..*>;]
             } EndpointFilter;";
       }
-      /*
-      description
-        "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
-        " object {
-            CostType          cost-type;
-            [JSONString       constraints<0..*>;]
-            EndpointFilter    endpoints;
-          } ReqEndpointCostMap;";
-      */
     }
     output {
       container endpoint-cost-service {
         container meta {
-          uses meta;
-          description
-            "Meta information.";
+          container cost-type {
+            uses cost-type;
+          }
         }
         list endpoint-cost-map {
           leaf src {
@@ -1826,6 +1507,7 @@ module alto-service {
   }
 
 }
+
 ]]></artwork></figure>
     </section> <!--YANG model code-->
 

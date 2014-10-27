@@ -323,19 +323,19 @@
   GET /stream HTTP/1.1
   Host: example.com
   Accept: text/event-stream
-  
-  HTTP/1.1 200 OK
-  Connection: keep-alive
-  Content-Type: text/event-stream
-  
-  event: start
-  data: hello there
-  
-  event: middle
-  data: let's chat some more ... and more ...
-  
-  event: end
-  data: good bye
+    
+    HTTP/1.1 200 OK
+    Connection: keep-alive
+    Content-Type: text/event-stream
+    
+    event: start
+    data: hello there
+    
+    event: middle
+    data: let's chat some more ... and more ...
+    
+    event: end
+    data: good bye
   ]]></artwork>
 			</figure>
 		  </section>

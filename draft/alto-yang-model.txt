@@ -5,19 +5,30 @@
 ALTO WG                                                           X. Shi
 Internet-Draft                                                   Y. Yang
 Intended status: Informational                           Yale University
-Expires: April 28, 2015                                 October 25, 2014
+Expires: April 30, 2015                                 October 27, 2014
 
 
-                A YANG Data Model for the ALTO Protocol
+           A YANG Data Model for Base ALTO Data and Services
                       draft-shi-alto-yang-model-00
 
 Abstract
 
-   This document defines a YANG data model for the Application-Layer
-   Traffic Optimiztion (ALTO) protocol [RFC7285].  This data model
-   includes state data and the remote procedure calls for the ALTO
-   services.  The goal is to utilize YANG related tools and building
-   robust and resilient implementation of ALTO services in less time.
+   The Application-Layer Traffic Optimization (ALTO) protocol [RFC7285]
+   defines a set of network information services, including the network-
+   map service, the cost-map service, the filtered map services, the
+   endpoint property service, and the endpoint cost service.  A meta
+   service, called the information resource directory (IRD) service,
+   allows an ALTO server to provide ALTO clients with meta information
+   (e.g., the access URI) about each resource and service it provides.
+   [RFC7285] uses a RESTful design and encodes client request parameters
+   and server responses using JSON.  One may consider that most of these
+   services are based on data maintained at an ALTO server.  Hence, in
+   this document, we explore how one may use the data modeling language
+   YANG [RFC6020] to specify the services defined in [RFC7285].  We
+   first use YANG base specification for data instance description and
+   RPC specification of ALTO services.  We then consider the "standard
+   operations" defined in NETCONF/RESTCONF to evaluate potential
+   integration.
 
 Status of This Memo
 
@@ -34,7 +45,18 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 28, 2015.
+   This Internet-Draft will expire on April 30, 2015.
+
+
+
+
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 1]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
 
 Copyright Notice
 
@@ -51,139 +73,193 @@ Copyright Notice
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
 
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 1]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Model Structure . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Design and Structure Overview of ALTO/YANG  . . . . . . . . .   3
    3.  Non-Trivial Specification Efforts . . . . . . . . . . . . . .   8
-     3.1.  Key-Value Store: JSON encoding issues with XML-based YANG   8
-     3.2.  Modeling Constraints in YANG models . . . . . . . . . . .  11
+     3.1.  YANG Expressiveness Issues  . . . . . . . . . . . . . . .   8
+       3.1.1.  Limitation on Modeling JSON key-value store . . . . .   8
+       3.1.2.  Limits of Leafrefs  . . . . . . . . . . . . . . . . .  11
+     3.2.  Extensibility Issues  . . . . . . . . . . . . . . . . . .  11
        3.2.1.  String Pattern Extensibility  . . . . . . . . . . . .  11
-       3.2.2.  Limits of Leafrefs  . . . . . . . . . . . . . . . . .  12
-       3.2.3.  Inheritance . . . . . . . . . . . . . . . . . . . . .  12
-       3.2.4.  Type Extensibility  . . . . . . . . . . . . . . . . .  13
-       3.2.5.  Data Instances vs. RPCs . . . . . . . . . . . . . . .  13
-   4.  Applications of the YANG Model  . . . . . . . . . . . . . . .  13
-     4.1.  Verifier/Validator on the Client Side . . . . . . . . . .  13
-     4.2.  Code Generator  . . . . . . . . . . . . . . . . . . . . .  14
-       4.2.1.  OpenDayLight yangtools and Code Generator . . . . . .  14
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  15
-   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  15
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  15
-   Appendix A.  YANG Data Model for ALTO Protocol  . . . . . . . . .  15
-   Appendix B.  YANG-Validated JSON Messages for ALTO Examples . . .  38
-     B.1.  IRD Response Example  . . . . . . . . . . . . . . . . . .  39
-     B.2.  Network Map Service Response Example  . . . . . . . . . .  42
-     B.3.  Filtered Cost Map Response Example  . . . . . . . . . . .  44
-     B.4.  Endpoint Property Service Response Example  . . . . . . .  46
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  48
+       3.2.2.  Type Extensibility  . . . . . . . . . . . . . . . . .  11
+   4.  Applications of the YANG Model  . . . . . . . . . . . . . . .  11
+     4.1.  Verifier/Validator on the Client Side . . . . . . . . . .  11
+     4.2.  Code Generator  . . . . . . . . . . . . . . . . . . . . .  11
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+   Appendix A.  YANG Data Model for ALTO Protocol  . . . . . . . . .  12
+   Appendix B.  YANG-Validated JSON Messages for ALTO Examples . . .  32
+     B.1.  IRD Response Example  . . . . . . . . . . . . . . . . . .  32
+     B.2.  Network Map Service Response Example  . . . . . . . . . .  36
+     B.3.  Filtered Cost Map Response Example  . . . . . . . . . . .  38
+     B.4.  Endpoint Property Service Response Example  . . . . . . .  40
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  42
 
 1.  Introduction
 
-   The Application Layer Traffic Optimization (ALTO) protocol [RFC7285]
-   aims to provide network information with the goal of modifying
-   network resource consumption patterns while maintaining or improving
-   application performance.
-
-   YANG as defined in [RFC6020] is a data modeling language used to
-   model configuration and state data manipulated by the Network
-   Configuration Protocol (NETCONF), NETCONF remote procedure calls, and
-   NETCONF notifications.
-
-   This document defines a YANG data model for the ALTO protocol.  This
-   data model includes state data and the remote procedure calls for the
-   ALTO services.  The goal is to utilize YANG related tools and
-   building robust and resilient implementation of ALTO services in less
-   time.
-
-   As proven in [draft-shi-model-json-msg-yang-00], it is impossible to
-   have a syntactically equivalent YANG model for some of the ALTO
+   This document explores how one may use the data modeling language
+   YANG [RFC6020] to specify the network information services defined in
+   the Application-Layer Traffic Optimization (ALTO) protocol [RFC7285].
+   In particular, this work is motivated by the recent substantial
+   interest in the networking community to use YANG in networking
+   protocol specification and development.  This interest is highly
 
 
 
-
-Shi & Yang               Expires April 28, 2015                 [Page 2]
+Shi & Yang               Expires April 30, 2015                 [Page 2]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
-   protocol messages.  Therefore, we aim to have a semantically
-   equivalent model, and strive to get the syntax as close as possible.
+   justified, given that the potential benefits of using a formal
+   specification can be multifold, including both precision and the
+   potential of automation.  However, at the same time, data modeling
+   languages are generally domain specific languages (DSL) and hence are
+   restricted by their specific domains.  For example, YANG is developed
+   in the specific domain of modeling configuration and state data
+   stored at network devices.  ALTO information does not fit in this
+   domain but is highly related: ALTO information should be derived from
+   network configuration and state data.  Hence, modeling ALTO using
+   YANG provides an interesting exercise on how one may apply YANG
+   slightly outside its original domain.
 
-2.  Model Structure
+   The initial goal of this document was to produce an ALTO
+   specification using YANG so that the YANG specification of ALTO,
+   which we refer to as ALTO/YANG, and the original specification
+   [RFC7285] can interoperate.  We refer to an interop specification as
+   a syntactically equivalent specification.  In other words, the ALTO/
+   YANG specification produces the same behavior as that of the original
+   specification.  Unfortunately, as we have shown in
+   [draft-shi-model-json-msg-yang-00], even without the need to consider
+   other components such as NETCONF/RESTCONF to construct a complete
+   YANG system, the basic encoding rule of YANG already makes syntactic
+   equivalence infeasible.  In particular, [RFC7285] makes extensive use
+   of the common key-value store abstraction in its JSON object
+   encoding.  But such encoding cannot be generated using the existing
+   YANG/JSON encoding.  As a result, the focus of this document is on
+   using YANG to define semantically equivalent ALTO services.  We still
+   strive that the syntax generated by ALTO/YANG is close to that of
+   [RFC7285].
 
-   The structure of the ALTO data model is depicted in the following
-   diagram.  Brackets enclose list keys, "ro" means operational state
-   data, and "?" designates optional nodes.
+   The rest of this document is organized as follows.  In Section 2, we
+   provide an overview of our design objective and the overall structure
+   of ALTO/YANG.  In Section 3, we discuss specific design issues that
+   we have encountered.  The detailed specification of ALTO/YANG is in
+   Appendix A.
+
+2.  Design and Structure Overview of ALTO/YANG
+
+   Our design tries to use YANG in 3 aspects: data instance description,
+   RPC specification, and standard operations.  The RPC specification
+   aspect is easy to understand: it allows precise specification and
+   automation of RPC input/output data serialization and
+   deserialization.  To appreciate the data instance description and
+   standard operations aspects, one can make an analogy with database.
+   In relational database, one uses SQL to describe the data schema
+   (e.g., in CREATE TABLE).  We refer to this as the data description
+   aspect.  SQL also has defined statements such as SELECT, INSERT,
+   UPDATE, and DELETE.  We refer to this as the standard operations
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 3]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+   aspect.  Given a DBMS implementing the SQL statements, one's tasks of
+   introducing a new set of data to be managed are substantially reduced
+   (i.e., define the schema and then use the supported statements to
+   retrieve and manipulate the data).
+
+   First consider the data instance description aspect.  The following
+   diagram first lists the data instances, under resources, that an ALTO
+   server may maintain.  We use the word "may" because an ALTO server
+   may not physically store such data.  For example, a cost map could be
+   generated on the fly, and hence can be in a sense a virtual data
+   table.  One may observe from our specified instances that we do not
+   specify a data instance to support the endpoint cost service (ECS),
+   as this can be highly inefficient.  For ECS, the value of YANG is
+   mainly in RPC specification.  This may be considered trespassing on
+   implementation when we design ALTO/YANG, as there may not be such
+   instances or not stored in the format that we specifyy.
+
+   Next consider both RPC specification and standard operations, as they
+   are related.  In other words, if an RPC can be implemented using a
+   standard operation, we should not specify the RPC.  The second half
+   of the diagram lists the RPCs that we define, assuming no standard
+   operations.
+
+   An interesting design question is whether we can reduce the RPCs if
+   there are standard operations.  Unfortunately, YANG itself does
+   define any specific operations.  NETCONF and RESTCONF provide
+   specific operations, and we explore them in the next section.
 
    module: alto-service
-      +--ro resource*
-      |  +--ro meta
-      |  |  +--ro (dependent)?
-      |  |  |  +--:(dependent)
-      |  |  |  |  +--ro dependent-vtags*
-      |  |  |  |     +--ro resource-id    resource-id
-      |  |  |  |     +--ro tag            string
-      |  |  |  +--:(independent)
-      |  |  |     +--ro vtag
-      |  |  |        +--ro resource-id    resource-id
-      |  |  |        +--ro tag            string
-      |  |  +--ro cost-type
-      |  |     +--ro cost-mode      cost-mode
-      |  |     +--ro cost-metric    cost-metric
-      |  |     +--ro description?   string
-      |  +--ro uri             inet:uri
-      |  +--ro media-type      media-type
-      |  +--ro network-map* [pid]
-      |  |  +--ro pid                       pid-name
-      |  |  +--ro endpoint-address-group* [address-type]
-      |  |     +--ro address-type       endpoint-address-type
-      |  |     +--ro endpoint-prefix*   endpoint-prefix
-      |  +--ro cost-map* [src]
-      |  |  +--ro src          pid-name
-      |  |  +--ro dst-costs* [dst]
-      |  |     +--ro dst     pid-name
-      |  |     +--ro cost
-      |  +--ro accepts*        media-type
-      |  +--ro capabilities
-      |  |  +--ro cost-type-names*   cost-type-name
-      |  |  +--ro prop-types*        endpoint-property-type
-      |  +--ro uses*           resource-id
-      +--ro IRD
-         +--ro uri           inet:uri
-         +--ro media-type    media-type
-         +--ro meta
-         |  +--ro cost-types* [cost-type-name]
-         |  |  +--ro cost-type-name    cost-type-name
+      +--ro resources
+         +--ro IRD
+         |  +--ro meta
+         |  |  +--ro cost-types* [cost-type-name]
+         |  |  |  +--ro cost-type-name    cost-type-name
+         |  |  |  +--ro cost-mode         cost-mode
+         |  |  |  +--ro cost-metric       cost-metric
+         |  |  |  +--ro description?      string
+         |  |  +--ro default-alto-network-map    leafref
+         |  +--ro resources* [resource-id]
+         |     +--ro resource-id     resource-id
+         |     +--ro uri             inet:uri
+         |     +--ro media-type      media-type
+         |     +--ro accepts*        media-type
+         |     +--ro capabilities
+         |     |  +--ro cost-constraints?   boolean
+         |     |  +--ro cost-type-names*    cost-type-name
+         |     |  +--ro prop-types*         endpoint-property-type
+         |     +--ro uses*           leafref
 
 
 
-Shi & Yang               Expires April 28, 2015                 [Page 3]
+Shi & Yang               Expires April 30, 2015                 [Page 4]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
-         |  |  +--ro cost-mode         cost-mode
-         |  |  +--ro cost-metric       cost-metric
-         |  |  +--ro description?      string
-         |  +--ro default-alto-network-map    leafref
-         +--ro resources* [resource-id]
-            +--ro resource-id     resource-id
-            +--ro uri             leafref
-            +--ro media-type      leafref
-            +--ro accepts*        leafref
-            +--ro capabilities
-            |  +--ro cost-constraints?   boolean
-            |  +--ro cost-type-names*    leafref
-            |  +--ro prop-types*         leafref
-            +--ro uses*           leafref
+         +--ro network-maps*
+         |  +--ro meta
+         |  |  +--ro vtag
+         |  |     +--ro resource-id    resource-id
+         |  |     +--ro tag            string
+         |  +--ro network-map* [pid]
+         |     +--ro pid                       pid-name
+         |     +--ro endpoint-address-group* [address-type]
+         |        +--ro address-type       endpoint-address-type
+         |        +--ro endpoint-prefix*   endpoint-prefix
+         +--ro cost-maps*
+         |  +--ro meta
+         |  |  +--ro dependent-vtags*
+         |  |  |  +--ro resource-id    resource-id
+         |  |  |  +--ro tag            string
+         |  |  +--ro cost-type
+         |  |     +--ro cost-mode      cost-mode
+         |  |     +--ro cost-metric    cost-metric
+         |  |     +--ro description?   string
+         |  +--ro cost-map* [src]
+         |     +--ro src          pid-name
+         |     +--ro dst-costs* [dst]
+         |        +--ro dst     pid-name
+         |        +--ro cost
+         +--ro endpoint-property-map
+            +--ro meta
+            |  +--ro dependent-vtags*
+            |     +--ro resource-id    resource-id
+            |     +--ro tag            string
+            +--ro endpoint-properties* [endpoint]
+               +--ro endpoint      typed-endpoint-address
+               +--ro properties* [property-type]
+                  +--ro property-type    endpoint-property-type
+                  +--ro property         endpoint-property-value
    rpcs:
       +---x IRD-service
       |  +--ro output
@@ -197,13 +273,21 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |        |  +--ro default-alto-network-map    leafref
       |        +--ro resources* [resource-id]
       |           +--ro resource-id     resource-id
-      |           +--ro uri             leafref
-      |           +--ro media-type      leafref
-      |           +--ro accepts*        leafref
+      |           +--ro uri             inet:uri
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 5]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+      |           +--ro media-type      media-type
+      |           +--ro accepts*        media-type
       |           +--ro capabilities
       |           |  +--ro cost-constraints?   boolean
-      |           |  +--ro cost-type-names*    leafref
-      |           |  +--ro prop-types*         leafref
+      |           |  +--ro cost-type-names*    cost-type-name
+      |           |  +--ro prop-types*         endpoint-property-type
       |           +--ro uses*           leafref
       +---x network-map-service
       |  +--ro input
@@ -211,23 +295,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |  +--ro output
       |     +--ro network-map-service
       |        +--ro meta
-      |        |  +--ro (dependent)?
-      |        |     +--:(dependent)
-      |        |     |  +--ro dependent-vtags*
-      |        |     |     +--ro resource-id    resource-id
-      |        |     |     +--ro tag            string
-      |        |     +--:(independent)
-      |        |        +--ro vtag
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 4]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-      |        |           +--ro resource-id    resource-id
-      |        |           +--ro tag            string
+      |        |  +--ro vtag
+      |        |     +--ro resource-id    resource-id
+      |        |     +--ro tag            string
       |        +--ro network-map* [pid]
       |           +--ro pid                       pid-name
       |           +--ro endpoint-address-group* [address-type]
@@ -239,15 +309,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |  +--ro output
       |     +--ro cost-map-service
       |        +--ro meta
-      |        |  +--ro (dependent)?
-      |        |  |  +--:(dependent)
-      |        |  |  |  +--ro dependent-vtags*
-      |        |  |  |     +--ro resource-id    resource-id
-      |        |  |  |     +--ro tag            string
-      |        |  |  +--:(independent)
-      |        |  |     +--ro vtag
-      |        |  |        +--ro resource-id    resource-id
-      |        |  |        +--ro tag            string
+      |        |  +--ro dependent-vtags*
+      |        |  |  +--ro resource-id    resource-id
+      |        |  |  +--ro tag            string
       |        |  +--ro cost-type
       |        |     +--ro cost-mode      cost-mode
       |        |     +--ro cost-metric    cost-metric
@@ -257,36 +321,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |           +--ro dst-costs* [dst]
       |              +--ro dst     pid-name
       |              +--ro cost
-      +---x endpoint-property-service
-      |  +--ro input
-      |  |  +--ro properties*   endpoint-property-type
-      |  |  +--ro endpoints*    typed-endpoint-address
-      |  +--ro output
-      |     +--ro endpoint-property-service
-      |        +--ro meta
-      |        |  +--ro (dependent)?
-      |        |     +--:(dependent)
-      |        |     |  +--ro dependent-vtags*
-      |        |     |     +--ro resource-id    resource-id
-      |        |     |     +--ro tag            string
-      |        |     +--:(independent)
-      |        |        +--ro vtag
-      |        |           +--ro resource-id    resource-id
-      |        |           +--ro tag            string
-      |        +--ro endpoint-properties* [endpoint]
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 5]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-      |        |  +--ro endpoint      typed-endpoint-address
-      |        |  +--ro properties* [property-type]
-      |        |     +--ro property-type    endpoint-property-type
-      |        |     +--ro property         endpoint-property-value
-      |        +--ro capabilities*          endpoint-property-type
       +---x filtered-network-map-service
       |  +--ro input
       |  |  +--ro pids*            pid-name
@@ -294,15 +328,17 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |  +--ro output
       |     +--ro filtered-network-map-service
       |        +--ro meta
-      |        |  +--ro (dependent)?
-      |        |     +--:(dependent)
-      |        |     |  +--ro dependent-vtags*
-      |        |     |     +--ro resource-id    resource-id
-      |        |     |     +--ro tag            string
-      |        |     +--:(independent)
-      |        |        +--ro vtag
-      |        |           +--ro resource-id    resource-id
-      |        |           +--ro tag            string
+      |        |  +--ro vtag
+      |        |     +--ro resource-id    resource-id
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 6]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+      |        |     +--ro tag            string
       |        +--ro network-map* [pid]
       |           +--ro pid                       pid-name
       |           +--ro endpoint-address-group* [address-type]
@@ -321,57 +357,54 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       |  +--ro output
       |     +--ro filtered-cost-map-service
       |        +--ro meta
-      |        |  +--ro (dependent)?
-      |        |  |  +--:(dependent)
-      |        |  |  |  +--ro dependent-vtags*
-      |        |  |  |     +--ro resource-id    resource-id
-      |        |  |  |     +--ro tag            string
-      |        |  |  +--:(independent)
-      |        |  |     +--ro vtag
-      |        |  |        +--ro resource-id    resource-id
-      |        |  |        +--ro tag            string
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 6]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
+      |        |  +--ro dependent-vtags*
+      |        |  |  +--ro resource-id    resource-id
+      |        |  |  +--ro tag            string
       |        |  +--ro cost-type
       |        |     +--ro cost-mode      cost-mode
       |        |     +--ro cost-metric    cost-metric
       |        |     +--ro description?   string
       |        +--ro cost-map* [src]
-      |        |  +--ro src          pid-name
-      |        |  +--ro dst-costs* [dst]
-      |        |     +--ro dst     pid-name
-      |        |     +--ro cost
-      |        +--ro capabilities
-      |           +--ro cost-type-names*    cost-type-name
-      |           +--ro cost-constraints?   boolean
+      |           +--ro src          pid-name
+      |           +--ro dst-costs* [dst]
+      |              +--ro dst     pid-name
+      |              +--ro cost
+      +---x endpoint-property-service
+      |  +--ro input
+      |  |  +--ro properties*   endpoint-property-type
+      |  |  +--ro endpoints*    typed-endpoint-address
+      |  +--ro output
+      |     +--ro endpoint-property-service
+      |        +--ro meta
+      |        |  +--ro dependent-vtags*
+      |        |     +--ro resource-id    resource-id
+      |        |     +--ro tag            string
+      |        +--ro endpoint-properties* [endpoint]
+      |           +--ro endpoint      typed-endpoint-address
+      |           +--ro properties* [property-type]
+      |              +--ro property-type    endpoint-property-type
+      |              +--ro property         endpoint-property-value
       +---x endpoint-cost-service
          +--ro input
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 7]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
          |  +--ro cost-type
          |  |  +--ro cost-mode      cost-mode
          |  |  +--ro cost-metric    cost-metric
          |  |  +--ro description?   string
          |  +--ro constraints*   constraint
-         |  +--ro pids
+         |  +--ro endpoints
          |     +--ro srcs*   typed-endpoint-address
          |     +--ro dsts*   typed-endpoint-address
          +--ro output
             +--ro endpoint-cost-service
                +--ro meta
-               |  +--ro (dependent)?
-               |  |  +--:(dependent)
-               |  |  |  +--ro dependent-vtags*
-               |  |  |     +--ro resource-id    resource-id
-               |  |  |     +--ro tag            string
-               |  |  +--:(independent)
-               |  |     +--ro vtag
-               |  |        +--ro resource-id    resource-id
-               |  |        +--ro tag            string
                |  +--ro cost-type
                |     +--ro cost-mode      cost-mode
                |     +--ro cost-metric    cost-metric
@@ -382,32 +415,40 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
                      +--ro dst     typed-endpoint-address
                      +--ro cost
 
-
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 7]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
 3.  Non-Trivial Specification Efforts
 
-3.1.  Key-Value Store: JSON encoding issues with XML-based YANG
+3.1.  YANG Expressiveness Issues
 
-   ALTO is a JSON based protocol.  One of the most basic data structures
-   in JSON is a key-value store (i.e. a JSON map object).  It is useful
-   because of its efficiency, inherent uniqueness constraint on the
-   keys, and its natural conversion to and from structures such as
-   indexed database tables or hashmaps.
+3.1.1.  Limitation on Modeling JSON key-value store
 
-   Such maps are used extensively in the ALTO Protocol.  For example,
-   the network map is defined as a key-value store to enforce that each
-   source endpoint has a unique name (PID).  Here is an example network
-   map in Section 11.2.1.7 of [RFC7285].
+   ALTO is a JSON based protocol and makes extensive use of JSON key-
+   value store, which is useful because of its efficiency, inherent
+   uniqueness constraint on the keys, and its natural correspondence to
+   and from structures such as indexed database tables or hashmaps.
+
+   For example, the network map is defined as mapping from a PID to an
+   endpoint address group.  Here is an example network map in
+   Section 11.2.1.7 of [RFC7285].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi & Yang               Expires April 30, 2015                 [Page 8]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
 
    "network-map" : {
      "PID1" : {
@@ -432,23 +473,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
    }
 
    As pointed out in [draft-shi-model-json-msg-yang-00], such JSON
-   objects cannot be modeled in YANG.  One may model an array with a
-   unique index in YANG with the "list" statement with the "key"
-   substatement, like the following:
-
-
-
-
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 8]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
+   objects cannot be modeled in YANG.  To achieve the semantical
+   equivalence, we took the approach of modeling it as a "list" with a
+   unique index ("key) in YANG.
 
    list network-map {
      key "pid";
@@ -474,36 +501,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                 [Page 9]
+Shi & Yang               Expires April 30, 2015                 [Page 9]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    "network-map": [
@@ -541,172 +541,56 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
    We immediately notice a few disadvantages.
 
-   (1)  The YANG-validated JSON message is not syntactically equivalent
-        to the ALTO protocol message, which means without a translation
-        process, a YANG server will not interoperate with an ALTO
-        protocol [RFC7285] compliant server.
+   (1)  From the YANG validated JSON message alone, it is unclear that
+        the "pid" field is the key to the list "network-map";
 
-   (2)  It is unclear from the JSON text that pid is the key to the list
-        network-map;
-
-   (3)  The YANG-validated JSON message is much more verbose, which
+   (2)  The YANG-validated JSON message is much more verbose, which
         increases the payload, especially when the model scales.
 
-   (4)  The consistency between address-type and endpoint-prefix is not
-        enforced in the YANG model.
+   (3)  The consistency between address-type and endpoint-prefix is not
+        enforced in the above YANG model.
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 10]
+
+
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 10]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
-3.2.  Modeling Constraints in YANG models
-
-3.2.1.  String Pattern Extensibility
-
-   One can use the "pattern" substatement of the type "string" to put
-   restrictions on a YANG string.  However, for strings that have
-   inherant relationships, one cannot extend the pattern.  We use
-   TypedEndpointAddress in [RFC7285] as an example to explain the
-   limits.
-
-3.2.1.1.  ALTO definition of TypedEndpointAddress
-
-   The ALTO Protocol defines a TypedEndpointAddress in Section 10.4.1.
-   [RFC7285] as a string of the format AddressType:EndpointAddr, with
-   the ':' character as a delimiter, in order to accommodate different
-   types of addresses: ipv4, ipv6, MAC addresses, etc.  For example,
-   "ipv4:127.0.0.1" or "ipv6:21DA:D3:0:2F3B:2AA:FF:FE28:9C5A".
-
-3.2.1.2.  ip-address in ietf-inet-types
-
-   The ip-address type is defined in Common YANG Data Types [RFC6991] as
-   the union of ipv4-address and ipv6-address, which means an ip-address
-   could be either.  The ipv4-address, for example, has a rather
-   complicated regular expression to restrict the string.
-
-   typedef ip-address {
-     type union {
-       type inet:ipv4-address;
-       type inet:ipv6-address;
-     }
-   }
-
-   typedef ipv4-address {
-     type string {
-       pattern
-         '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
-       +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-       + '(%[\p{N}\p{L}]+)?';
-     }
-   }
-
-3.2.1.3.  Modeling TypedEndpointAddress in YANG
-
-   Ideally, the typed address should be defined using the inet:ip-
-   address by concatenating the prefixes "ipv4:" and "ipv6:" onto the
-   inet:ip-address, like the following:
-
-   pattern "ipv4:<pattern for inet:ipv4-address>";
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 11]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-   However, it is impossible to extend, inherit, or refer to a pattern
-   statement in YANG, which reduces extensibility and modularity of the
-   model.
-
-3.2.1.4.  Other Applications
-
-   Similar instances include resource-specific endpoint properties in
-   Section 10.8.1. of [RFC7285], which is defined as a resource ID,
-   followed by the '.' separator (U+002E), followed by a name obeying
-   the same rules as for global endpoint property names.
-
-3.2.2.  Limits of Leafrefs
+3.1.2.  Limits of Leafrefs
 
    Leafrefs in YANG are heavily tied with XML and XPATH expressions.
    However, leafrefs cannot refer to an rpc node (or structures within a
    rpc node).  For example, referring to the input parameters in rpc
    input from rpc output could be very useful.
 
-3.2.3.  Inheritance
+3.2.  Extensibility Issues
 
-   The ALTO protocol frequently uses inheritance in its informal
-   specification.  It is a common data modeling strategy to improve
-   modularity and extensibility.  For example, ALTO defines a base class
-   structure for all information resources.
+3.2.1.  String Pattern Extensibility
 
-   Although inheritance is not introduced in YANG as a formal concept,
-   there are two major approaches to model inheritance (or extend and
-   modularize structures): 1) "grouping" and "uses" statements; 2)
-   "augment" and "refine" statements.  But either approach has its
-   limitations.
+   For string types that have inherant relationships (e.g., extension,
+   concatenation), it is useful to be able to extend the patterns of the
+   strings for modularity and extensibility.  For example,
+   TypedEndpointAddress in [RFC7285] is defined as a string of the
+   format AddressType, followed by the ':' separator, followed by a ip-
+   address EndpointAddress.  Definitions of the pattern of an ip-address
+   is readily available in Common YANG Data Types [RFC6991].  It is not
+   possible in YANG to inherit, extend, or refer to a pattern of a
+   different string type.  Another example is the resource-specific
+   endpoint property, which is defined as a resource ID, followed by the
+   '.' separator (U+002E), followed by a name obeying the same rules as
+   for global endpoint property names.
 
-   There are certain limitations to what a "refine" statement could do
-   (for good reason), e.g. refine statements cannot remove nodes.  When
-   augmenting a base structure, there can only be one node of a certain
-   name in all "sub-classes".  In the following example, this YANG model
-   will not validate because the two augment statments try to add an
-   "extension" container to the base class under different conditions.
-   This is equivalent to the functionalities of #ifdefs in C/C++, or
-   having different variables or methods in extended classes in object-
-   oriented languages.
-
-
-
-
-
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 12]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-   ===invalid YANG model===
-   container base-class {
-     // empty base structure
-   }
-
-   augment "/base-class" {
-     when "../media-type = 'type-a'";
-     container extension {
-       // structures for type-a
-     }
-   }
-
-   augment "/base-class" {
-     when "../media-type = 'type-b'";
-     container extention {
-       // structures for type-b
-     }
-   }
-   ===invalid YANG model===
-
-3.2.4.  Type Extensibility
+3.2.2.  Type Extensibility
 
    YANG is unable to augment a typedef or enum type.  Hence there is not
    a good way to add a cost metric or type of address if the model is
    fixed.
-
-3.2.5.  Data Instances vs. RPCs
-
-   A distinction between data model and rpc is necessary for leafref
-   restrictions.  For example, to put together the IRD (Information
-   Resource Directory), the IRD entries references the URIs and media-
-   types of each resource (network map or cost map), hence the resource
-   must be a data model, not entirely in a rpc.
 
 4.  Applications of the YANG Model
 
@@ -717,82 +601,22 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
    DSDL schema and validate instance documents.  The limitation is that
    pyang can only validate XML files and the JSON-XML translation is not
    well-defined.  We provide a few examples of pyang-validated ALTO
-   examples in the appendix.
-
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 13]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
+   messages in the appendix.
 
 4.2.  Code Generator
 
    With the infrastructure provided by NETCONF, RESTCONF, and
    OpenDayLight (ODL) products, another major advantage of using a YANG
    model is automatic code generation, both for the server side and the
-   client side.  We use ODL code generation as an example.
-
-4.2.1.  OpenDayLight yangtools and Code Generator
-
-   The OpenDayLight yangtools automatically generates a Java OSGi bundle
-   according to the YANG model.  One still needs to manually provide
-   implementation details for server computation and producing RPC
-   responses.
-
-4.2.1.1.  Overview
-
-   For type definitions and groupings in YANG, ODL generates classes and
-   data structures corresponding to the YANG data structures; For data
-   instances, ODL generates interfaces and builders in the bundle, while
-   the data store is created when loading the module into ODL; For RPCs,
-   ODL generates interfaces and builders.
-
-4.2.1.2.  Advantages
-
-   (1)  The server code is mostly auto-generated, and it integrates into
-        ODL controller seamlessly.
-
-   (2)  The datastore is created and managed upon loading the OSGi
-        bundle into ODL.
-
-   (3)  ODL controller has incorporated a json parser that processes
-        request/response JSON messages into the generated Java classes
-        and/or data structures.
-
-   (4)  ODL does enforce all the restrictions that are expressed in the
-        YANG model into the generated code.
-
-4.2.1.3.  Issues and Open Questions
-
-   (1)  Lack of client side support: using the generated OSGi bundle in
-        ODL controller on the server side is fairly easy.  However, for
-        a client who does not need the controller infrastracture, it is
-        much easier to implement a JSON parser of its own (byusing
-        Jackson or gson, for example).
-
-   (2)  Implementation complexity: ODL still requires the user to
-        manually supply "bundle activators."  In implementing the server
-        computation, because of the builder classes generated for each
+   client side.
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 14]
+
+Shi & Yang               Expires April 30, 2015                [Page 11]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
-
-        data structure, the process can be redundant and somewhat
-        tedious.
-
-   (3)  Complicated wiring.
-
-   (4)  Questions on extension and customization: what happens if the
-        user wants to change the internal data store schema?
 
 5.  Security Considerations
 
@@ -835,13 +659,6 @@ module alto-service {
   namespace "urn:ietf:params:xml:ns:yang:alto-service";
   // TODO: replace with IANA namespace when assigned
 
-
-
-Shi & Yang               Expires April 28, 2015                [Page 15]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
   prefix "as";
 
   import ietf-inet-types {
@@ -849,6 +666,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
   }
 
   organization "ALTO WG";
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 12]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
   contact "alto@ietf.org";
 
   description
@@ -890,14 +715,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
            "198.51.100.0/25"
          ],
          "ipv6": [
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 16]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
            "2001:db8:0:1::/64",
            "2001:db8:0:2::/64"
          ]
@@ -905,6 +722,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
    To handle the proceeding, we need the following definitions:
       ipv4-address (e.g., 192.0.2.0, already defined in rfc6991),
       ipv6-address (already defined in rfc6991),
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 13]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
       ipv4-prefix (e.g., 192.0.2.0/24, already defined in rfc6991),
       ipv6-prefix (defined in rfc6991),
       typed-ipv4-address (e.g., ipv4:192.0.2.1, to be defined below)
@@ -946,14 +771,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
             + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
             + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
             + '(%[\p{N}\p{L}]+)?';
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 17]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
       pattern 'ipv6:(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
             + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
             + '(%.+)?';
@@ -961,6 +778,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
   }
 
   typedef typed-endpoint-address {
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 14]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
     type union {
       type typed-ipv4-address;
       type typed-ipv6-address;
@@ -1002,14 +827,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
         // EXTENSION: ADD NEW TYPE HERE
       }
     }
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 18]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
     description
       "Ref: RFC7285 Sec 2.2.";
   }
@@ -1017,6 +834,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
   typedef endpoint-prefix {
     type inet:ip-prefix;
     description
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 15]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
       "endpoint prefix, identical to ip-prefix defined in RFC6991.";
   }
 
@@ -1058,14 +883,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       length "1..64";
       pattern "[0-9a-zA-Z_\-:@\.]+";
     }
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 19]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
     description
       "Type for valid ID strings.";
   }
@@ -1073,6 +890,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
   typedef pid-name {
     type valid-id-string;
     description
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 16]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
       "Name for the PID." +
       "RFC7285, Section 10.1. Note: the '.' separator MUST NOT be" +
       "used unless specifically indicated in RFC7285 or an" +
@@ -1085,7 +910,7 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       "Resource-ID.";
   }
 
-  grouping version-tag {
+  grouping vtag {
     leaf resource-id {
       type resource-id;
       mandatory true;
@@ -1108,6 +933,13 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
         } VersionTag;";
   }
 
+  grouping dependent-vtags {
+    list dependent-vtags {
+      uses vtag;
+      min-elements 1;
+    }
+  }
+
  /*************************************
     Definitions for cost type and cost types
 
@@ -1117,9 +949,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 20]
+Shi & Yang               Expires April 30, 2015                [Page 17]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
       cost-mode
@@ -1173,9 +1005,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 21]
+Shi & Yang               Expires April 30, 2015                [Page 18]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
       type cost-mode;
@@ -1229,9 +1061,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 22]
+Shi & Yang               Expires April 30, 2015                [Page 19]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
   **************************************/
@@ -1285,9 +1117,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 23]
+Shi & Yang               Expires April 30, 2015                [Page 20]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
   }
@@ -1295,33 +1127,10 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
  /*************************************
   * Definitions for response header
   *************************************/
-  grouping meta {
-    choice dependent {
-      // multiple vtags
-      case dependent {
-        list dependent-vtags {
-          uses version-tag;
-          description
-            "Version tags.";
-        }
-      }
-      case independent {
-        container vtag {
-          uses version-tag;
-          description
-            "Version tag.";
-        }
-      }
-    }
-    description
-      "Meta information. RFC7285 Sec. 8.4.1." +
-      "object-map { JSONString -> JSONValue } ResponseMeta;";
-  }
 
   typedef media-type {
     type union {
       type string {
-        // TODO: restrict more? RFC 7285, Sec. 14.1?
         pattern "application/alto\-.*";
       }
       type enumeration {
@@ -1338,13 +1147,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       }
     }
   }
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 24]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
 
   grouping alto-cost {
     anyxml cost {
@@ -1364,49 +1166,160 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       "same unit as cost-metric, IEEE 754 2008 floating point.";
   }
 
-  /****************************************************
-     DATA INSTANCES of all ALTO information resources
-
-     unfiltered network-maps, unfiltered cost-maps are all instances
-     of resources. IRD is also modeled as data.
-
-     The design uses augment as the basic approach to implement
-     inheritance.
-   ****************************************************/
-
-  /* base type */
-  list resource {
-    config false;
-    // ResponseEntityBase; Note: resource-id for network/cost maps are
-    // in their meta, see the augment statements below.
-    container meta {
-      uses meta;
-    }
-    leaf uri {
-      type inet:uri;
-      mandatory true;
-    }
-    leaf media-type {
-      type media-type;
-      mandatory true;
-    }
-  }
-
-  /* network-map */
-  augment "/resource" {
+  /******************************************
+    Groupings for ALTO information resource
+  *******************************************/
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 25]
+
+Shi & Yang               Expires April 30, 2015                [Page 21]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
-    when "./media-type = 'application/alto-networkmap+json' ";
-    uses network-map;
+  /* meta */
+  grouping IRD-meta {
+    uses cost-types;
+    leaf default-alto-network-map {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
+      mandatory true;
+    }
   }
 
+  grouping network-map-meta {
+    container vtag {
+      uses vtag;
+    }
+  }
+
+  grouping cost-map-meta {
+    uses dependent-vtags {
+      refine dependent-vtags {
+        max-elements 1;
+      }
+    }
+    container cost-type {
+      uses cost-type;
+    }
+  }
+
+  grouping endpoint-property-meta {
+    uses dependent-vtags;
+  }
+
+  /* accepts (optional) */
+  grouping accepts {
+    leaf-list accepts {
+      type media-type;
+      min-elements 1;
+    }
+  }
+
+  /* capabilities (capabilities) */
+  grouping IRD-capabilities {
+    container capabilities {
+      leaf cost-constraints {
+        type boolean;
+      }
+      leaf-list cost-type-names {
+        type cost-type-name;
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 22]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+      }
+      leaf-list prop-types {
+        type endpoint-property-type;
+      }
+    }
+  }
+
+  /* uses (optional) */
+  grouping uses {
+    leaf-list uses {
+      type leafref {
+        path "/resources/IRD/resources/resource-id";
+      }
+      min-elements 1;
+    }
+  }
+
+  /* Information Resource Directory Grouping */
+  grouping IRD {
+    container meta {
+      uses IRD-meta;
+    }
+    uses IRD-data;
+  }
+
+  grouping IRD-data {
+    list resources {
+      key resource-id;
+      leaf resource-id {
+        type resource-id;
+        mandatory true;
+      }
+      leaf uri {
+        type inet:uri;
+        mandatory true;
+      }
+      leaf media-type {
+        type media-type;
+        mandatory true;
+      }
+      uses accepts {
+        when "current()";
+      }
+      uses IRD-capabilities {
+        when "current()";
+      }
+      uses uses {
+        when "current()";
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 23]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+      }
+      description
+        "IRDResourceEntry. RFC7285 9.2.2." +
+        " object {
+            JSONString      uri;
+            JSONString      media-type;
+            [JSONString     accepts;]
+            [Capabilities   capabilities;]
+            [ResourceID     uses<0..*>;]
+          } IRDResourceEntry;" +
+        "IRDResourceEntries. RFC7285 9.2.2." +
+        " object-map {
+            ResourceID  -> IRDResourceEntry;
+          } IRDResourceEntries;" +
+        "InformationResourceDirectory. RFC7285 9.2.2." +
+        " object {
+            IRDResourceEntries resources;
+          } InfoResourceDirectory : ResponseEntityBase;";
+    }
+  }
+
+  /* Network Map Grouping */
   grouping network-map {
+    container meta {
+      uses network-map-meta;
+    }
+    uses network-map-data;
+  }
+
+  grouping network-map-data {
     list network-map {
       key "pid";
       leaf pid {
@@ -1426,13 +1339,22 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
        } InfoResourceNetworkMap : ResponseEntityBase;";
   }
 
-  /* cost map */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    uses cost-map;
+
+
+Shi & Yang               Expires April 30, 2015                [Page 24]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+  /* Cost Map Grouping */
+  grouping cost-map {
+    container meta {
+      uses cost-map-meta;
+    }
+    uses cost-map-data;
   }
 
-  grouping cost-map {
+  grouping cost-map-data {
     list cost-map {
       leaf src {
         type pid-name;
@@ -1450,14 +1372,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
         uses alto-cost {
           description
             "Cost from source to destination.";
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 26]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
         }
         description
           "The list represents the inner part of the cost matrix." +
@@ -1480,322 +1394,103 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
         } InfoResourceCostMap : ResponseEntityBase;";
   }
 
-  /* Information Resource Directory */
-  grouping IRD-grouping {
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 25]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+  /* Endpoint Property Map Grouping */
+  grouping endpoint-property-map {
     container meta {
+      uses endpoint-property-meta;
     }
-    list resources {
-      key resource-id;
-      leaf resource-id {
-        type resource-id;
+    uses endpoint-property-map-data;
+  }
+
+  grouping endpoint-property-map-data {
+    list endpoint-properties {
+      key endpoint;
+      leaf endpoint {
+        type typed-endpoint-address;
         mandatory true;
       }
-      leaf uri {
-        type leafref {
-          path "/resource/uri";
+      list properties {
+        key property-type;
+        leaf property-type {
+          type endpoint-property-type;
+          mandatory true;
         }
-        mandatory true;
-      }
-      leaf media-type {
-        type leafref {
-          path "/resource/media-type";
+        leaf property {
+          type endpoint-property-value;
+          mandatory true;
         }
-        mandatory true;
+        description
+          "EndpointProps. RFC7285 Sec. 11.4.1.6." +
+          " object {
+              EndpointPropertyType -> JSONValue;
+            } EndpointProps;";
       }
       description
-        "IRDResourceEntry. RFC7285 9.2.2." +
-        " object {
-            JSONString      uri;
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 27]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;" +
-        "IRDResourceEntries. RFC7285 9.2.2." +
+        "EndpointPropertyMapData. Sec. 11.4.1.6." +
         " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;" +
-        "InformationResourceDirectory. RFC7285 9.2.2." +
-        " object {
-            IRDResourceEntries resources;
-          } InfoResourceDirectory : ResponseEntityBase;";
+            TypedEndpointAddr -> EndpointProps;
+          } EndpointPropertyMapData;";
     }
+    description
+      "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
+      " object {
+          EndpointPropertyMapData endpoint-properties;
+        } InfoResourceEndpointProperties : ResponseEntityBase;";
   }
 
-  container IRD {
+  /****************************************************
+     DATA INSTANCES of all ALTO information resources
+
+     unfiltered network-maps, unfiltered cost-maps are all instances
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 26]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+     of resources. IRD is also modeled as data.
+
+     The design uses augment as the basic approach to implement
+     inheritance.
+   ****************************************************/
+
+  container resources {
     config false;
-    leaf uri {
-      type inet:uri;
-      mandatory true;
+
+    /* Information Resource Directory */
+    container IRD {
+      uses IRD;
     }
-    leaf media-type {
-      type media-type;
-      mandatory true;
+
+    list network-maps {
+      unique "meta/vtag/resource-id meta/vtag/tag";
+      uses network-map;
     }
-    uses IRD-grouping;
-  }
 
-  /* meta */
-  grouping IRD-meta {
-    uses cost-types;
-    leaf default-alto-network-map {
-      type leafref {
-        path "/IRD/resources/resource-id";
-      }
-      mandatory true;
+    list cost-maps {
+      /*
+        The dependent-vtags and cost-types in the meta uniquely
+        identify a cost map. However, the unique statement in YANG
+        does not allow reference to a list (dependent-vtags).
+      */
+      uses cost-map;
     }
-  }
 
-  augment "/IRD/meta" {
-    uses IRD-meta;
-  }
-  augment "/IRD-service/output/IRD-service/meta" {
-    uses IRD-meta;
-  }
-
-  augment "/resource/meta" {
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 28]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-    when "../media-type = 'application/alto-costmap+json' ";
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-  augment "/cost-map-service/output/cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
+    container endpoint-property-map {
+      uses endpoint-property-map;
     }
   }
 
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  augment "/endpoint-cost-service/output/"
-        + "endpoint-cost-service/meta" {
-    container cost-type {
-      uses cost-type;
-      description
-        "Cost type.";
-    }
-  }
-
-  /* accepts (optional) */
-  grouping accepts {
-    leaf-list accepts {
-      type media-type;
-      min-elements 1;
-    }
-  }
-
-  augment "/resource" {
-    when ".";
-    uses accepts;
-  }
-
-  grouping IRD-accepts {
-    leaf-list accepts {
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 29]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-      type leafref {
-        path "/resource/accepts";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when ".";
-    uses IRD-accepts;
-  }
-
-  /* capabilities */
-  augment "/resource" {
-    when "./media-type = 'application/alto-costmap+json' ";
-    container capabilities {
-      when "current()";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-        max-elements 1;
-      }
-      leaf-list prop-types {
-        type endpoint-property-type;
-      }
-      // EXTENSION: add other costmap capabilities here.
-      description
-        "CostMapCapabilities. RFC7285 Sec. 11.2.3.4." +
-        " object {
-            JSONString cost-type-names<1..1>;
-          } CostMapCapabilities;";
-    }
-  }
-
-  grouping IRD-capabilities {
-    container capabilities {
-      leaf cost-constraints {
-        type boolean;
-      }
-      leaf-list cost-type-names {
-        type leafref {
-          path "/resource/capabilities/cost-type-names";
-        }
-      }
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 30]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-      leaf-list prop-types {
-        type leafref {
-          path "/resource/capabilities/prop-types";
-        }
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    uses IRD-capabilities;
-  }
-
-  augment "/endpoint-property-service/output/"
-        + "endpoint-property-service" {
-    leaf-list capabilities {
-      when ".";
-      type endpoint-property-type;
-      min-elements 1;
-      description
-        "Sec. 11.4.1.4." +
-        " object {
-            EndpointPropertyType prop-types<1..*>;
-          } EndpointPropertyCapabilities;";
-    }
-  }
-
-  augment "/filtered-cost-map-service/output/"
-        + "filtered-cost-map-service" {
-    container capabilities {
-      when ".";
-      leaf-list cost-type-names {
-        type cost-type-name;
-        min-elements 1;
-      }
-      leaf cost-constraints {
-        type boolean;
-      }
-      // EXTENSION: model other costmap capabilities HERE
-      description
-        "FilteredCostMapCapabilities. RFC7285 Sec. 11.3.2.4." +
-        " object {
-            JSONString cost-type-names<1..*>;
-            JSONBool cost-constraints;
-          } FilteredCostMapCapabilities;";
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 31]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-    }
-  }
-
-  /* uses */
-  grouping uses {
-    leaf-list uses {
-      type resource-id;
-      min-elements 1;
-    }
-  }
-  augment "/resource" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    /* the logic is that the following structures can be present ONLY
-     * when the above conditions are satisfied. Not sure how to place
-     * different restrictions on different conditions. */
-    uses uses;
-  }
-
-  grouping IRD-uses {
-    leaf-list uses {
-      type leafref {
-        path "/resource/uses";
-      }
-    }
-  }
-
-  augment "/IRD/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-    uses IRD-uses;
-  }
-
-  augment "/IRD-service/output/IRD-service/resources" {
-    when "(./media-type = 'application/alto-endpointprop+json') " +
-      "or (./media-type = 'application/alto-costmap+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts = 'application/alto-networkmapfilter+json') " +
-      "or (./media-type = 'application/alto-networkmap+json' " +
-      "and ./accepts != '')";
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 32]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-    uses IRD-uses;
-  }
 
   /************************************
    * RPCs                             *
@@ -1804,16 +1499,24 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
   rpc IRD-service {
     output {
       container IRD-service {
-        uses IRD-grouping;
+        uses IRD;
       }
     }
   }
 
   rpc network-map-service {
     input {
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 27]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -1822,9 +1525,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
     }
     output {
       container network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
     }
@@ -1834,7 +1534,7 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
     input {
       leaf uri {
         type leafref {
-          path "/resource/uri";
+          path "/resources/IRD/resources/uri";
         }
         mandatory true;
         description
@@ -1842,139 +1542,52 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
       }
     }
     output {
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 33]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
       container cost-map-service {
-        container meta {
-          uses meta;
-        }
         uses cost-map;
-      }
-    }
-  }
-
-  rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint";
-    input {
-      leaf-list properties {
-        type endpoint-property-type;
-        min-elements 1;
-      }
-      leaf-list endpoints {
-        type typed-endpoint-address;
-        min-elements 1;
-      }
-      /*
-      description
-        " object {
-            EndpointPropertyType  properties<1..*>;
-            TypedEndpointAddr     endpoints<1..*>;
-          } ReqEndpointProp;";
-      */
-    }
-    output {
-      container endpoint-property-service {
-        container meta {
-          uses meta;
-        }
-        list endpoint-properties {
-          key endpoint;
-          leaf endpoint {
-            type typed-endpoint-address;
-          }
-          list properties {
-            key property-type;
-            leaf property-type {
-              type endpoint-property-type;
-              mandatory true;
-            }
-            leaf property {
-              type endpoint-property-value;
-              mandatory true;
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 34]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
-            }
-            description
-              "EndpointProps. RFC7285 Sec. 11.4.1.6." +
-              " object {
-                  EndpointPropertyType -> JSONValue;
-                } EndpointProps;";
-          }
-          description
-            "EndpointPropertyMapData. Sec. 11.4.1.6." +
-            " object-map {
-                TypedEndpointAddr -> EndpointProps;
-              } EndpointPropertyMapData;";
-        }
-        description
-          "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
-          " object {
-              EndpointPropertyMapData endpoint-properties;
-            } InfoResourceEndpointProperties : ResponseEntityBase;";
       }
     }
   }
 
   rpc filtered-network-map-service {
     description
-      "inquiries on filtered network map";
-    input {
-      leaf-list pids {
-        type pid-name;
-      }
-      leaf-list address-types {
-        type endpoint-address-type;
-      }
-      /*
-      description
-        "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+      "inquiries on filtered network map" +
+      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
         " object {
             PIDName pids<0..*>;
             [AddressType address-types<0..*>;]
           } ReqFilteredNetworkMap;";
-      */
+    input {
+      leaf-list pids {
+        must "current()";
+        type pid-name;
+      }
+      leaf-list address-types {
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 28]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
+        type endpoint-address-type;
+      }
     }
     output {
       container filtered-network-map-service {
-        container meta {
-          uses meta;
-        }
         uses network-map;
       }
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 35]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
     }
   }
 
   rpc filtered-cost-map-service {
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
-        when "/resource/capabilities/cost-constraints = true";
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
@@ -1999,41 +1612,76 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
     }
     output {
       container filtered-cost-map-service {
-        container meta {
-          uses meta;
-          description
-            "Meta information.";
-        }
         uses cost-map;
       }
     }
   }
 
-  rpc endpoint-cost-service {
+  rpc endpoint-property-service {
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 36]
+Shi & Yang               Expires April 30, 2015                [Page 29]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
+    description
+      "inquiries on properties of an endpoint" +
+      " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+    input {
+      leaf-list properties {
+        type endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type typed-endpoint-address;
+        min-elements 1;
+      }
+    }
+    output {
+      container endpoint-property-service {
+        uses endpoint-property-map;
+      }
+    }
+  }
+
+
+  rpc endpoint-cost-service {
+    description
+      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
+      " object {
+          CostType          cost-type;
+          [JSONString       constraints<0..*>;]
+          EndpointFilter    endpoints;
+        } ReqEndpointCostMap;";
     input {
       container cost-type {
+        must "current()";
         uses cost-type;
-        description
-          "Cost type.";
       }
       leaf-list constraints {
         type constraint;
         description
           "RFC7285 Sec. 11.5.1.3.";
       }
-      container pids {
+      container endpoints {
+        must "current()";
         leaf-list srcs {
           type typed-endpoint-address;
           description
             "Source endpoint addresses.";
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 30]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
         }
         leaf-list dsts {
           type typed-endpoint-address;
@@ -2047,33 +1695,16 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
               [TypedEndpointAddr dsts<0..*>;]
             } EndpointFilter;";
       }
-      /*
-      description
-        "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
-        " object {
-            CostType          cost-type;
-            [JSONString       constraints<0..*>;]
-            EndpointFilter    endpoints;
-          } ReqEndpointCostMap;";
-      */
     }
     output {
       container endpoint-cost-service {
         container meta {
-          uses meta;
-          description
-            "Meta information.";
+          container cost-type {
+            uses cost-type;
+          }
         }
         list endpoint-cost-map {
           leaf src {
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 37]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
             type typed-endpoint-address;
             description
               "Source endpoint address.";
@@ -2099,6 +1730,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
           }
           description
             "The list represents the outer part of the cost matrix." +
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 31]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
             "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
             " object {
                 EndpointCostMapData endpoint-cost-map;
@@ -2113,22 +1752,13 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 }
 
+
 Appendix B.  YANG-Validated JSON Messages for ALTO Examples
 
    We established that the YANG validated messages cannot be
    syntactically equivalent to the ALTO protocol messages.  For a
    selection of the examples in the ALTO protocol, we provide the YANG
    validated version of the message for comparison purposes.
-
-
-
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 38]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
 
 B.1.  IRD Response Example
 
@@ -2156,6 +1786,14 @@ B.1.  IRD Response Example
              },
              {
                "cost-type-name": "ord-routing",
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 32]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
                "cost-mode": "ordinal",
                "cost-metric": "routingcost"
              },
@@ -2178,14 +1816,6 @@ B.1.  IRD Response Example
              "uri": "http://alto.example.com/costmap/num/routingcost",
              "media-type": "application/alto-costmap+json",
              "capabilities": { "cost-type-names": [ "num-routing" ] },
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 39]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
              "uses": [ "my-default-network-map" ]
            },
            {
@@ -2212,6 +1842,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
                ]
              }
            },
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 33]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
            {
              "resource-id": "endpoint-cost",
              "uri": "http://alto.example.com/endpointcost/lookup",
@@ -2233,14 +1871,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
    }
 
    The corresponding XML file which is validated by YANG.
-
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 40]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
 
    <?xml version="1.0" encoding="UTF-8" ?>
      <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
@@ -2268,6 +1898,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
              <cost-mode>ordinal</cost-mode>
              <cost-metric>hopcount</cost-metric>
            </cost-types>
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 34]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
            <default-alto-network-map>
              my-default-network-map
            </default-alto-network-map>
@@ -2290,14 +1928,6 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
            <resource-id>numerical-hopcount-cost-map</resource-id>
            <uri>http://alto.example.com/costmap/num/hopcount</uri>
            <media-type>application/alto-costmap+json</media-type>
-
-
-
-Shi & Yang               Expires April 28, 2015                [Page 41]
-
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
-
-
            <capabilities>
              <cost-type-names>num-hop</cost-type-names>
            </capabilities>
@@ -2324,6 +1954,14 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
            <media-type>application/alto-endpointcost+json</media-type>
            <accepts>application/alto-endpointcostparams+json</accepts>
            <capabilities>
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 35]
+
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
+
+
              <cost-constraints>true</cost-constraints>
              <cost-type-names>num-routing</cost-type-names>
              <cost-type-names>num-hop</cost-type-names>
@@ -2349,9 +1987,35 @@ B.2.  Network Map Service Response Example
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 42]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi & Yang               Expires April 30, 2015                [Page 36]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    {
@@ -2405,9 +2069,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 43]
+Shi & Yang               Expires April 30, 2015                [Page 37]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    The corresponding YANG-validated XML file:
@@ -2461,9 +2125,9 @@ B.3.  Filtered Cost Map Response Example
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 44]
+Shi & Yang               Expires April 30, 2015                [Page 38]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    {
@@ -2517,9 +2181,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 45]
+Shi & Yang               Expires April 30, 2015                [Page 39]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    <?xml version="1.0" encoding="UTF-8" ?>
@@ -2573,9 +2237,9 @@ B.4.  Endpoint Property Service Response Example
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 46]
+Shi & Yang               Expires April 30, 2015                [Page 40]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    {
@@ -2629,9 +2293,9 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 47]
+Shi & Yang               Expires April 30, 2015                [Page 41]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    <?xml version="1.0" encoding="UTF-8" ?>
@@ -2685,9 +2349,9 @@ Authors' Addresses
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 48]
+Shi & Yang               Expires April 30, 2015                [Page 42]
 
-Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
+Internet-Draft YANG Model for Base ALTO Data and Services   October 2014
 
 
    Y. Richard Yang
@@ -2741,4 +2405,4 @@ Internet-Draft   A YANG Data Model for the ALTO Protocol    October 2014
 
 
 
-Shi & Yang               Expires April 28, 2015                [Page 49]
+Shi & Yang               Expires April 30, 2015                [Page 43]
