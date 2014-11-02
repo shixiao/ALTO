@@ -1,0 +1,67 @@
+module: alto-service-netconf
+   +--ro resources
+      +--ro IRD
+      |  +--ro meta
+      |  |  +--ro cost-types* [cost-type-name]
+      |  |  |  +--ro cost-type-name    cost-type-name
+      |  |  |  +--ro cost-mode         cost-mode
+      |  |  |  +--ro cost-metric       cost-metric
+      |  |  |  +--ro description?      string
+      |  |  +--ro default-alto-network-map    resource-id
+      |  +--ro resources* [resource-id]
+      |     +--ro resource-id     resource-id
+      |     +--ro uri             inet:uri
+      |     +--ro media-type      media-type
+      |     +--ro accepts*        media-type
+      |     +--ro capabilities
+      |     |  +--ro cost-constraints?   boolean
+      |     |  +--ro cost-type-names*    cost-type-name
+      |     |  +--ro prop-types*         endpoint-property-type
+      |     +--ro uses*           resource-id
+      +--ro network-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro network-map* [pid]
+      |     +--ro pid                       pid-name
+      |     +--ro endpoint-address-group* [address-type]
+      |        +--ro address-type       endpoint-address-type
+      |        +--ro endpoint-prefix*   endpoint-prefix
+      +--ro cost-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro cost-map* [src dst]
+      |     +--ro src     alto:pid-name
+      |     +--ro dst     alto:pid-name
+      |     +--ro cost    
+      +--ro endpoint-property-map
+         +--ro meta
+         |  +--ro dependent-vtags*
+         |     +--ro resource-id    resource-id
+         |     +--ro tag            tag-string
+         +--ro endpoint-properties* [endpoint property-type]
+            +--ro endpoint         alto:typed-endpoint-address
+            +--ro property-type    alto:endpoint-property-type
+            +--ro property         alto:endpoint-property-value
+rpcs:
+   +---x endpoint-cost-service    
+      +--ro input     
+      |  +--ro cost-type
+      |  |  +--ro cost-mode      cost-mode
+      |  |  +--ro cost-metric    cost-metric
+      |  |  +--ro description?   string
+      |  +--ro constraints*   alto:constraint
+      |  +--ro endpoints
+      |     +--ro srcs*   alto:typed-endpoint-address
+      |     +--ro dsts*   alto:typed-endpoint-address
+      +--ro output    
+         +--ro endpoint-cost-service
+            +--ro meta
+            |  +--ro cost-type
+            |     +--ro cost-mode      cost-mode
+            |     +--ro cost-metric    cost-metric
+            |     +--ro description?   string
+            +--ro endpoint-cost-map* [src]
+               +--ro src          alto:typed-endpoint-address
+               +--ro dst-costs* [dst]
+                  +--ro dst     alto:typed-endpoint-address
+                  +--ro cost    
