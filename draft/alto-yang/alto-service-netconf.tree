@@ -29,6 +29,14 @@ module: alto-service-netconf
       +--ro cost-maps* [resource-id]
       |  +--ro resource-id    alto:resource-id
       |  +--ro tag            alto:tag-string
+      |  +--ro meta
+      |  |  +--ro dependent-vtags*
+      |  |  |  +--ro resource-id    resource-id
+      |  |  |  +--ro tag            tag-string
+      |  |  +--ro cost-type
+      |  |     +--ro cost-mode      cost-mode
+      |  |     +--ro cost-metric    cost-metric
+      |  |     +--ro description?   string
       |  +--ro cost-map* [src dst]
       |     +--ro src     alto:pid-name
       |     +--ro dst     alto:pid-name

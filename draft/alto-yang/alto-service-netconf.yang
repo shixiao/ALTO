@@ -48,6 +48,10 @@ module alto-service-netconf {
       type alto:tag-string;
       mandatory true;
     }
+    container meta {
+      must "current()";
+      uses alto:cost-map-meta;
+    }
     uses cost-map-data;
   }
 
