@@ -81,7 +81,7 @@ Table of Contents
      2.2.  ALTO/YANG using only RFC Specification  . . . . . . . . .   5
      2.3.  ALTO/YANG using Data Instance Description . . . . . . . .   8
      2.4.  ALTO/YANG with Integration with NETCONF . . . . . . . . .  12
-       2.4.1.  Tree Diagram for alto-service-netconf . . . . . . . .  13
+       2.4.1.  Tree Diagram for ALTO/YANG with NETCONF . . . . . . .  13
        2.4.2.  Full Network Map Service using NETCONF  . . . . . . .  14
        2.4.3.  Full Cost Map Service using NETCONF . . . . . . . . .  19
        2.4.4.  Filtered Network Map Service using NETCONF  . . . . .  24
@@ -89,23 +89,23 @@ Table of Contents
        2.4.6.  Endpoint Property Service in NETCONF  . . . . . . . .  37
        2.4.7.  Endpoint Cost Service Implementation  . . . . . . . .  43
      2.5.  ALTO/YANG with Integration with RESTCONF  . . . . . . . .  44
-   3.  Non-Trivial Specification Efforts . . . . . . . . . . . . . .  44
-     3.1.  YANG Expressiveness Issues  . . . . . . . . . . . . . . .  44
-       3.1.1.  Limitation on Modeling JSON key-value store . . . . .  45
-       3.1.2.  Limits of Leafrefs  . . . . . . . . . . . . . . . . .  48
-     3.2.  Extensibility Issues  . . . . . . . . . . . . . . . . . .  48
-       3.2.1.  String Pattern Extensibility  . . . . . . . . . . . .  48
-       3.2.2.  Type Extensibility  . . . . . . . . . . . . . . . . .  48
-   4.  Applications of ALTO/YANG . . . . . . . . . . . . . . . . . .  48
-     4.1.  Other Applications  . . . . . . . . . . . . . . . . . . .  48
-       4.1.1.  Verifier/Validator on the Client Side . . . . . . . .  48
-       4.1.2.  Code Generator  . . . . . . . . . . . . . . . . . . .  48
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  49
-   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  49
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  49
-   Appendix A.  YANG Data Model for ALTO Protocol  . . . . . . . . .  50
-     A.1.  ALTO/YANG: Common Data Types  . . . . . . . . . . . . . .  50
-     A.2.  ALTO/YANG: RPC Only . . . . . . . . . . . . . . . . . . .  64
+       2.5.1.  Tree Diagram for ALTO/YANG with RESTCONF  . . . . . .  44
+       2.5.2.  Full Network Map Service Using RESTCONF . . . . . . .  47
+       2.5.3.  Full Cost Map Service Using RESTCONF  . . . . . . . .  50
+       2.5.4.  Impossibility to Encode Filtered Maps and Endpoint
+               Properties using Standard RESTCONF Query  . . . . . .  52
+       2.5.5.  A Potential Extension to RESTCONF to Handle Filtered
+               Maps and Endpoint Properties Services . . . . . . . .  52
+   3.  Non-Trivial Specification Efforts . . . . . . . . . . . . . .  55
+     3.1.  YANG Expressiveness Issues  . . . . . . . . . . . . . . .  55
+       3.1.1.  Limitation on Modeling JSON key-value store . . . . .  55
+       3.1.2.  Limits of Leafrefs  . . . . . . . . . . . . . . . . .  58
+     3.2.  Extensibility Issues  . . . . . . . . . . . . . . . . . .  58
+       3.2.1.  String Pattern Extensibility  . . . . . . . . . . . .  58
+       3.2.2.  Type Extensibility  . . . . . . . . . . . . . . . . .  58
+   4.  Applications of ALTO/YANG . . . . . . . . . . . . . . . . . .  58
+     4.1.  Other Applications  . . . . . . . . . . . . . . . . . . .  58
+       4.1.1.  Verifier/Validator on the Client Side . . . . . . . .  58
 
 
 
@@ -114,15 +114,22 @@ Shi, et al.                Expires May 8, 2015                  [Page 2]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
-     A.3.  ALTO/YANG: Data Instances Description . . . . . . . . . .  69
-     A.4.  ALTO/YANG: NETCONF  . . . . . . . . . . . . . . . . . . .  75
-     A.5.  ALTO/YANG: RESTCONF . . . . . . . . . . . . . . . . . . .  79
-   Appendix B.  YANG-Validated JSON Messages for ALTO Examples . . .  83
-     B.1.  IRD Response Example  . . . . . . . . . . . . . . . . . .  84
-     B.2.  Network Map Service Response Example  . . . . . . . . . .  87
-     B.3.  Filtered Cost Map Response Example  . . . . . . . . . . .  89
-     B.4.  Endpoint Property Service Response Example  . . . . . . .  91
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  93
+       4.1.2.  Code Generator  . . . . . . . . . . . . . . . . . . .  58
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  59
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  59
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  59
+   Appendix A.  YANG Data Model for ALTO Protocol  . . . . . . . . .  60
+     A.1.  ALTO/YANG: Common Data Types  . . . . . . . . . . . . . .  60
+     A.2.  ALTO/YANG: RPC Only . . . . . . . . . . . . . . . . . . .  74
+     A.3.  ALTO/YANG: Data Instances Description . . . . . . . . . .  79
+     A.4.  ALTO/YANG: NETCONF  . . . . . . . . . . . . . . . . . . .  85
+     A.5.  ALTO/YANG: RESTCONF . . . . . . . . . . . . . . . . . . .  89
+   Appendix B.  YANG-Validated JSON Messages for ALTO Examples . . .  93
+     B.1.  IRD Response Example  . . . . . . . . . . . . . . . . . .  94
+     B.2.  Network Map Service Response Example  . . . . . . . . . .  97
+     B.3.  Filtered Cost Map Response Example  . . . . . . . . . . .  99
+     B.4.  Endpoint Property Service Response Example  . . . . . . . 101
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . 103
 
 1.  Introduction
 
@@ -155,13 +162,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    other components such as NETCONF/RESTCONF to construct a complete
    YANG system, the basic encoding rule of YANG already makes syntactic
    equivalence unfeasible.  In particular, [RFC7285] makes extensive use
-   of the common key-value store abstraction in its JSON object
-   encoding.  But such encoding cannot be generated using the existing
-   YANG/JSON encoding.  As a result, the focus of this document is on
-   using YANG to define semantically equivalent ALTO services.  We still
-   strive that the syntax generated by ALTO/YANG is close to that of
-   [RFC7285].
-
 
 
 
@@ -169,6 +169,13 @@ Shi, et al.                Expires May 8, 2015                  [Page 3]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
+
+   of the common key-value store abstraction in its JSON object
+   encoding.  But such encoding cannot be generated using the existing
+   YANG/JSON encoding.  As a result, the focus of this document is on
+   using YANG to define semantically equivalent ALTO services.  We still
+   strive that the syntax generated by ALTO/YANG is close to that of
+   [RFC7285].
 
    The rest of this document is organized as follows.  In
    Section Section 2, we provide an overview of our design approaches.
@@ -211,13 +218,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    the data.  This substantially reduce the efforts to introduce and
    manage a new set of data.  We refer to this as the standard
    operations aspect.  In YANG related efforts, NETCONF and RESTCONF
-   each tries to provide some of these standard operations (e.g.,
-   RESTCONF query).  To utilize this aspect, the YANG specification need
-   to be "embedded" in the chosen specification (e.g., NETCONF).  In
-   Sections Section 2.4 and Section 2.5, we discuss specification by
-   considering that the YANG model has the support of "standard
-   operations" defined in NETCONF and RESTCONF.  This document does not
-   provide a specific specification, and will do so in the next version.
 
 
 
@@ -225,6 +225,14 @@ Shi, et al.                Expires May 8, 2015                  [Page 4]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
+
+   each tries to provide some of these standard operations (e.g.,
+   RESTCONF query).  To utilize this aspect, the YANG specification need
+   to be "embedded" in the chosen specification (e.g., NETCONF).  In
+   Sections Section 2.4 and Section 2.5, we discuss specification by
+   considering that the YANG model has the support of "standard
+   operations" defined in NETCONF and RESTCONF.  This document does not
+   provide a specific specification, and will do so in the next version.
 
    Some of the common type definitions and groupings for ALTO/YANG are
    defined in the Appendix.
@@ -266,14 +274,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
       |     +--ro network-map-service
       |        +--ro meta
       |        |  +--ro vtag
-      |        |     +--ro resource-id    resource-id
-      |        |     +--ro tag            tag-string
-      |        +--ro network-map* [pid]
-      |           +--ro pid                       pid-name
-      |           +--ro endpoint-address-group* [address-type]
-      |              +--ro address-type       endpoint-address-type
-      |              +--ro endpoint-prefix*   endpoint-prefix
-      +---x cost-map-service
 
 
 
@@ -282,6 +282,14 @@ Shi, et al.                Expires May 8, 2015                  [Page 5]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+      |        |     +--ro resource-id    resource-id
+      |        |     +--ro tag            tag-string
+      |        +--ro network-map* [pid]
+      |           +--ro pid                       pid-name
+      |           +--ro endpoint-address-group* [address-type]
+      |              +--ro address-type       endpoint-address-type
+      |              +--ro endpoint-prefix*   endpoint-prefix
+      +---x cost-map-service
       |  +--ro input
       |  |  +--ro uri    inet:uri
       |  +--ro output
@@ -322,14 +330,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
       |  |  |  +--ro description?   string
       |  |  +--ro constraints*   alto:constraint
       |  |  +--ro pids
-      |  |     +--ro srcs*   alto:pid-name
-      |  |     +--ro dsts*   alto:pid-name
-      |  +--ro output
-      |     +--ro filtered-cost-map-service
-      |        +--ro meta
-      |        |  +--ro dependent-vtags*
-      |        |  |  +--ro resource-id    resource-id
-      |        |  |  +--ro tag            tag-string
 
 
 
@@ -338,6 +338,14 @@ Shi, et al.                Expires May 8, 2015                  [Page 6]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+      |  |     +--ro srcs*   alto:pid-name
+      |  |     +--ro dsts*   alto:pid-name
+      |  +--ro output
+      |     +--ro filtered-cost-map-service
+      |        +--ro meta
+      |        |  +--ro dependent-vtags*
+      |        |  |  +--ro resource-id    resource-id
+      |        |  |  +--ro tag            tag-string
       |        |  +--ro cost-type
       |        |     +--ro cost-mode      cost-mode
       |        |     +--ro cost-metric    cost-metric
@@ -378,14 +386,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
                |  +--ro cost-type
                |     +--ro cost-mode      cost-mode
                |     +--ro cost-metric    cost-metric
-               |     +--ro description?   string
-               +--ro endpoint-cost-map* [src]
-                  +--ro src          alto:typed-endpoint-address
-                  +--ro dst-costs* [dst]
-                     +--ro dst     alto:typed-endpoint-address
-                     +--ro cost
-
-
 
 
 
@@ -393,6 +393,13 @@ Shi, et al.                Expires May 8, 2015                  [Page 7]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
+
+               |     +--ro description?   string
+               +--ro endpoint-cost-map* [src]
+                  +--ro src          alto:typed-endpoint-address
+                  +--ro dst-costs* [dst]
+                     +--ro dst     alto:typed-endpoint-address
+                     +--ro cost
 
 2.3.  ALTO/YANG using Data Instance Description
 
@@ -435,13 +442,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
          |  |     +--ro tag            tag-string
          |  +--ro network-map* [pid]
          |     +--ro pid                       pid-name
-         |     +--ro endpoint-address-group* [address-type]
-         |        +--ro address-type       endpoint-address-type
-         |        +--ro endpoint-prefix*   endpoint-prefix
-         +--ro cost-maps*
-         |  +--ro meta
-         |  |  +--ro dependent-vtags*
-         |  |  |  +--ro resource-id    resource-id
 
 
 
@@ -450,6 +450,13 @@ Shi, et al.                Expires May 8, 2015                  [Page 8]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+         |     +--ro endpoint-address-group* [address-type]
+         |        +--ro address-type       endpoint-address-type
+         |        +--ro endpoint-prefix*   endpoint-prefix
+         +--ro cost-maps*
+         |  +--ro meta
+         |  |  +--ro dependent-vtags*
+         |  |  |  +--ro resource-id    resource-id
          |  |  |  +--ro tag            tag-string
          |  |  +--ro cost-type
          |  |     +--ro cost-mode      cost-mode
@@ -491,13 +498,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
       |           |  +--ro cost-type-names*    cost-type-name
       |           |  +--ro prop-types*         endpoint-property-type
       |           +--ro uses*           resource-id
-      +---x network-map-service
-      |  +--ro input
-      |  |  +--ro uri    leafref
-      |  +--ro output
-      |     +--ro network-map-service
-      |        +--ro meta
-      |        |  +--ro vtag
 
 
 
@@ -506,6 +506,13 @@ Shi, et al.                Expires May 8, 2015                  [Page 9]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+      +---x network-map-service
+      |  +--ro input
+      |  |  +--ro uri    leafref
+      |  +--ro output
+      |     +--ro network-map-service
+      |        +--ro meta
+      |        |  +--ro vtag
       |        |     +--ro resource-id    resource-id
       |        |     +--ro tag            tag-string
       |        +--ro network-map* [pid]
@@ -547,13 +554,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
       |              +--ro address-type       endpoint-address-type
       |              +--ro endpoint-prefix*   endpoint-prefix
       +---x filtered-cost-map-service
-      |  +--ro input
-      |  |  +--ro cost-type
-      |  |  |  +--ro cost-mode      cost-mode
-      |  |  |  +--ro cost-metric    cost-metric
-      |  |  |  +--ro description?   string
-      |  |  +--ro constraints*   alto:constraint
-      |  |  +--ro pids
 
 
 
@@ -562,6 +562,13 @@ Shi, et al.                Expires May 8, 2015                 [Page 10]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+      |  +--ro input
+      |  |  +--ro cost-type
+      |  |  |  +--ro cost-mode      cost-mode
+      |  |  |  +--ro cost-metric    cost-metric
+      |  |  |  +--ro description?   string
+      |  |  +--ro constraints*   alto:constraint
+      |  |  +--ro pids
       |  |     +--ro srcs*   alto:pid-name
       |  |     +--ro dsts*   alto:pid-name
       |  +--ro output
@@ -603,13 +610,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
          |  +--ro constraints*   alto:constraint
          |  +--ro endpoints
          |     +--ro srcs*   alto:typed-endpoint-address
-         |     +--ro dsts*   alto:typed-endpoint-address
-         +--ro output
-            +--ro endpoint-cost-service
-               +--ro meta
-               |  +--ro cost-type
-               |     +--ro cost-mode      cost-mode
-               |     +--ro cost-metric    cost-metric
 
 
 
@@ -618,6 +618,13 @@ Shi, et al.                Expires May 8, 2015                 [Page 11]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+         |     +--ro dsts*   alto:typed-endpoint-address
+         +--ro output
+            +--ro endpoint-cost-service
+               +--ro meta
+               |  +--ro cost-type
+               |     +--ro cost-mode      cost-mode
+               |     +--ro cost-metric    cost-metric
                |     +--ro description?   string
                +--ro endpoint-cost-map* [src]
                   +--ro src          alto:typed-endpoint-address
@@ -660,13 +667,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    Directory; with the <filter> parameter, NETCONF will be able to
    retrieve filtered maps as well as endpoint properties.
 
-   Using this approach, implementing an ALTO server is almost
-   effortless; nevertheless, there are certain limitations to this
-   approach.  NETCONF requires an open ssh connection while the ALTO
-   protocol uses a RESTful design.  The scalability is questionable, as
-   the running datastore must be stored or translated to XML to enable
-   XML manipulation in RPC.  The extensibility is also a concern, as
-
 
 
 Shi, et al.                Expires May 8, 2015                 [Page 12]
@@ -674,12 +674,18 @@ Shi, et al.                Expires May 8, 2015                 [Page 12]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+   Using this approach, implementing an ALTO server is almost
+   effortless; nevertheless, there are certain limitations to this
+   approach.  NETCONF requires an open ssh connection while the ALTO
+   protocol uses a RESTful design.  The scalability is questionable, as
+   the running datastore must be stored or translated to XML to enable
+   XML manipulation in RPC.  The extensibility is also a concern, as
    there are limitation of NETCONF standard operations and XML
    manipulation.  For example, the endpoint cost service would be
    difficult or inefficient to realize using NETCONF standard
    operations.
 
-2.4.1.  Tree Diagram for alto-service-netconf
+2.4.1.  Tree Diagram for ALTO/YANG with NETCONF
 
    module: alto-service-netconf
       +--ro resources
@@ -716,12 +722,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
          |  |  +--ro dependent-vtags*
          |  |  |  +--ro resource-id    resource-id
          |  |  |  +--ro tag            tag-string
-         |  |  +--ro cost-type
-         |  |     +--ro cost-mode      cost-mode
-         |  |     +--ro cost-metric    cost-metric
-         |  |     +--ro description?   string
-         |  +--ro cost-map* [src]
-         |     +--ro src          pid-name
 
 
 
@@ -730,6 +730,12 @@ Shi, et al.                Expires May 8, 2015                 [Page 13]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+         |  |  +--ro cost-type
+         |  |     +--ro cost-mode      cost-mode
+         |  |     +--ro cost-metric    cost-metric
+         |  |     +--ro description?   string
+         |  +--ro cost-map* [src]
+         |     +--ro src          pid-name
          |     +--ro dst-costs* [dst]
          |        +--ro dst     pid-name
          |        +--ro cost
@@ -773,12 +779,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    specified as alto-service-netconf (see Appendix Appendix A.4), with
    its tree diagram in Section Section 2.4.1.
 
-   NETCONF has provided two RPCs to retrieve data: the <get> operation
-   and the <get-config> operation.  The <get> operation can be used to
-   retrieve both configuration data and state data, whereas the <get-
-   config> operation is used to retrieve configuration data only.  Since
-   ALTO resources are assumed to be read-only state data, at the current
-
 
 
 Shi, et al.                Expires May 8, 2015                 [Page 14]
@@ -786,6 +786,11 @@ Shi, et al.                Expires May 8, 2015                 [Page 14]
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
+   NETCONF has provided two RPCs to retrieve data: the <get> operation
+   and the <get-config> operation.  The <get> operation can be used to
+   retrieve both configuration data and state data, whereas the <get-
+   config> operation is used to retrieve configuration data only.  Since
+   ALTO resources are assumed to be read-only state data, at the current
    design, we use the <get> operation.  The <get> operation defines two
    filter types in the NETCONF base protocol [RFC6241], subtree
    filtering and XPATH capabilities.  Hence we consider both types.
@@ -823,11 +828,6 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
    An example of the query, for a network map with resource-id
    myNetMap1, is the following:
-
-
-
-
-
 
 
 
@@ -2424,15 +2424,12 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    structure then is:
 
          GET /<restconf>/<path>?<query>
-
-            ^       ^        ^       ^
-            |       |        |       |
-          method  entry  resource  query
-
-            M       M        O        O
+          ^       ^        ^       ^
+          |       |        |       |
+        method  entry  resource  query
+          M       M        O       O
 
           M=mandatory, O=optional
-
           <text> replaced by client with real values
 
    The particular relevant components are the path component and the
@@ -2450,14 +2447,17 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
    query parameters are optional to implement by the server and optional
    to use by the client.
 
-3.  Non-Trivial Specification Efforts
+2.5.1.  Tree Diagram for ALTO/YANG with RESTCONF
 
-3.1.  YANG Expressiveness Issues
+   This model is identical with alto-service-netconf, except for the
+   addition of the filtered map service RPCs and endpoint property
+   service RPC.
 
-
-
-
-
+   module: alto-service-restconf
+      +--ro resources
+         +--ro IRD
+         |  +--ro meta
+         |  |  +--ro cost-types* [cost-type-name]
 
 
 
@@ -2465,6 +2465,570 @@ Shi, et al.                Expires May 8, 2015                 [Page 44]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
+
+         |  |  |  +--ro cost-type-name    cost-type-name
+         |  |  |  +--ro cost-mode         cost-mode
+         |  |  |  +--ro cost-metric       cost-metric
+         |  |  |  +--ro description?      string
+         |  |  +--ro default-alto-network-map    resource-id
+         |  +--ro resources* [resource-id]
+         |     +--ro resource-id     resource-id
+         |     +--ro uri             inet:uri
+         |     +--ro media-type      media-type
+         |     +--ro accepts*        media-type
+         |     +--ro capabilities
+         |     |  +--ro cost-constraints?   boolean
+         |     |  +--ro cost-type-names*    cost-type-name
+         |     |  +--ro prop-types*         endpoint-property-type
+         |     +--ro uses*           resource-id
+         +--ro network-maps* [resource-id]
+         |  +--ro resource-id    alto:resource-id
+         |  +--ro tag            alto:tag-string
+         |  +--ro network-map* [pid]
+         |     +--ro pid                       pid-name
+         |     +--ro endpoint-address-group* [address-type]
+         |        +--ro address-type       endpoint-address-type
+         |        +--ro endpoint-prefix*   endpoint-prefix
+         +--ro cost-maps* [resource-id]
+         |  +--ro resource-id    alto:resource-id
+         |  +--ro tag            alto:tag-string
+         |  +--ro meta
+         |  |  +--ro dependent-vtags*
+         |  |  |  +--ro resource-id    resource-id
+         |  |  |  +--ro tag            tag-string
+         |  |  +--ro cost-type
+         |  |     +--ro cost-mode      cost-mode
+         |  |     +--ro cost-metric    cost-metric
+         |  |     +--ro description?   string
+         |  +--ro cost-map* [src]
+         |     +--ro src          pid-name
+         |     +--ro dst-costs* [dst]
+         |        +--ro dst     pid-name
+         |        +--ro cost
+         +--ro endpoint-property-map
+            +--ro meta
+            |  +--ro dependent-vtags*
+            |     +--ro resource-id    resource-id
+            |     +--ro tag            tag-string
+            +--ro endpoint-properties* [endpoint]
+               +--ro endpoint      typed-endpoint-address
+               +--ro properties* [property-type]
+                  +--ro property-type    endpoint-property-type
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 45]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+                  +--ro property         endpoint-property-value
+   rpcs:
+      +---x filtered-network-map-service
+      |  +--ro input
+      |  |  +--ro pids*            alto:pid-name
+      |  |  +--ro address-types*   alto:endpoint-address-type
+      |  +--ro output
+      |     +--ro filtered-network-map-service
+      |        +--ro meta
+      |        |  +--ro vtag
+      |        |     +--ro resource-id    resource-id
+      |        |     +--ro tag            tag-string
+      |        +--ro network-map* [pid]
+      |           +--ro pid                       pid-name
+      |           +--ro endpoint-address-group* [address-type]
+      |              +--ro address-type       endpoint-address-type
+      |              +--ro endpoint-prefix*   endpoint-prefix
+      +---x filtered-cost-map-service
+      |  +--ro input
+      |  |  +--ro cost-type
+      |  |  |  +--ro cost-mode      cost-mode
+      |  |  |  +--ro cost-metric    cost-metric
+      |  |  |  +--ro description?   string
+      |  |  +--ro constraints*   alto:constraint
+      |  |  +--ro pids
+      |  |     +--ro srcs*   alto:pid-name
+      |  |     +--ro dsts*   alto:pid-name
+      |  +--ro output
+      |     +--ro filtered-cost-map-service
+      |        +--ro meta
+      |        |  +--ro dependent-vtags*
+      |        |  |  +--ro resource-id    resource-id
+      |        |  |  +--ro tag            tag-string
+      |        |  +--ro cost-type
+      |        |     +--ro cost-mode      cost-mode
+      |        |     +--ro cost-metric    cost-metric
+      |        |     +--ro description?   string
+      |        +--ro cost-map* [src]
+      |           +--ro src          pid-name
+      |           +--ro dst-costs* [dst]
+      |              +--ro dst     pid-name
+      |              +--ro cost
+      +---x endpoint-property-service
+      |  +--ro input
+      |  |  +--ro properties*   alto:endpoint-property-type
+      |  |  +--ro endpoints*    alto:typed-endpoint-address
+      |  +--ro output
+      |     +--ro endpoint-property-service
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 46]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+      |        +--ro meta
+      |        |  +--ro dependent-vtags*
+      |        |     +--ro resource-id    resource-id
+      |        |     +--ro tag            tag-string
+      |        +--ro endpoint-properties* [endpoint]
+      |           +--ro endpoint      typed-endpoint-address
+      |           +--ro properties* [property-type]
+      |              +--ro property-type    endpoint-property-type
+      |              +--ro property         endpoint-property-value
+      +---x endpoint-cost-service
+         +--ro input
+         |  +--ro cost-type
+         |  |  +--ro cost-mode      cost-mode
+         |  |  +--ro cost-metric    cost-metric
+         |  |  +--ro description?   string
+         |  +--ro constraints*   alto:constraint
+         |  +--ro endpoints
+         |     +--ro srcs*   alto:typed-endpoint-address
+         |     +--ro dsts*   alto:typed-endpoint-address
+         +--ro output
+            +--ro endpoint-cost-service
+               +--ro meta
+               |  +--ro cost-type
+               |     +--ro cost-mode      cost-mode
+               |     +--ro cost-metric    cost-metric
+               |     +--ro description?   string
+               +--ro endpoint-cost-map* [src]
+                  +--ro src          alto:typed-endpoint-address
+                  +--ro dst-costs* [dst]
+                     +--ro dst     alto:typed-endpoint-address
+                     +--ro cost
+
+2.5.2.  Full Network Map Service Using RESTCONF
+
+   First consider the full network map service.  Mapping Syntax: To
+   request a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID,
+   the RESTCONF client sends the following HTTP request.
+
+   GET /restconf/data/alto-service-restconf:resources \
+     /network-maps=INPUT-NETWORK-MAP-RESOURCE-ID?content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+   An example query for a network map whose resource-id is myNetMap1 is:
+
+
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 47]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+   GET /restconf/data/alto-service-restconf:resources \
+     /network-maps=myNetMap1?content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+   An example response from a RESTCONF server can be:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 48]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+   HTTP/1.1 200 OK
+   Date: Mon, 31 Oct 2011 23:59:00 GMT
+   Server: example-alto-server
+   Cache-Control: no-cache
+   Pragma: no-cache
+   Content-Type: application/yang.data+json
+
+   {
+     "alto-service-restconf:network-maps" : {
+       "resource-id" : "myNetMap1",
+       "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785",
+       "network-map": [
+         {
+           "pid": "PID1",
+           "endpoint-address-group": {
+             "address-type": "ipv4",
+             "endpoint-prefix": [
+               "192.0.2.0/24",
+               "198.51.100.0/25"
+             ]
+           }
+         },
+         {
+           "pid": "PID2",
+           "endpoint-address-group": {
+             "address-type": "ipv4",
+             "endpoint-prefix": ["198.51.100.128/25"]
+           }
+         },
+         {
+           "pid": "PID3",
+           "endpoint-address-group": [
+             {
+               "address-type": "ipv4",
+               "endpoint-prefix": ["0.0.0.0/0"]
+             },
+             {
+               "address-type": "ipv6",
+               "endpoint-prefix": ["::/0"]
+             }
+           ]
+         }
+       ]
+     }
+   }
+
+
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 49]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+2.5.3.  Full Cost Map Service Using RESTCONF
+
+   Then consider the full cost map service.  Mapping Syntax: To request
+   a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the RESTCONF
+   client sends the following HTTP request.
+
+   GET /restconf/data/alto-service-restconf:resources \
+     /cost-maps=INPUT-COST-MAP-RESOURCE-ID?content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+   An example query for a cost map whose resource-id is myCostMap1:
+
+   GET /restconf/data/alto-service-restconf:resources \
+     /cost-maps=myCostMap1?content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+   An example response from the server will then be:
+
+   HTTP/1.1 200 OK
+   Date: Mon, 31 Oct 2011 23:59:00 GMT
+   Server: example-alto-server
+   Cache-Control: no-cache
+   Pragma: no-cache
+   Content-Type: application/yang.data+json
+
+   {
+     "alto-service-restconf:cost-maps" : {
+       "resource-id" : "myCostMap1",
+       "tag" : "tus10ce8b0740a1938e3f8eb1d4785da65eca2",
+       "meta": {
+         "dependent-vtags": {
+           "resource-id": "my-default-network-map",
+           "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+         },
+         "cost-type": {
+           "cost-mode": "numerical",
+           "cost-metric": "routingcost"
+         }
+       },
+       "cost-map": [
+         {
+           "src": "PID1",
+           "dst-costs": [
+             {
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 50]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+               "dst": "PID1",
+               "cost": "1"
+             },
+             {
+               "dst": "PID2",
+               "cost": "5"
+             },
+             {
+               "dst": "PID3",
+               "cost": "10"
+             }
+           ]
+         },
+         {
+           "src": "PID2",
+           "dst-costs": [
+             {
+               "dst": "PID1",
+               "cost": "5"
+             },
+             {
+               "dst": "PID2",
+               "cost": "1"
+             },
+             {
+               "dst": "PID3",
+               "cost": "15"
+             }
+           ]
+         },
+         {
+           "src": "PID3",
+           "dst-costs": [
+             {
+               "dst": "PID1",
+               "cost": "20"
+             },
+             {
+               "dst": "PID2",
+               "cost": "15"
+             }
+           ]
+         }
+       ]
+     }
+   }
+
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 51]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+2.5.4.  Impossibility to Encode Filtered Maps and Endpoint Properties
+        using Standard RESTCONF Query
+
+   Although the preceding sections provided templates to implement full
+   network and cost map services using standard operations in RESTCONF,
+   it is not possible to do so for the filtered map services or the
+   endpoint property service.
+
+   Specifically, supporting the filtered map services requires the
+   ability to select multiple nodes from the data tree based on the data
+   content.  Recall that the path component in the uri can return only a
+   single node.  Hence, the only component that allows one to select
+   multiple nodes is the query component, specifically, the select query
+   parameter.  However, the definition of the select expression
+   (Section 3.8.4 of [RESTCONF]) only includes terms defined in a
+   schema, not any data content (i.e., select does not include any
+   content match capabilities).  Hence, it is impossible to implement
+   filtered maps.
+
+2.5.5.  A Potential Extension to RESTCONF to Handle Filtered Maps and
+        Endpoint Properties Services
+
+   In order to provide filtered map services and endpoint property
+   service, we need to enable the "select" query parameter to match
+   content.  In particular, we propose to incorporate the list-instance
+   from the "path" component, which identifies an instance (element) in
+   the list by its key(s).
+
+   The original ABNF grammar for the select query expression is defined
+   in Section 3.8.4 of [RESTCONF]:
+
+   select-expr = path '(' select-expr / '*' ')' /
+                 path ';' select-expr /
+                 path
+   path = api-identifier [ '/' path ]
+
+   Our proposed extension is the following, where list-instance is
+   defined in Section 2.5.1.1 of [RESTCONF].  To avoid ambiguity, the
+   key-value string MUST not contain left parenthesis '(', right
+   parenthesis ')', semi-colon ';', asterisk '*', or comma ','.
+
+   select-expr = path '(' select-expr / '*' ')' /
+                 path ';' select-expr /
+                 path
+   path = (api-identifier | list-instance) [ '/' path ]
+   list-instance = api-identifier "=" key-value ["," key-value]*
+   key-value = string
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 52]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+2.5.5.1.  Example: Filtered Network Map Service with Proposed select
+          Extension
+
+   To request PID1 and PID3 of the network map whose resource-id is
+   myNetMap1, the RESTCONF client may send the following request:
+
+   GET /restconf/data/resources/network-maps=myNetMap1 \
+     ?select=resource-id;tag;network-map=PID1; \
+     network-map=PID3&content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+
+   The expected response will then be:
+
+   HTTP/1.1 200 OK
+   Date: Mon, 31 Oct 2011 23:59:00 GMT
+   Server: example-alto-server
+   Cache-Control: no-cache
+   Pragma: no-cache
+   Content-Type: application/yang.data+json
+
+   {
+     "alto-service-restconf:network-maps" : {
+       "resource-id" : "myNetMap1",
+       "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785",
+       "network-map" : [
+         {
+           "pid" : "PID1",
+           ...
+         },
+         {
+           "pid" : "PID3",
+           ...
+         }
+       ]
+     }
+   }
+
+2.5.5.2.  Example: Filtered Cost Map Service with Proposed select
+          Extension
+
+   To request the costs from sources PID1 and PID3 to destinations PID1
+   and PID2 of the cost map whose resource-id is myCostMap1, the
+   RESTCONF client may send the following request:
+
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 53]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+   GET /restconf/data/resources/cost-maps=myCostMap1 \
+     ?select=resource-id;tag;meta; \
+     cost-map=PID1(src;dst-costs=PID1;dst-costs=PID2); \
+     cost-map=PID3(src;dst-costs=PID1;dst-costs=PID2) \
+     &content=all HTTP/1.1
+   Host: alto.example.com
+   Accept: application/yang.data+json,
+           application/yang.errors+json
+
+
+   The expected response will then be:
+
+   HTTP/1.1 200 OK
+   Date: Mon, 31 Oct 2011 23:59:00 GMT
+   Server: example-alto-server
+   Cache-Control: no-cache
+   Pragma: no-cache
+   Content-Type: application/yang.data+json
+
+   {
+     "alto-service-restconf:cost-maps" : {
+       "resource-id" : "myCostMap1",
+       "tag" : "tus10ce8b0740a1938e3f8eb1d4785da65eca2",
+       "meta" : {
+         "dependent-vtags" : {
+           "resource-id" : "myNetMap1",
+           "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785"
+         }
+       },
+       "cost-map" : [
+         {
+           "src" : "PID1",
+           "dst-cost": [
+             {"dst":PID1, "cost":xx},
+             {"dst":PID2, "cost":xx}
+           ]
+         },
+         {
+           "pid" : "PID3",
+           "dst-cost": [
+             {"dst":PID1, "cost":xx},
+             {"dst":PID2, "cost":xx}
+           ]
+         }
+       ]
+     }
+   }
+
+
+
+
+Shi, et al.                Expires May 8, 2015                 [Page 54]
+
+Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
+
+
+3.  Non-Trivial Specification Efforts
+
+3.1.  YANG Expressiveness Issues
 
 3.1.1.  Limitation on Modeling JSON key-value store
 
@@ -2513,11 +3077,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-
-
-
-
-Shi, et al.                Expires May 8, 2015                 [Page 45]
+Shi, et al.                Expires May 8, 2015                 [Page 55]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2573,7 +3133,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 46]
+Shi, et al.                Expires May 8, 2015                 [Page 56]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2629,7 +3189,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 47]
+Shi, et al.                Expires May 8, 2015                 [Page 57]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2685,7 +3245,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 48]
+Shi, et al.                Expires May 8, 2015                 [Page 58]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2741,7 +3301,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 49]
+Shi, et al.                Expires May 8, 2015                 [Page 59]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2797,7 +3357,7 @@ module alto-service-types {
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 50]
+Shi, et al.                Expires May 8, 2015                 [Page 60]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2853,7 +3413,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 51]
+Shi, et al.                Expires May 8, 2015                 [Page 61]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2909,7 +3469,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 52]
+Shi, et al.                Expires May 8, 2015                 [Page 62]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -2965,7 +3525,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 53]
+Shi, et al.                Expires May 8, 2015                 [Page 63]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3021,7 +3581,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 54]
+Shi, et al.                Expires May 8, 2015                 [Page 64]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3077,7 +3637,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 55]
+Shi, et al.                Expires May 8, 2015                 [Page 65]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3133,7 +3693,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 56]
+Shi, et al.                Expires May 8, 2015                 [Page 66]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3189,7 +3749,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 57]
+Shi, et al.                Expires May 8, 2015                 [Page 67]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3245,7 +3805,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 58]
+Shi, et al.                Expires May 8, 2015                 [Page 68]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3301,7 +3861,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 59]
+Shi, et al.                Expires May 8, 2015                 [Page 69]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3357,7 +3917,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 60]
+Shi, et al.                Expires May 8, 2015                 [Page 70]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3413,7 +3973,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 61]
+Shi, et al.                Expires May 8, 2015                 [Page 71]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3469,7 +4029,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 62]
+Shi, et al.                Expires May 8, 2015                 [Page 72]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3525,7 +4085,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 63]
+Shi, et al.                Expires May 8, 2015                 [Page 73]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3581,7 +4141,7 @@ module alto-service-rpc {
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 64]
+Shi, et al.                Expires May 8, 2015                 [Page 74]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3637,7 +4197,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 65]
+Shi, et al.                Expires May 8, 2015                 [Page 75]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3693,7 +4253,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 66]
+Shi, et al.                Expires May 8, 2015                 [Page 76]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3749,7 +4309,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 67]
+Shi, et al.                Expires May 8, 2015                 [Page 77]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3805,7 +4365,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 68]
+Shi, et al.                Expires May 8, 2015                 [Page 78]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3861,7 +4421,7 @@ module alto-service-did {
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 69]
+Shi, et al.                Expires May 8, 2015                 [Page 79]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3917,7 +4477,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 70]
+Shi, et al.                Expires May 8, 2015                 [Page 80]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -3973,7 +4533,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 71]
+Shi, et al.                Expires May 8, 2015                 [Page 81]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4029,7 +4589,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 72]
+Shi, et al.                Expires May 8, 2015                 [Page 82]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4085,7 +4645,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 73]
+Shi, et al.                Expires May 8, 2015                 [Page 83]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4141,7 +4701,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 74]
+Shi, et al.                Expires May 8, 2015                 [Page 84]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4197,7 +4757,7 @@ module alto-service-netconf {
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 75]
+Shi, et al.                Expires May 8, 2015                 [Page 85]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4253,7 +4813,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 76]
+Shi, et al.                Expires May 8, 2015                 [Page 86]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4309,7 +4869,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 77]
+Shi, et al.                Expires May 8, 2015                 [Page 87]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4365,7 +4925,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 78]
+Shi, et al.                Expires May 8, 2015                 [Page 88]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4421,7 +4981,7 @@ module alto-service-restconf {
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 79]
+Shi, et al.                Expires May 8, 2015                 [Page 89]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4477,7 +5037,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 80]
+Shi, et al.                Expires May 8, 2015                 [Page 90]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4533,7 +5093,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 81]
+Shi, et al.                Expires May 8, 2015                 [Page 91]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4589,7 +5149,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 82]
+Shi, et al.                Expires May 8, 2015                 [Page 92]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4645,7 +5205,7 @@ Appendix B.  YANG-Validated JSON Messages for ALTO Examples
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 83]
+Shi, et al.                Expires May 8, 2015                 [Page 93]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4701,7 +5261,7 @@ B.1.  IRD Response Example
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 84]
+Shi, et al.                Expires May 8, 2015                 [Page 94]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4757,7 +5317,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 85]
+Shi, et al.                Expires May 8, 2015                 [Page 95]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4813,7 +5373,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 86]
+Shi, et al.                Expires May 8, 2015                 [Page 96]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4869,7 +5429,7 @@ B.2.  Network Map Service Response Example
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 87]
+Shi, et al.                Expires May 8, 2015                 [Page 97]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4925,7 +5485,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 88]
+Shi, et al.                Expires May 8, 2015                 [Page 98]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -4981,7 +5541,7 @@ B.3.  Filtered Cost Map Response Example
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 89]
+Shi, et al.                Expires May 8, 2015                 [Page 99]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -5037,7 +5597,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 90]
+Shi, et al.                Expires May 8, 2015                [Page 100]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -5093,7 +5653,7 @@ B.4.  Endpoint Property Service Response Example
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 91]
+Shi, et al.                Expires May 8, 2015                [Page 101]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -5149,7 +5709,7 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 92]
+Shi, et al.                Expires May 8, 2015                [Page 102]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -5205,7 +5765,7 @@ Authors' Addresses
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 93]
+Shi, et al.                Expires May 8, 2015                [Page 103]
 
 Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
@@ -5261,4 +5821,4 @@ Internet-Draft YANG Model for Base ALTO Data and Services  November 2014
 
 
 
-Shi, et al.                Expires May 8, 2015                 [Page 94]
+Shi, et al.                Expires May 8, 2015                [Page 104]

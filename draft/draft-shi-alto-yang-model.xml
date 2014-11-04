@@ -511,7 +511,7 @@ rpcs:
         <t>
           Using this approach, implementing an ALTO server is almost effortless; nevertheless, there are certain limitations to this approach. NETCONF requires an open ssh connection while the ALTO protocol uses a RESTful design. The scalability is questionable, as the running datastore must be stored or translated to XML to enable XML manipulation in RPC. The extensibility is also a concern, as there are limitation of NETCONF standard operations and XML manipulation. For example, the endpoint cost service would be difficult or inefficient to realize using NETCONF standard operations.
         </t>
-        <section title="Tree Diagram for alto-service-netconf" anchor="YANGNETCONFTREE">
+        <section title="Tree Diagram for ALTO/YANG with NETCONF" anchor="YANGNETCONFTREE">
 <figure><artwork><![CDATA[                            
 module: alto-service-netconf
    +--ro resources
@@ -1704,24 +1704,471 @@ rpcs:
 
 <figure><artwork><![CDATA[
       GET /<restconf>/<path>?<query>
-
-         ^       ^        ^       ^  
-         |       |        |       |  
-       method  entry  resource  query
-
-         M       M        O        O 
+       ^       ^        ^       ^  
+       |       |        |       |  
+     method  entry  resource  query
+       M       M        O       O 
 
        M=mandatory, O=optional
-
        <text> replaced by client with real values
 ]]></artwork></figure>
         <t>
           The particular relevant components are the path component and the query component. The goal of the path component (Section 2.5.1 of <xref target="RESTCONF"/>) is to identify a single node (referred to as the target resource) in the data tree. This is different from xpath, whose basic Location Path concept is built on node set; that is, the goal of xpath is to identify a set of nodes (address parts of an XML document), not a single node. The query component (Section 3.8 of <xref target="RESTCONF"/>) consists of a set of "name=value" pairs, with a given set of names (query parameters) to control the query behavior. A particularly relevant parameter is select, which allows a client to request a subset of the target resource contents. The exact syntax of select is specified in Section 3.8.4 of <xref target="RESTCONF"/>. Note that all query parameters are optional to implement by the server and optional to use by the client.
         </t>
 
+        <section title="Tree Diagram for ALTO/YANG with RESTCONF" anchor="YANGRESTCONFTREE">
+          <t>
+            This model is identical with alto-service-netconf, except for the addition of the filtered map service RPCs and endpoint property service RPC.
+          </t>
+<figure><artwork><![CDATA[
+module: alto-service-restconf
+   +--ro resources
+      +--ro IRD
+      |  +--ro meta
+      |  |  +--ro cost-types* [cost-type-name]
+      |  |  |  +--ro cost-type-name    cost-type-name
+      |  |  |  +--ro cost-mode         cost-mode
+      |  |  |  +--ro cost-metric       cost-metric
+      |  |  |  +--ro description?      string
+      |  |  +--ro default-alto-network-map    resource-id
+      |  +--ro resources* [resource-id]
+      |     +--ro resource-id     resource-id
+      |     +--ro uri             inet:uri
+      |     +--ro media-type      media-type
+      |     +--ro accepts*        media-type
+      |     +--ro capabilities
+      |     |  +--ro cost-constraints?   boolean
+      |     |  +--ro cost-type-names*    cost-type-name
+      |     |  +--ro prop-types*         endpoint-property-type
+      |     +--ro uses*           resource-id
+      +--ro network-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro network-map* [pid]
+      |     +--ro pid                       pid-name
+      |     +--ro endpoint-address-group* [address-type]
+      |        +--ro address-type       endpoint-address-type
+      |        +--ro endpoint-prefix*   endpoint-prefix
+      +--ro cost-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro meta
+      |  |  +--ro dependent-vtags*
+      |  |  |  +--ro resource-id    resource-id
+      |  |  |  +--ro tag            tag-string
+      |  |  +--ro cost-type
+      |  |     +--ro cost-mode      cost-mode
+      |  |     +--ro cost-metric    cost-metric
+      |  |     +--ro description?   string
+      |  +--ro cost-map* [src]
+      |     +--ro src          pid-name
+      |     +--ro dst-costs* [dst]
+      |        +--ro dst     pid-name
+      |        +--ro cost    
+      +--ro endpoint-property-map
+         +--ro meta
+         |  +--ro dependent-vtags*
+         |     +--ro resource-id    resource-id
+         |     +--ro tag            tag-string
+         +--ro endpoint-properties* [endpoint]
+            +--ro endpoint      typed-endpoint-address
+            +--ro properties* [property-type]
+               +--ro property-type    endpoint-property-type
+               +--ro property         endpoint-property-value
+rpcs:
+   +---x filtered-network-map-service    
+   |  +--ro input     
+   |  |  +--ro pids*            alto:pid-name
+   |  |  +--ro address-types*   alto:endpoint-address-type
+   |  +--ro output    
+   |     +--ro filtered-network-map-service
+   |        +--ro meta
+   |        |  +--ro vtag
+   |        |     +--ro resource-id    resource-id
+   |        |     +--ro tag            tag-string
+   |        +--ro network-map* [pid]
+   |           +--ro pid                       pid-name
+   |           +--ro endpoint-address-group* [address-type]
+   |              +--ro address-type       endpoint-address-type
+   |              +--ro endpoint-prefix*   endpoint-prefix
+   +---x filtered-cost-map-service       
+   |  +--ro input     
+   |  |  +--ro cost-type
+   |  |  |  +--ro cost-mode      cost-mode
+   |  |  |  +--ro cost-metric    cost-metric
+   |  |  |  +--ro description?   string
+   |  |  +--ro constraints*   alto:constraint
+   |  |  +--ro pids
+   |  |     +--ro srcs*   alto:pid-name
+   |  |     +--ro dsts*   alto:pid-name
+   |  +--ro output    
+   |     +--ro filtered-cost-map-service
+   |        +--ro meta
+   |        |  +--ro dependent-vtags*
+   |        |  |  +--ro resource-id    resource-id
+   |        |  |  +--ro tag            tag-string
+   |        |  +--ro cost-type
+   |        |     +--ro cost-mode      cost-mode
+   |        |     +--ro cost-metric    cost-metric
+   |        |     +--ro description?   string
+   |        +--ro cost-map* [src]
+   |           +--ro src          pid-name
+   |           +--ro dst-costs* [dst]
+   |              +--ro dst     pid-name
+   |              +--ro cost    
+   +---x endpoint-property-service       
+   |  +--ro input     
+   |  |  +--ro properties*   alto:endpoint-property-type
+   |  |  +--ro endpoints*    alto:typed-endpoint-address
+   |  +--ro output    
+   |     +--ro endpoint-property-service
+   |        +--ro meta
+   |        |  +--ro dependent-vtags*
+   |        |     +--ro resource-id    resource-id
+   |        |     +--ro tag            tag-string
+   |        +--ro endpoint-properties* [endpoint]
+   |           +--ro endpoint      typed-endpoint-address
+   |           +--ro properties* [property-type]
+   |              +--ro property-type    endpoint-property-type
+   |              +--ro property         endpoint-property-value
+   +---x endpoint-cost-service           
+      +--ro input     
+      |  +--ro cost-type
+      |  |  +--ro cost-mode      cost-mode
+      |  |  +--ro cost-metric    cost-metric
+      |  |  +--ro description?   string
+      |  +--ro constraints*   alto:constraint
+      |  +--ro endpoints
+      |     +--ro srcs*   alto:typed-endpoint-address
+      |     +--ro dsts*   alto:typed-endpoint-address
+      +--ro output    
+         +--ro endpoint-cost-service
+            +--ro meta
+            |  +--ro cost-type
+            |     +--ro cost-mode      cost-mode
+            |     +--ro cost-metric    cost-metric
+            |     +--ro description?   string
+            +--ro endpoint-cost-map* [src]
+               +--ro src          alto:typed-endpoint-address
+               +--ro dst-costs* [dst]
+                  +--ro dst     alto:typed-endpoint-address
+                  +--ro cost    
+]]></artwork></figure>
+        </section>
+
+        <section title="Full Network Map Service Using RESTCONF">
+          <t>
+            First consider the full network map service. Mapping Syntax: To request a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request.
+          </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/alto-service-restconf:resources \
+  /network-maps=INPUT-NETWORK-MAP-RESOURCE-ID?content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
+]]></artwork></figure>
+          <t>
+            An example query for a network map whose resource-id is myNetMap1 is:
+          </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/alto-service-restconf:resources \
+  /network-maps=myNetMap1?content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
+]]></artwork></figure>
+          <t>
+            An example response from a RESTCONF server can be:
+          </t>
+<figure><artwork><![CDATA[
+HTTP/1.1 200 OK
+Date: Mon, 31 Oct 2011 23:59:00 GMT
+Server: example-alto-server
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Type: application/yang.data+json
+
+{
+  "alto-service-restconf:network-maps" : {
+    "resource-id" : "myNetMap1",
+    "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785",
+    "network-map": [
+      {
+        "pid": "PID1",
+        "endpoint-address-group": {
+          "address-type": "ipv4",
+          "endpoint-prefix": [
+            "192.0.2.0/24",
+            "198.51.100.0/25"
+          ]
+        }
+      },
+      {
+        "pid": "PID2",
+        "endpoint-address-group": {
+          "address-type": "ipv4",
+          "endpoint-prefix": ["198.51.100.128/25"]
+        }
+      },
+      {
+        "pid": "PID3",
+        "endpoint-address-group": [
+          {
+            "address-type": "ipv4",
+            "endpoint-prefix": ["0.0.0.0/0"]
+          },
+          {
+            "address-type": "ipv6",
+            "endpoint-prefix": ["::/0"]
+          }
+        ]
+      }
+    ]
+  }
+}
+]]></artwork></figure>
+        </section>
+
+        <section title="Full Cost Map Service Using RESTCONF">
+          <t>
+            Then consider the full cost map service. Mapping Syntax: To request a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request.
+          </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/alto-service-restconf:resources \
+  /cost-maps=INPUT-COST-MAP-RESOURCE-ID?content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
+]]></artwork></figure>
+
+          <t>
+            An example query for a cost map whose resource-id is myCostMap1:
+          </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/alto-service-restconf:resources \
+  /cost-maps=myCostMap1?content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
+]]></artwork></figure>
+          <t>
+            An example response from the server will then be:
+          </t>
+<figure><artwork><![CDATA[
+HTTP/1.1 200 OK
+Date: Mon, 31 Oct 2011 23:59:00 GMT
+Server: example-alto-server
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Type: application/yang.data+json
+
+{
+  "alto-service-restconf:cost-maps" : {
+    "resource-id" : "myCostMap1",
+    "tag" : "tus10ce8b0740a1938e3f8eb1d4785da65eca2",
+    "meta": {
+      "dependent-vtags": {
+        "resource-id": "my-default-network-map",
+        "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+      },
+      "cost-type": {
+        "cost-mode": "numerical",
+        "cost-metric": "routingcost"
+      }
+    },
+    "cost-map": [
+      {
+        "src": "PID1",
+        "dst-costs": [
+          {
+            "dst": "PID1",
+            "cost": "1"
+          },
+          {
+            "dst": "PID2",
+            "cost": "5"
+          },
+          {
+            "dst": "PID3",
+            "cost": "10"
+          }
+        ]
+      },
+      {
+        "src": "PID2",
+        "dst-costs": [
+          {
+            "dst": "PID1",
+            "cost": "5"
+          },
+          {
+            "dst": "PID2",
+            "cost": "1"
+          },
+          {
+            "dst": "PID3",
+            "cost": "15"
+          }
+        ]
+      },
+      {
+        "src": "PID3",
+        "dst-costs": [
+          {
+            "dst": "PID1",
+            "cost": "20"
+          },
+          {
+            "dst": "PID2",
+            "cost": "15"
+          }
+        ]
+      }
+    ]
+  }
+}
+]]></artwork></figure>
+
+        </section>
+
+        <section title="Impossibility to Encode Filtered Maps and Endpoint Properties using Standard RESTCONF Query">
+          <t>
+            Although the preceding sections provided templates to implement full network and cost map services using standard operations in RESTCONF, it is not possible to do so for the filtered map services or the endpoint property service. 
+          </t>
+          <t>
+            Specifically, supporting the filtered map services requires the ability to select multiple nodes from the data tree based on the data content. Recall that the path component in the uri can return only a single node. Hence, the only component that allows one to select multiple nodes is the query component, specifically, the select query parameter. However, the definition of the select expression (Section 3.8.4 of <xref target="RESTCONF"/>) only includes terms defined in a schema, not any data content (i.e., select does not include any content match capabilities). Hence, it is impossible to implement filtered maps.
+          </t>
+        </section>
+
+        <section title="A Potential Extension to RESTCONF to Handle Filtered Maps and Endpoint Properties Services">
+          <t>
+            In order to provide filtered map services and endpoint property service, we need to enable the "select" query parameter to match content. In particular, we propose to incorporate the list-instance from the "path" component, which identifies an instance (element) in the list by its key(s). 
+          </t>
+          <t>
+            The original ABNF grammar for the select query expression is defined in Section 3.8.4 of <xref target="RESTCONF"/>:
+          </t>
+<figure><artwork><![CDATA[
+select-expr = path '(' select-expr / '*' ')' /
+              path ';' select-expr /
+              path
+path = api-identifier [ '/' path ]
+]]></artwork></figure>
+          <t>
+            Our proposed extension is the following, where list-instance is defined in Section 2.5.1.1 of <xref target="RESTCONF"/>. To avoid ambiguity, the key-value string MUST not contain left parenthesis ‘(‘, right parenthesis ‘)’, semi-colon ‘;’, asterisk ‘*’, or comma ‘,’.
+          </t>
+<figure><artwork><![CDATA[
+select-expr = path '(' select-expr / '*' ')' /
+              path ';' select-expr /
+              path
+path = (api-identifier | list-instance) [ '/' path ]
+list-instance = api-identifier "=" key-value ["," key-value]*
+key-value = string
+]]></artwork></figure>
+
+          <section title="Example: Filtered Network Map Service with Proposed select Extension">
+            <t>
+              To request PID1 and PID3 of the network map whose resource-id is myNetMap1, the RESTCONF client may send the following request:
+            </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/resources/network-maps=myNetMap1 \
+  ?select=resource-id;tag;network-map=PID1; \
+  network-map=PID3&content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
+
+]]></artwork></figure>
+            <t>
+              The expected response will then be:
+            </t>
+<figure><artwork><![CDATA[
+HTTP/1.1 200 OK
+Date: Mon, 31 Oct 2011 23:59:00 GMT
+Server: example-alto-server
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Type: application/yang.data+json
+
+{
+  "alto-service-restconf:network-maps" : {
+    "resource-id" : "myNetMap1",
+    "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785",
+    "network-map" : [
+      {
+        "pid" : "PID1",
+        ...
+      },
+      {
+        "pid" : "PID3",
+        ...
+      }
+    ]
+  }
+}
+]]></artwork></figure>
+
+          </section>
 
 
+          <section title="Example: Filtered Cost Map Service with Proposed select Extension">
+            <t>
+              To request the costs from sources PID1 and PID3 to destinations PID1 and PID2 of the cost map whose resource-id is myCostMap1, the RESTCONF client may send the following request:
+            </t>
+<figure><artwork><![CDATA[
+GET /restconf/data/resources/cost-maps=myCostMap1 \
+  ?select=resource-id;tag;meta; \
+  cost-map=PID1(src;dst-costs=PID1;dst-costs=PID2); \
+  cost-map=PID3(src;dst-costs=PID1;dst-costs=PID2) \
+  &content=all HTTP/1.1
+Host: alto.example.com
+Accept: application/yang.data+json,
+        application/yang.errors+json
 
+]]></artwork></figure>
+            <t>
+              The expected response will then be:
+            </t>
+<figure><artwork><![CDATA[
+HTTP/1.1 200 OK
+Date: Mon, 31 Oct 2011 23:59:00 GMT
+Server: example-alto-server
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Type: application/yang.data+json
+
+{
+  "alto-service-restconf:cost-maps" : {
+    "resource-id" : "myCostMap1",
+    "tag" : "tus10ce8b0740a1938e3f8eb1d4785da65eca2",
+    "meta" : {
+      "dependent-vtags" : {
+        "resource-id" : "myNetMap1",
+        "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785"
+      }
+    },
+    "cost-map" : [
+      {
+        "src" : "PID1",
+        "dst-cost": [
+          {"dst":PID1, "cost":xx},
+          {"dst":PID2, "cost":xx}
+        ]
+      },
+      {
+        "pid" : "PID3",
+        "dst-cost": [
+          {"dst":PID1, "cost":xx},
+          {"dst":PID2, "cost":xx}
+        ]
+      }
+    ]
+  }
+}
+]]></artwork></figure>
+
+          </section>
+
+        </section> <!--potential extension -->
       </section>
 
     </section> <!-- Model Structure Section -->
