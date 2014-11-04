@@ -28,7 +28,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -42,7 +42,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -61,7 +61,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -82,7 +82,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -101,7 +101,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro endpoint-properties* [endpoint]
    |           +--ro endpoint      typed-endpoint-address
    |           +--ro properties* [property-type]

@@ -52,53 +52,7 @@ module alto-service-netconf {
       must "current()";
       uses alto:cost-map-meta;
     }
-    uses cost-map-data;
-  }
-
-  grouping cost-map-data {
-    list cost-map {
-      key "src dst";
-      leaf src {
-        type alto:pid-name;
-        description
-          "Source PID.";
-      }
-      leaf dst {
-        type alto:pid-name;
-        description
-          "Destination PID.";
-      }
-      uses alto:alto-cost {
-        description
-          "Cost from source to destination.";
-      }
-    }
-  }
-
-  /* Endpoint Property Map Grouping */
-  grouping endpoint-property-map {
-    container meta {
-      uses alto:endpoint-property-meta;
-    }
-    uses endpoint-property-map-data;
-  }
-
-  grouping endpoint-property-map-data {
-    list endpoint-properties {
-      key "endpoint property-type";
-      leaf endpoint {
-        type alto:typed-endpoint-address;
-        mandatory true;
-      }
-      leaf property-type {
-        type alto:endpoint-property-type;
-        mandatory true;
-      }
-      leaf property {
-        type alto:endpoint-property-value;
-        mandatory true;
-      }
-    }
+    uses alto:cost-map-data;
   }
 
   grouping resources-netconf {
@@ -117,7 +71,7 @@ module alto-service-netconf {
     }
 
     container endpoint-property-map {
-      uses endpoint-property-map;
+      uses alto:endpoint-property-map;
     }
   }
 

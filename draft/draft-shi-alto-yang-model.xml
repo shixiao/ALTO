@@ -7,7 +7,7 @@
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
 <rfc category="info"
-     docName="draft-shi-alto-yang-model-00" 
+     docName="draft-shi-alto-yang-model-01" 
      ipr="trust200902">
   <front>
     <title abbrev="YANG Model for Base ALTO Data and Services">
@@ -50,7 +50,7 @@
         <email>michael.scharf@alcatel-lucent.com</email>
       </address>
     </author>
-    <date month="October" year="2014"/>
+    <date month="November" year="2014"/>
     <area>Networks</area>
     <workgroup>ALTO Working Group</workgroup>
     <keyword>ALTO</keyword>
@@ -147,13 +147,15 @@
       We refer to this as the standard operations aspect. In YANG related efforts, 
       NETCONF and RESTCONF each tries to provide some of these standard operations (e.g., RESTCONF query). 
       To utilize this aspect, the YANG specification need to be "embedded" in the chosen 
-      specification (e.g., NETCONF). In Section <xref target="YANGNETCONF"/>, we discuss specification by 
-      considering that the YANG model has the support of "standard operations" defined in RESTCONF. This document 
-      does not provide a specific specification, and will do so in the next version.
+      specification (e.g., NETCONF). In Sections <xref target="YANGNETCONF"/> and <xref target="YANGRESTCONF"/>, we discuss specification by considering that the YANG model has the support of "standard operations" defined in NETCONF and RESTCONF. This document does not provide a specific specification, and will do so in the next version.
     </t>
+
+    <t>
+      Some of the common type definitions and groupings for ALTO/YANG are defined in the Appendix.
+    </t>
+
     </section>
 
-   
     <section title="ALTO/YANG using only RFC Specification" anchor="YANGRPC">
       
       <t>
@@ -191,7 +193,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -205,7 +207,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -217,14 +219,14 @@ rpcs:
    |              +--ro cost    
    +---x filtered-network-map-service    
    |  +--ro input     
-   |  |  +--ro pids*            pid-name
-   |  |  +--ro address-types*   endpoint-address-type
+   |  |  +--ro pids*            alto:pid-name
+   |  |  +--ro address-types*   alto:endpoint-address-type
    |  +--ro output    
    |     +--ro filtered-network-map-service
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -236,16 +238,16 @@ rpcs:
    |  |  |  +--ro cost-mode      cost-mode
    |  |  |  +--ro cost-metric    cost-metric
    |  |  |  +--ro description?   string
-   |  |  +--ro constraints*   constraint
+   |  |  +--ro constraints*   alto:constraint
    |  |  +--ro pids
-   |  |     +--ro srcs*   pid-name
-   |  |     +--ro dsts*   pid-name
+   |  |     +--ro srcs*   alto:pid-name
+   |  |     +--ro dsts*   alto:pid-name
    |  +--ro output    
    |     +--ro filtered-cost-map-service
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -257,14 +259,14 @@ rpcs:
    |              +--ro cost    
    +---x endpoint-property-service       
    |  +--ro input     
-   |  |  +--ro properties*   endpoint-property-type
-   |  |  +--ro endpoints*    typed-endpoint-address
+   |  |  +--ro properties*   alto:endpoint-property-type
+   |  |  +--ro endpoints*    alto:typed-endpoint-address
    |  +--ro output    
    |     +--ro endpoint-property-service
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro endpoint-properties* [endpoint]
    |           +--ro endpoint      typed-endpoint-address
    |           +--ro properties* [property-type]
@@ -276,10 +278,10 @@ rpcs:
       |  |  +--ro cost-mode      cost-mode
       |  |  +--ro cost-metric    cost-metric
       |  |  +--ro description?   string
-      |  +--ro constraints*   constraint
+      |  +--ro constraints*   alto:constraint
       |  +--ro endpoints
-      |     +--ro srcs*   typed-endpoint-address
-      |     +--ro dsts*   typed-endpoint-address
+      |     +--ro srcs*   alto:typed-endpoint-address
+      |     +--ro dsts*   alto:typed-endpoint-address
       +--ro output    
          +--ro endpoint-cost-service
             +--ro meta
@@ -288,9 +290,9 @@ rpcs:
             |     +--ro cost-metric    cost-metric
             |     +--ro description?   string
             +--ro endpoint-cost-map* [src]
-               +--ro src          typed-endpoint-address
+               +--ro src          alto:typed-endpoint-address
                +--ro dst-costs* [dst]
-                  +--ro dst     typed-endpoint-address
+                  +--ro dst     alto:typed-endpoint-address
                   +--ro cost    
 ]]></artwork></figure>
     
@@ -317,7 +319,7 @@ module: alto-service-did
       |  |  |  +--ro cost-mode         cost-mode
       |  |  |  +--ro cost-metric       cost-metric
       |  |  |  +--ro description?      string
-      |  |  +--ro default-alto-network-map    leafref
+      |  |  +--ro default-alto-network-map    resource-id
       |  +--ro resources* [resource-id]
       |     +--ro resource-id     resource-id
       |     +--ro uri             inet:uri
@@ -327,12 +329,12 @@ module: alto-service-did
       |     |  +--ro cost-constraints?   boolean
       |     |  +--ro cost-type-names*    cost-type-name
       |     |  +--ro prop-types*         endpoint-property-type
-      |     +--ro uses*           leafref
+      |     +--ro uses*           resource-id
       +--ro network-maps*
       |  +--ro meta
       |  |  +--ro vtag
       |  |     +--ro resource-id    resource-id
-      |  |     +--ro tag            string
+      |  |     +--ro tag            tag-string
       |  +--ro network-map* [pid]
       |     +--ro pid                       pid-name
       |     +--ro endpoint-address-group* [address-type]
@@ -342,7 +344,7 @@ module: alto-service-did
       |  +--ro meta
       |  |  +--ro dependent-vtags*
       |  |  |  +--ro resource-id    resource-id
-      |  |  |  +--ro tag            string
+      |  |  |  +--ro tag            tag-string
       |  |  +--ro cost-type
       |  |     +--ro cost-mode      cost-mode
       |  |     +--ro cost-metric    cost-metric
@@ -356,7 +358,7 @@ module: alto-service-did
          +--ro meta
          |  +--ro dependent-vtags*
          |     +--ro resource-id    resource-id
-         |     +--ro tag            string
+         |     +--ro tag            tag-string
          +--ro endpoint-properties* [endpoint]
             +--ro endpoint      typed-endpoint-address
             +--ro properties* [property-type]
@@ -372,7 +374,7 @@ rpcs:
    |        |  |  +--ro cost-mode         cost-mode
    |        |  |  +--ro cost-metric       cost-metric
    |        |  |  +--ro description?      string
-   |        |  +--ro default-alto-network-map    leafref
+   |        |  +--ro default-alto-network-map    resource-id
    |        +--ro resources* [resource-id]
    |           +--ro resource-id     resource-id
    |           +--ro uri             inet:uri
@@ -382,7 +384,7 @@ rpcs:
    |           |  +--ro cost-constraints?   boolean
    |           |  +--ro cost-type-names*    cost-type-name
    |           |  +--ro prop-types*         endpoint-property-type
-   |           +--ro uses*           leafref
+   |           +--ro uses*           resource-id
    +---x network-map-service             
    |  +--ro input     
    |  |  +--ro uri    leafref
@@ -391,7 +393,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -405,7 +407,7 @@ rpcs:
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -417,14 +419,14 @@ rpcs:
    |              +--ro cost    
    +---x filtered-network-map-service    
    |  +--ro input     
-   |  |  +--ro pids*            pid-name
-   |  |  +--ro address-types*   endpoint-address-type
+   |  |  +--ro pids*            alto:pid-name
+   |  |  +--ro address-types*   alto:endpoint-address-type
    |  +--ro output    
    |     +--ro filtered-network-map-service
    |        +--ro meta
    |        |  +--ro vtag
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro network-map* [pid]
    |           +--ro pid                       pid-name
    |           +--ro endpoint-address-group* [address-type]
@@ -436,16 +438,16 @@ rpcs:
    |  |  |  +--ro cost-mode      cost-mode
    |  |  |  +--ro cost-metric    cost-metric
    |  |  |  +--ro description?   string
-   |  |  +--ro constraints*   constraint
+   |  |  +--ro constraints*   alto:constraint
    |  |  +--ro pids
-   |  |     +--ro srcs*   pid-name
-   |  |     +--ro dsts*   pid-name
+   |  |     +--ro srcs*   alto:pid-name
+   |  |     +--ro dsts*   alto:pid-name
    |  +--ro output    
    |     +--ro filtered-cost-map-service
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |  |  +--ro resource-id    resource-id
-   |        |  |  +--ro tag            string
+   |        |  |  +--ro tag            tag-string
    |        |  +--ro cost-type
    |        |     +--ro cost-mode      cost-mode
    |        |     +--ro cost-metric    cost-metric
@@ -457,14 +459,14 @@ rpcs:
    |              +--ro cost    
    +---x endpoint-property-service       
    |  +--ro input     
-   |  |  +--ro properties*   endpoint-property-type
-   |  |  +--ro endpoints*    typed-endpoint-address
+   |  |  +--ro properties*   alto:endpoint-property-type
+   |  |  +--ro endpoints*    alto:typed-endpoint-address
    |  +--ro output    
    |     +--ro endpoint-property-service
    |        +--ro meta
    |        |  +--ro dependent-vtags*
    |        |     +--ro resource-id    resource-id
-   |        |     +--ro tag            string
+   |        |     +--ro tag            tag-string
    |        +--ro endpoint-properties* [endpoint]
    |           +--ro endpoint      typed-endpoint-address
    |           +--ro properties* [property-type]
@@ -476,10 +478,10 @@ rpcs:
       |  |  +--ro cost-mode      cost-mode
       |  |  +--ro cost-metric    cost-metric
       |  |  +--ro description?   string
-      |  +--ro constraints*   constraint
+      |  +--ro constraints*   alto:constraint
       |  +--ro endpoints
-      |     +--ro srcs*   typed-endpoint-address
-      |     +--ro dsts*   typed-endpoint-address
+      |     +--ro srcs*   alto:typed-endpoint-address
+      |     +--ro dsts*   alto:typed-endpoint-address
       +--ro output    
          +--ro endpoint-cost-service
             +--ro meta
@@ -488,29 +490,16 @@ rpcs:
             |     +--ro cost-metric    cost-metric
             |     +--ro description?   string
             +--ro endpoint-cost-map* [src]
-               +--ro src          typed-endpoint-address
+               +--ro src          alto:typed-endpoint-address
                +--ro dst-costs* [dst]
-                  +--ro dst     typed-endpoint-address
+                  +--ro dst     alto:typed-endpoint-address
                   +--ro cost    
 ]]></artwork></figure>
       </section>
 
-      <section title="ALTO/YANG with Integration with NETCONF/RESTCONF" anchor="YANGNETCONF">
-        <!-- place holder -->
-        <t>
-          Our next model considers standard operations. In other words, if an RPC can be implemented using a standard operation, the model may use the standard operation and not specify the RPC. 
-        </t>
-
-        <t>
-          Consider NETCONF. One may use the NETCONF &lt;get&gt; operation to retrieve the full ALTO network map, cost map, and the Information Resource Directory; with the &lt;filter&gt; parameter, NETCONF may retrieve filtered maps as well as endpoint properties. Hence, one may omit the corresponding RPCs defined in alto-service-did. The exact encoding of using "standard operations", however, can be less compact.
-        </t>
-      </section>
-
-<!--
       <section title="ALTO/YANG with Integration with NETCONF" anchor="YANGNETCONF">
         <t>
-           The last model considers standard operations. In other words, if an RPC can be implemented 
-           using a standard operation, the model should use the standard operation and not specify the RPC.
+           Our next model considers standard operations. In other words, if an RPC can be implemented using a standard operation, the model should use the standard operation and not specify an additional RPC. Since the available standard operations depend on the particular protocol, we consider NETCONF <xref target="RFC6241"/> and RESTCONF separately. In this section, we consider NETCONF, and in the next RESTCONF. When we consider the mapping of an ALTO service to a standard operation in NETCONF or RESTCONF, we try to enumerate all possibilities.
         </t>
 
         <t>
@@ -522,17 +511,1219 @@ rpcs:
         <t>
           Using this approach, implementing an ALTO server is almost effortless; nevertheless, there are certain limitations to this approach. NETCONF requires an open ssh connection while the ALTO protocol uses a RESTful design. The scalability is questionable, as the running datastore must be stored or translated to XML to enable XML manipulation in RPC. The extensibility is also a concern, as there are limitation of NETCONF standard operations and XML manipulation. For example, the endpoint cost service would be difficult or inefficient to realize using NETCONF standard operations.
         </t>
+        <section title="Tree Diagram for alto-service-netconf" anchor="YANGNETCONFTREE">
+<figure><artwork><![CDATA[                            
+module: alto-service-netconf
+   +--ro resources
+      +--ro IRD
+      |  +--ro meta
+      |  |  +--ro cost-types* [cost-type-name]
+      |  |  |  +--ro cost-type-name    cost-type-name
+      |  |  |  +--ro cost-mode         cost-mode
+      |  |  |  +--ro cost-metric       cost-metric
+      |  |  |  +--ro description?      string
+      |  |  +--ro default-alto-network-map    resource-id
+      |  +--ro resources* [resource-id]
+      |     +--ro resource-id     resource-id
+      |     +--ro uri             inet:uri
+      |     +--ro media-type      media-type
+      |     +--ro accepts*        media-type
+      |     +--ro capabilities
+      |     |  +--ro cost-constraints?   boolean
+      |     |  +--ro cost-type-names*    cost-type-name
+      |     |  +--ro prop-types*         endpoint-property-type
+      |     +--ro uses*           resource-id
+      +--ro network-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro network-map* [pid]
+      |     +--ro pid                       pid-name
+      |     +--ro endpoint-address-group* [address-type]
+      |        +--ro address-type       endpoint-address-type
+      |        +--ro endpoint-prefix*   endpoint-prefix
+      +--ro cost-maps* [resource-id]
+      |  +--ro resource-id    alto:resource-id
+      |  +--ro tag            alto:tag-string
+      |  +--ro meta
+      |  |  +--ro dependent-vtags*
+      |  |  |  +--ro resource-id    resource-id
+      |  |  |  +--ro tag            tag-string
+      |  |  +--ro cost-type
+      |  |     +--ro cost-mode      cost-mode
+      |  |     +--ro cost-metric    cost-metric
+      |  |     +--ro description?   string
+      |  +--ro cost-map* [src]
+      |     +--ro src          pid-name
+      |     +--ro dst-costs* [dst]
+      |        +--ro dst     pid-name
+      |        +--ro cost    
+      +--ro endpoint-property-map
+         +--ro meta
+         |  +--ro dependent-vtags*
+         |     +--ro resource-id    resource-id
+         |     +--ro tag            tag-string
+         +--ro endpoint-properties* [endpoint]
+            +--ro endpoint      typed-endpoint-address
+            +--ro properties* [property-type]
+               +--ro property-type    endpoint-property-type
+               +--ro property         endpoint-property-value
+rpcs:
+   +---x endpoint-cost-service    
+      +--ro input     
+      |  +--ro cost-type
+      |  |  +--ro cost-mode      cost-mode
+      |  |  +--ro cost-metric    cost-metric
+      |  |  +--ro description?   string
+      |  +--ro constraints*   alto:constraint
+      |  +--ro endpoints
+      |     +--ro srcs*   alto:typed-endpoint-address
+      |     +--ro dsts*   alto:typed-endpoint-address
+      +--ro output    
+         +--ro endpoint-cost-service
+            +--ro meta
+            |  +--ro cost-type
+            |     +--ro cost-mode      cost-mode
+            |     +--ro cost-metric    cost-metric
+            |     +--ro description?   string
+            +--ro endpoint-cost-map* [src]
+               +--ro src          alto:typed-endpoint-address
+               +--ro dst-costs* [dst]
+                  +--ro dst     alto:typed-endpoint-address
+                  +--ro cost    
+]]></artwork></figure>
+        </section>
+
+        <section title="Full Network Map Service using NETCONF">
+          <t>
+            First consider the network map service. Assume a YANG model specified as alto-service-netconf (see Appendix <xref target="ALTOYANGNETCONFMODEL"/>), with its tree diagram in Section <xref target="YANGNETCONFTREE"/>.
+          </t>
+
+          <t>
+            NETCONF has provided two RPCs to retrieve data: the &lt;get&gt; operation and the &lt;get-config&gt; operation. The &lt;get&gt; operation can be used to retrieve both configuration data and state data, whereas the &lt;get-config&gt; operation is used to retrieve configuration data only. Since ALTO resources are assumed to be read-only state data, at the current design, we use the &lt;get&gt; operation. The &lt;get&gt; operation defines two filter types in the NETCONF base protocol <xref target="RFC6241" />, subtree filtering and XPATH capabilities. Hence we consider both types.
+          </t>
+          
+          <section title="Approach 1: Using Subtree Filtering">
+            <t>
+              To retrieve a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+
+
+<figure><artwork><![CDATA[                            
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <network-maps>
+          <resource-id>INPUT-NETWORK-MAP-RESOURCE-ID</resource-id>
+          <tag/>
+          <network-map/>
+        </network-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+
+            <t>
+              One can observe that the query mapping specifies not only the resource-id as a content matching node, but also the tag and network-map nodes, as two selection nodes, to indicate that these two fields should be included in the filter output. A simpler mapping, using the default processing of filtering output (the last output rule of Section 6.2.5 of <xref target="RFC6241"/>), is to omit &lt;tag/&gt; and &lt;network-map/&gt;. This will give the same output. We suggest the more complete template for more explicit results.
+            </t>
+            <t>
+              An example of the query, for a network map with resource-id myNetMap1, is the following:
+            </t>
+
+
+<figure><artwork><![CDATA[                            
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <network-maps>
+          <resource-id>myNetMap1</resource-id>
+          <tag/>
+          <network-map/>
+        </network-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+
+            <t>An example reply from the server then will be:</t>
+
+<figure><artwork><![CDATA[                            
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <network-maps>
+        <resource-id>myNetMap1</resource-id>
+        <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+        <network-map>
+          <pid>PID1</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>192.0.2.0/24</endpoint-prefix>
+            <endpoint-prefix>198.51.100.0/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID2</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>198.51.100.128/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID3</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>0.0.0.0/0</endpoint-prefix>
+          </endpoint-address-group>
+          <endpoint-address-group>
+            <address-type>ipv6</address-type>
+            <endpoint-prefix>::/0</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+      </network-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+
+          <section title="Approach 2: Using XPATH Filtering">
+            <t>
+              To retrieve a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+
+<figure><artwork><![CDATA[                            
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:network-maps
+              [t:resource-id=INPUT-NETWORK-MAP-RESOURCE-ID]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              Note that <xref target="RFC6241"/> requires only that a NETCONF server MAY support xpath. Hence, this approach may or may not work on a given NETCONF server.
+            </t>
+            <t>
+              An example of the query, for a network map with resource-id myNetMap1, is the following. Note that the XPATH expression would select the appropriate &lt;network-maps&gt; node including its subtree, but not the ancestor node &lt;resources&gt;. According to the NETCONF modification rules defined in Section 8.9.5.1 of <xref target="RFC6241"/>, the ancestor nodes of the XPATH result are also encoded, in particular, the tags &lt;resources&gt; and &lt;/resources&gt;.
+            </t>
+<figure><artwork><![CDATA[                            
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:network-maps[t:resource-id='myNetMap1']" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              The output of this query is the same as the subtree based query:
+            </t>
+<figure><artwork><![CDATA[                            
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <network-maps>
+        <resource-id>myNetMap1</resource-id>
+        <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+        <network-map>
+          <pid>PID1</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>192.0.2.0/24</endpoint-prefix>
+            <endpoint-prefix>198.51.100.0/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID2</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>198.51.100.128/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID3</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>0.0.0.0/0</endpoint-prefix>
+          </endpoint-address-group>
+          <endpoint-address-group>
+            <address-type>ipv6</address-type>
+            <endpoint-prefix>::/0</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+      </network-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+        </section> <!-- full network map service -->
+
+        <section title="Full Cost Map Service using NETCONF">
+          <t>
+            Next consider the cost map service. Assume a YANG model specified as alto-service-netconf (see Appendix <xref target="ALTOYANGNETCONFMODEL"/>), with its tree diagram in Section <xref target="YANGNETCONFTREE"/>. Similar to the full network map service, we also consider both filter types.
+          </t>
+          <t>
+            In the ALTO protocol, resource-id uniquely identifies a cost map resource, but tags are not defined. Neither are included in the "meta" field of the response. However, in order to use the NETCONF filtering capabilities (both subtree and xpath), we must use resource-id as the key of the list "cost-maps".
+          </t>
+          <section title="Approach 1: Using Subtree Filtering">
+            <t>
+              To retrieve a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <cost-maps>
+          <resource-id>INPUT-COST-MAP-RESOURCE-ID</resource-id>
+          <tag/>
+          <meta/>
+          <cost-map/>
+        </cost-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              Note that similar to the preceding network map template design, we also include the selection nodes &lt;tag/&gt;, &lt;meta/&gt;, and &lt;cost-map/&gt; in the query template to make explicit the output. An alternative is to omit all of these selection nodes. Note that omitting only some of the selection nodes will produce incorrect results.
+            </t>
+
+            <t>
+              An example of the query, for a cost map with resource-id myCostMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <cost-maps>
+          <resource-id>myCostMap1</resource-id>
+          <tag/>
+          <meta/>
+          <cost-map/>
+        </cost-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources>
+      <cost-maps>
+        <resource-id>myCostMap1</resource-id>
+        <tag>tus10ce8b0740a1938e3f8eb1d4785da65eca2</tag>
+        <meta>        
+          <dependent-vtags>
+            <resource-id>myNetMap1</resource-id>
+            <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+          </dependent-vtags>
+          <cost-type>
+            <cost-mode>numerical</cost-mode>
+            <cost-metric>routingcost</cost-metric>
+          </cost-type>
+        </meta>
+        <cost-map>
+          <src>PID1</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>0</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>1</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>5</cost>
+          </dst-costs>
+        </cost-map>
+      </cost-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+          <section title="Approach 2: Using XPath">
+            <t>
+              To retrieve a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example of the query, for a cost map with resource-id myCostMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:cost-maps[t:resource-id='myCostMap1']" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources>
+      <cost-maps>
+        <resource-id>myCostMap1</resource-id>
+        <tag>tus10ce8b0740a1938e3f8eb1d4785da65eca2</tag>
+        <meta>        
+          <dependent-vtags>
+            <resource-id>my-default-network-map</resource-id>
+            <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+          </dependent-vtags>
+          <cost-type>
+            <cost-mode>numerical</cost-mode>
+            <cost-metric>routingcost</cost-metric>
+          </cost-type>
+        </meta>
+        <cost-map>
+          <src>PID1</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>0</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>1</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>5</cost>
+          </dst-costs>
+        </cost-map>
+      </cost-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+        </section> <!-- full cost map netconf -->
+
+        <section title="Filtered Network Map Service using NETCONF">
+          <t>
+            Next we consider filtered network map. For consistency, we consider the same yang module as in <xref target="YANGNETCONFTREE"/>. For ease of reading, we duplicate it here:
+          </t>
+<figure><artwork><![CDATA[
++--ro network-maps* [resource-id]
+|  +--ro resource-id    alto:resource-id
+|  +--ro tag            alto:tag-string
+|  +--ro network-map* [pid]
+|     +--ro pid                       pid-name
+|     +--ro endpoint-address-group* [address-type]
+|        +--ro address-type       endpoint-address-type
+|        +--ro endpoint-prefix*   endpoint-prefix
+]]></artwork></figure>
+
+
+          <section title="Approach 1: Using Subtree Filtering">
+            <t>
+              To retrieve INPUT-PID-1, INPUT-PID-2, ..., INPUT-PID-k of a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <network-maps>
+          <resource-id>INPUT-NETWORK-MAP-RESOURCE-ID</resource-id>
+          <tag/>
+          <network-map>
+            <pid>INPUT-PID1</pid>
+            <endpoint-address-group/>
+          </network-map>
+          <network-map>
+            <pid>INPUT-PID-2</pid>
+            <endpoint-address-group/>
+          </network-map>
+          ...
+          <network-map>
+            <pid>INPUT-PID-k</pid>
+            <endpoint-address-group/>
+          </network-map>
+        </network-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+
+            <t>
+              Note that the template explicitly includes &lt;endpoint-address-group/&gt; as selection nodes to indicate the desired output. The &lt;endpoint-address-group/&gt; selection nodes in the template can be omitted. On the other hand, the selection node &lt;tag/&gt; is necessary, otherwise, the &lt;tag&gt; element would not be included in the response.
+            </t>
+            <t>
+              An example of the query, for PID1 and PID3 of a network map with resource-id myNetMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <network-maps>
+          <resource-id>myNetMap1</resource-id>
+          <tag/>
+          <network-map>
+            <pid>PID1</pid>
+          </network-map>
+          <network-map>
+            <pid>PID3</pid>
+          </network-map>
+        </network-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources
+      xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <network-maps>
+        <resource-id>myNetMap1</resource-id>
+        <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+        <network-map>
+          <pid>PID1</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>192.0.2.0/24</endpoint-prefix>
+            <endpoint-prefix>198.51.100.0/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID3</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>0.0.0.0/0</endpoint-prefix>
+          </endpoint-address-group>
+          <endpoint-address-group>
+            <address-type>ipv6</address-type>
+            <endpoint-prefix>::/0</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+      </network-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+
+          <section title="Approach 2: Using XPATH Filtering">
+            <t>
+              To retrieve INPUT-PID-1, INPUT-PID-2, ..., INPUT-PID-k of a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+            type="xpath"
+            select="/t:resources/t:network-maps
+              [t:resource-id=INPUT-NETWORK-MAP-RESOURCE-ID]/resource-id 
+              | /t:resources/t:network-maps
+              [t:resource-id=INPUT-NETWORK-MAP-RESOURCE-ID]/tag 
+              | /t:resources/t:network-maps
+              [t:resource-id=INPUT-NETWORK-MAP-RESOURCE-ID]/network-map
+              [pid="INPUT-PID-1" or pid="INPUT-PID-2" or ... 
+              or pid="INPUT-PID-k"]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              One observe that the template uses XPATH union in the select attribute of the filter, which is necessary because the XPATH operation will not select the resource-id and tag nodes if we only have the XPATH expression "/t:resources/t:network-maps[t:resource-id=INPUT-NETWORK-MAP-RESOURCE-ID]/network-map[pid="INPUT-PID-1" or pid="INPUT-PID-2" or ... or pid="INPUT-PID-k"]".
+            </t>
+            <t>
+              An example of the query, for PID1 and PID3 of a network map with resource-id myNetMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:network-maps
+        [t:resource-id='myNetMap1']/resource-id
+        | /t:resources/t:network-maps[t:resource-id='myNetMap1']/tag 
+        | /t:resources/t:network-maps[t:resource-id='myNetMap1']
+        /network-map[pid='PID1' or pid='PID3']" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              The output of this query is the same as the subtree based query:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <network-maps>
+        <resource-id>myNetMap1</resource-id>
+        <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+        <network-map>
+          <pid>PID1</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>192.0.2.0/24</endpoint-prefix>
+            <endpoint-prefix>198.51.100.0/25</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+        <network-map>
+          <pid>PID3</pid>
+          <endpoint-address-group>
+            <address-type>ipv4</address-type>
+            <endpoint-prefix>0.0.0.0/0</endpoint-prefix>
+          </endpoint-address-group>
+          <endpoint-address-group>
+            <address-type>ipv6</address-type>
+            <endpoint-prefix>::/0</endpoint-prefix>
+          </endpoint-address-group>
+        </network-map>
+      </network-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+        </section> <!-- filtered network map netconf -->
+
+        <section title="Filtered Cost Map Service using NETCONF">
+          <t>
+            Then we consider filtered cost map service. For consistency, we consider the same yang module as in <xref target="YANGNETCONFTREE"/>. For ease of reading, we duplicate it here:
+          </t>
+
+<figure><artwork><![CDATA[
++--ro cost-maps* [resource-id]
+|  +--ro resource-id    alto:resource-id
+|  +--ro tag            alto:tag-string
+|  +--ro meta
+|  |  +--ro dependent-vtags*
+|  |  |  +--ro resource-id    resource-id
+|  |  |  +--ro tag            tag-string
+|  |  +--ro cost-type
+|  |     +--ro cost-mode      cost-mode
+|  |     +--ro cost-metric    cost-metric
+|  |     +--ro description?   string
+|  +--ro cost-map* [src]
+|     +--ro src          pid-name
+|     +--ro dst-costs* [dst]
+|        +--ro dst     pid-name
+|        +--ro cost   
+]]></artwork></figure>
+
+          <section title="Approach 1: Using Subtree Filtering">
+            <t>
+              To retrieve INPUT-SRC-PID-1, INPUT-SRC-PID-2, ..., INPUT-SRC-PID-p and INPUT-DST-PID-1, INPUT-DST-PID-2, ..., INPUT-DST-PID-q of a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <cost-maps>
+          <resource-id>INPUT-COST-MAP-RESOURCE-ID</resource-id>
+          <tag/>
+          <meta/>
+          <cost-map>
+            <src>INPUT-SRC-PID-1</src>
+            <dst-costs>
+              <dst>INPUT-DST-PID-1</dst>
+              <cost/>
+            </dst-costs>
+            <dst-costs>
+              <dst>INPUT-DST-PID-2</dst>
+              <cost/>
+            </dst-costs>
+            ...
+            <dst-costs>
+              <dst>INPUT-DST-PID-q</dst>
+              <cost/>
+            </dst-costs>
+          </cost-map>
+          ...
+          <cost-map>
+            <src>INPUT-SRC-PID-p</src>
+            <dst-costs>
+              <dst>INPUT-DST-PID-1</dst>
+              <cost/>
+            </dst-costs>
+            <dst-costs>
+              <dst>INPUT-DST-PID-2</dst>
+              <cost/>
+            </dst-costs>
+            ...
+            <dst-costs>
+              <dst>INPUT-DST-PID-q</dst>
+              <cost/>
+            </dst-costs>
+          </cost-map>
+        </cost-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              One can observe that in the template, client must list all combinations of src and dst to retrieve the cost, which is very inefficient when the number of src and dst grows.
+            </t>
+            <t>
+              An example of the query, for src: PID1, PID2 and dst: PID3, PID4 of a cost map with resource-id myCostMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <cost-maps>
+          <resource-id>myCostMap1</resource-id>
+          <tag/>
+          <meta/>
+          <cost-map>
+            <src>PID1</src>
+            <dst-costs>
+              <dst>PID3</dst>
+              <cost/>
+            </dst-costs>
+            <dst-costs>
+              <dst>PID4</dst>
+              <cost/>
+            </dst-costs>
+          </cost-map>
+          <cost-map>
+            <src>PID2</src>
+            <dst-costs>
+              <dst>PID3</dst>
+              <cost/>
+            </dst-costs>
+            <dst-costs>
+              <dst>PID4</dst>
+              <cost/>
+            </dst-costs>          
+          </cost-map>
+        </cost-maps>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources
+      xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <cost-maps>
+        <resource-id>myCostMap1</resource-id>
+        <tag>tus10ce8b0740a1938e3f8eb1d4785da65eca2</tag>
+        <meta>
+          <dependent-vtags>
+            <resource-id>my-default-network-map</resource-id>
+            <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+          </dependent-vtags>
+          <cost-type>
+            <cost-mode>numerical</cost-mode>
+            <cost-metric>routingcost</cost-metric>
+          </cost-type>
+        </meta>
+        <cost-map>
+          <src>PID1</src>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>1</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID4</dst>
+            <cost>3</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID2</src>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>2</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID4</dst>
+            <cost>5</cost>
+          </dst-costs>        
+        </cost-map>
+      </cost-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+
+          <section title="Approach 2 : Using XPath">
+            <t>
+              To retrieve INPUT-SRC-PID-1, INPUT-SRC-PID-2, ..., INPUT-SRC-PID-p and INPUT-DST-PID-1, INPUT-DST-PID-2, ..., INPUT-DST-PID-q of a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/t:resource-id 
+              | /t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/t:tag 
+              | /t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/t:meta 
+              | /t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/t:cost-map
+              [t:src="INPUT-SRC-PID-1" or t:src="INPUT-SRC-PID-2" 
+              or ... or t:src="INPUT-SRC-PID-p"]/t:src 
+              | /t:resources/t:cost-maps
+              [t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/t:cost-map
+              [t:src="INPUT-SRC-PID-1" or t:src="INPUT-SRC-PID-2" 
+              or ... or t:src="INPUT-SRC-PID-p"]/t:dst-costs
+              [t:dst="INPUT-DST-PID-1" or t:dst="INPUT-DST-PID-2" 
+              or ... or t:dst="INPUT-DST-PID-q"]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              One observe that similar to the xpath template for filtered network map, the xpath template for filtered cost map also used XPATH union in the select attribute of the filter, which is necessary because the XPATH operation will not select the resource-id and tag and src nodes if we only have the XPATH expression "/t:resources/t:cost-maps[t:resource-id=INPUT-COST-MAP-RESOURCE-ID]/cost-map[src="INPUT-SRC-PID-1" or src="INPUT-SRC-PID-2" or ... or src="INPUT-SRC-PID-p"]/dst-costs[dst="INPUT-DST-PID-1" or dst="INPUT-DST-PID-2" or ... or dst="INPUT-DST-PID-q"]".
+            </t>
+            <t>
+              Despite that one needs to specify the src PIDs multiple times, there is no need to provide a cartesian product of src PIDs and dst PIDs, which is more efficient compared to the subtree filtering approach.
+            </t>
+            <t>
+              An example of the query, for src: PID1, PID2 and dst: PID3, PID4 of a cost map with resource-id myCostMap1, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:cost-maps
+        [t:resource-id=myCostMap1]/t:resource-id 
+        | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:tag 
+        | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:meta 
+        | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:cost-map
+        [t:src="PID1" or t:src="PID2"]/t:src
+        | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:cost-map
+        [t:src="PID1" or t:src="PID2"]/t:dst-costs
+        [t:dst="PID3" or t:dst="PID4"]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources
+      xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+      <resource-id>myCostMap1</resource-id>
+      <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
+      <meta>
+        <dependent-vtags>
+          <resource-id>my-default-network-map</resource-id>
+          <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+        </dependent-vtags>
+        <cost-type>
+          <cost-mode>numerical</cost-mode>
+          <cost-metric>routingcost</cost-metric>
+        </cost-type>
+      </meta>
+      <cost-maps>
+          <cost-map>
+            <src>PID1</src>
+            <dst-costs>
+              <dst>PID3</dst>
+              <cost>1</cost>
+            </dst-costs>
+            <dst-costs>
+              <dst>PID4</dst>
+              <cost>3</cost>
+            </dst-costs>
+          </cost-map>
+          <cost-map>
+            <src>PID2</src>
+            <dst-costs>
+              <dst>PID3</dst>
+              <cost>2</cost>
+            </dst-costs>
+            <dst-costs>
+              <dst>PID4</dst>
+              <cost>5</cost>
+            </dst-costs>        
+          </cost-map>
+      </cost-maps>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+
+          </section>
+
+        </section> <!-- filtered cost map service -->
+
+        <section title="Endpoint Property Service in NETCONF">
+          <t>
+            Last, we consider endpoint property service. For consistency, we consider the same yang module as in <xref target="YANGNETCONFTREE"/>. For ease of reading, we duplicate it here:
+          </t>
+
+<figure><artwork><![CDATA[
++--ro endpoint-property-map
+|    +--ro meta
+|    | +--ro dependent-vtags*
+|    |   +--ro resource-id
+|    |   +--ro tag
+|    +--ro endpoint-properties* [endpoint]
+|      +--ro endpoint
+|      +--ro properties* [property-type]
+|        +--ro property-type
+|        +--ro property
+]]></artwork></figure>
+
+          <section title="Approach 1: Using Subtree Filtering">
+            <t>
+              To retrieve properties of an endpoint with endpoint:INPUT-ENDPOINT-1,INPUT-ENDPOINT-2, INPUT-ENDPOINT-p,properties:  INPUT-PROPERTY-1, INPUT-PROPERTY-2,...,INPUT-PROPERTY-q, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <endpoint-property-map>
+          <meta/>
+          <endpoint-properties>
+            <endpoint>INPUT-ENDPOINT-1</endpoint>
+            <properties>
+              <property-type>INPUT-PROPERTY-1</property-type>
+            </properties>
+            <properties>
+              <property-type>INPUT-PROPERTY-2</property-type>
+            </properties>
+            ...
+            <properties>
+              <property-type>INPUT-PROPERTY-q</property-type>
+            </properties>
+          </endpoint-properties>
+          <endpoint-properties>
+            <endpoint>INPUT-ENDPOINT-2</endpoint>
+            <properties>
+              <property-type>INPUT-PROPERTY-1</property-type>
+            </properties>
+            <properties>
+              <property-type>INPUT-PROPERTY-2</property-type>
+            </properties>
+            ...
+            <properties>
+              <property-type>INPUT-PROPERTY-q</property-type>
+            </properties>
+          </endpoint-properties>
+          ...
+          <endpoint-properties>
+            <endpoint>INPUT-ENDPOINT-p</endpoint>
+            <properties>
+              <property-type>INPUT-PROPERTY-1</property-type>
+            </properties>
+            <properties>
+              <property-type>INPUT-PROPERTY-2</property-type>
+            </properties>
+            ...
+            <properties>
+              <property-type>INPUT-PROPERTY-q</property-type>
+            </properties>
+          </endpoint-properties>
+        </endpoint-property-map>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              One can observe that in the template, client must list all combinations of endpoints and properties to retrieve the cost, which is very inefficient when the number of endpoints and/or properties grows.
+            </t>
+            <t>
+              An example of the query, for properties: my-default-network-map.pid, priv:ietf-example-prop of endpoints: ipv4:192.0.2.34, ipv4:203.0.113.129, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <resources
+        xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <endpoint-property-map>
+          <meta/>
+          <endpoint-properties>
+            <endpoint>ipv4:192.0.2.34</endpoint>
+            <properties>
+              <property-type>my-default-network-map.pid</property-type>
+            </properties>
+            <properties>
+              <property-type>priv:ietf-example-prop</property-type>
+            </properties>
+          </endpoint-properties>
+          <endpoint-properties>
+            <endpoint>ipv4:203.0.113.129</endpoint>
+            <properties>
+              <property-type>my-default-network-map.pid</property-type>
+            </properties>
+            <properties>
+              <property-type>priv:ietf-example-prop</property-type>
+            </properties>
+          </endpoint-properties>
+        </endpoint-property-map>
+      </resources>
+    </filter>
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources
+      xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <endpoint-property-map>
+          <meta>
+            <dependent-vtags>
+              <resource-id>my-default-network-map</resource-id>
+              <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+            </dependent-vtags>
+          </meta>
+          <endpoint-properties>
+            <endpoint>ipv4:192.0.2.34</endpoint>
+            <properties>
+              <property-type>
+                my-default-network-map.pid
+              </property-type>
+              <property>PID1</property>
+            </properties>
+            <properties>
+              <property-type>
+                priv:ietf-example-prop
+              </property-type>
+              <property>1</property>
+            </properties>
+          </endpoint-properties>
+          <endpoint-properties>
+            <endpoint>ipv4:203.0.113.129</endpoint>
+            <properties>
+              <property-type>
+                my-default-network-map.pid
+              </property-type>
+              <property>PID2</property>
+            </properties>
+            <properties>
+              <property-type>
+                priv:ietf-example-prop
+              </property-type>
+              <property>2</property>
+            </properties>
+          </endpoint-properties>
+        </endpoint-property-map>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+          </section>
+
+          <section title="Approach 2 : Using XPath">
+            <t>
+              To retrieve properties of an endpoint with endpoint:INPUT-ENDPOINT-1,INPUT-ENDPOINT-2,...,INPUT-ENDPOINT-p, properties: INPUT-PROPERTY-1, INPUT-PROPERTY-2,...,INPUT-PROPERTY-q, the client specifies it in the following netconf RPC template:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:endpoint-property-map/meta 
+        | /t:resources/t:endpoint-property-map/t:endpoint-properties
+        [t:endpoint=INPUT-ENDPOINT-1 or t:endpoint=INPUT-ENDPOINT-2 
+        or ...or t:endpoint=INPUT-ENDPOINT-p]/endpoint 
+        | /t:resources/t:endpoint-property-map/t:endpoint-properties
+        [t:endpoint=INPUT-ENDPOINT-1 or t:endpoint=INPUT-ENDPOINT-2 
+        or ...or t:endpoint=INPUT-ENDPOINT-p]/t:properties
+        [t:property-type=INPUT-PROPERTY-1 
+        or t:property-type=INPUT-PROPERTY-2 
+        or ... or t:property-type=INPUT-PROPERTY-q]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              Similar to the preceding filtered maps templates, this template also used XPATH union to select the meta node and endpoint node in the output. 
+            </t>
+            <t>
+              An example of the query, for properties: my-default-network-map.pid, priv:ietf-example-prop of endpoints: ipv4:192.0.2.34, ipv4:203.0.113.129, is the following:
+            </t>
+<figure><artwork><![CDATA[
+<rpc message-id=SEQ-NUM      
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter xmlns:t="urn:ietf:params:xml:ns:yang:alto-service-netconf"
+      type="xpath"
+      select="/t:resources/t:endpoint-property-map/meta 
+        | /t:resources/t:endpoint-property-map/t:endpoint-properties
+        [t:endpoint="ipv4:192.0.2.34" 
+        or t:endpoint="ipv4:203.0.113.129"]/endpoint
+        | /t:resources/t:endpoint-property-map/t:endpoint-properties
+        [t:endpoint="ipv4:192.0.2.34" 
+        or t:endpoint="ipv4:203.0.113.129"]
+        /t:properties[t:property-type="my-default-network-map.pid" 
+        or t:property-type="priv:ietf-example-prop"]" />
+  </get>
+</rpc>
+]]></artwork></figure>
+            <t>
+              An example reply from the server then will be:
+            </t>
+<figure><artwork><![CDATA[
+<rpc-reply message-id=SEQ-NUM
+    xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <data>
+    <resources xmlns="urn:ietf:params:xml:ns:yang:alto-service-netconf">
+        <endpoint-property-map>
+          <meta>
+            <dependent-vtags>
+              <resource-id>my-default-network-map</resource-id>
+              <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+            </dependent-vtags>
+          </meta>
+          <endpoint-properties>
+            <endpoint>ipv4:192.0.2.34</endpoint>
+            <properties>
+              <property-type>my-default-network-map.pid</property-type>
+              <property>PID1</property>
+            </properties>
+            <properties>
+              <property-type>priv:ietf-example-prop</property-type>
+              <property>1</property>
+            </properties>
+          </endpoint-properties>
+          <endpoint-properties>
+            <endpoint>ipv4:203.0.113.129</endpoint>
+            <properties>
+              <property-type>my-default-network-map.pid</property-type>
+              <property>PID2</property>
+            </properties>
+            <properties>
+              <property-type>priv:ietf-example-prop</property-type>
+              <property>2</property>
+            </properties>
+          </endpoint-properties>
+        </endpoint-property-map>
+    </resources>
+  </data>
+</rpc-reply>
+]]></artwork></figure>
+
+          </section>
+        </section> <!--endpoint property service netconf-->
+
+        <section title="Endpoint Cost Service Implementation">
+          <t>
+            The ALTO Endpoint Cost Service cannot be implemented using NETCONF’s standard operations. The server has to provide its own implementation and provide the service as a custom NETCONF RPC.
+          </t>
+        </section>
+
+      </section> <!--NETCONF-->
+
+
+
+
+      <section title="ALTO/YANG with Integration with RESTCONF" anchor="YANGRESTCONF">
+        <t>
+          The RESTCONF Protocol <xref target="RESTCONF"/> provides a RESTful interface to data defined in YANG. RESTCONF must support XML and may support JSON encoding. Since our focus is on retrieving information, the related RESTCONF operation is the HTTP GET method. The POST method is relevant when one must define a custom RPC, which is invoked as an operation resource through the POST method.
+        </t>
+
+        <t>
+          The only way to specify query parameters in the RESTCONF GET method is to encode the parameters in the GET URI. The relevant encoding structure then is:
+        </t>
+
+<figure><artwork><![CDATA[
+      GET /<restconf>/<path>?<query>
+
+         ^       ^        ^       ^  
+         |       |        |       |  
+       method  entry  resource  query
+
+         M       M        O        O 
+
+       M=mandatory, O=optional
+
+       <text> replaced by client with real values
+]]></artwork></figure>
+        <t>
+          The particular relevant components are the path component and the query component. The goal of the path component (Section 2.5.1 of <xref target="RESTCONF"/>) is to identify a single node (referred to as the target resource) in the data tree. This is different from xpath, whose basic Location Path concept is built on node set; that is, the goal of xpath is to identify a set of nodes (address parts of an XML document), not a single node. The query component (Section 3.8 of <xref target="RESTCONF"/>) consists of a set of "name=value" pairs, with a given set of names (query parameters) to control the query behavior. A particularly relevant parameter is select, which allows a client to request a subset of the target resource contents. The exact syntax of select is specified in Section 3.8.4 of <xref target="RESTCONF"/>. Note that all query parameters are optional to implement by the server and optional to use by the client.
+        </t>
+
+
+
+
       </section>
 
-      <section title="ALTO/YANG with Integration with RESTCONF">
-        <t>
-          The RESTCONF Protocol <xref target="RESTCONF"/> is an HTTP-based REST-like protocol that provides a programmatic interface for accessing data defined in YANG, using the datastores defined in NETCONF. RESTCONF is encoded in JSON and and represents YANG/NETCONF RPCs as its operation resources. A RESTCONF client may use HTTP GET or POST method and supply the appropriate RPC input, and the RESTCONF server will respond with the RPC output.
-        </t>
-        <t>
-          Although RESTCONF uses JSON as its message encoding, RESTCONF messages are JSON encoding of YANG models as defined in <xref target="draft-ietf-netmod-yang-json-01"/>, which means there still cannot be non-keyword key-value stores. Another difficulty with RESTCONF integration is RESTCONF's URI restrictions. RESTCONF has defined a specific URI structure in Section 4.1. of <xref target="RESTCONF"/> in order to access the desired data or operation resource. This structure may cause interoperability issues with the ALTO protocol.
-        </t>
-      </section>
--->
     </section> <!-- Model Structure Section -->
 
     <section title="Non-Trivial Specification Efforts">
@@ -777,6 +1968,7 @@ list network-map {
           <author initials="L." surname="Lhotka" fullname="L. Lhotka"/>
           <date month="October" year="2014"/>
         </front>
+        <seriesInfo name="Internet-Draft" value="draft-ietf-netmod-yang-json-01" />
       </reference>
       
       <reference anchor="draft-shi-alto-yang-json-00">
@@ -786,6 +1978,7 @@ list network-map {
           <author initials="Y." surname="Yang" fullname="Y. Yang"/>
           <date month="October" year="2014"/>
         </front>
+        <seriesInfo name="Internet-Draft" value="draft-shi-alto-yang-json-00" />
       </reference>
       <reference anchor="RESTCONF">
         <front>
@@ -795,6 +1988,7 @@ list network-map {
           <author initials="K." surname="Watsen" fullname="K. Watsen"/>
           <date month="October" year="2014"/>
         </front>
+        <seriesInfo name="Internet-Draft" value="draft-ietf-netconf-restconf-03" />
       </reference>
      
       
@@ -802,15 +1996,15 @@ list network-map {
 
 
     <section title="YANG Data Model for ALTO Protocol">
-      <section title="Revision 1: RPC Only">
+      <section title="ALTO/YANG: Common Data Types" anchor="ALTOYANGTYPES">
 <figure><artwork><![CDATA[
-module alto-service-rpc {
+module alto-service-types {
   yang-version 1;
   
-  namespace "urn:ietf:params:xml:ns:yang:alto-service";
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-types";
   // TODO: replace with IANA namespace when assigned
 
-  prefix "as";
+  prefix "alto";
 
   import ietf-inet-types {
     prefix inet;
@@ -820,16 +2014,15 @@ module alto-service-rpc {
   contact "alto@ietf.org";
 
   description 
-    "This module defines a semantically equivalent data model
-     for the ALTO services defined in RFC7285.";
+    "This module defines the data types and groupings for a semantically
+     equivalent data model for the ALTO services defined in RFC7285.";
 
-  /* Potential issue for future EXTENSION: YANG 1.0 is unable to
-   * augment a typedef or enum type. e.g., there is not a good way to
-   * add a cost metric or type of address if this document is
-   * fixed. We have marked such places with "EXTENSION." */
+  revision 2014-11-01 {
+    description "Separate types module";
+  }
 
   revision 2014-10-24 {
-    description "Initial revision: RPC only.";
+    description "Initial version.";
   }
   
   /********************
@@ -1006,6 +2199,15 @@ module alto-service-rpc {
       "Type for valid ID strings.";
   }
 
+  typedef tag-string {
+    type string {
+      length "1..64";
+      pattern "[!-~]+";
+    }
+    description
+      "Tag. RFC7285 Sec. 10.3. U+0021-U+007E";
+  }
+
   typedef pid-name {
     type valid-id-string;
     description
@@ -1027,13 +2229,8 @@ module alto-service-rpc {
       mandatory true;
     }
     leaf tag {
-      type string {
-        length "1..64";
-        pattern "[!-~]+";
-      }
+      type tag-string;
       mandatory true;
-      description
-        "Tag. RFC7285 Sec. 10.3. U+0021-U+007E";
     }
     description
       "Version tag. Both resource-id and tag must be equal
@@ -1481,6 +2678,43 @@ module alto-service-rpc {
           EndpointPropertyMapData endpoint-properties;
         } InfoResourceEndpointProperties : ResponseEntityBase;";
   }
+}
+]]></artwork></figure>
+      </section>
+
+
+      <section title="ALTO/YANG: RPC Only" anchor="ALTOYANGRPCMODEL">
+<figure><artwork><![CDATA[
+module alto-service-rpc {
+  yang-version 1;
+  
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-rpc";
+  // TODO: replace with IANA namespace when assigned
+
+  prefix "asr";
+
+  import alto-service-types {
+    prefix alto;
+  }
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization "ALTO WG";
+  contact "alto@ietf.org";
+
+  description 
+    "This module defines the RPCs for a semantically equivalent
+     data model for the ALTO services defined in RFC7285.";
+
+  revision 2014-11-01 {
+    description "Importing from alto-service-types.";
+  }
+
+  revision 2014-10-24 {
+    description "Initial version.";
+  }
 
   /************************************
    * RPCs                             *
@@ -1489,7 +2723,7 @@ module alto-service-rpc {
   rpc IRD-service {
     output {
       container IRD-service {
-        uses IRD;
+        uses alto:IRD;
       }
     }
   }
@@ -1505,7 +2739,7 @@ module alto-service-rpc {
     }
     output {
       container network-map-service {
-        uses network-map;
+        uses alto:network-map;
       }
     }
   }
@@ -1521,7 +2755,7 @@ module alto-service-rpc {
     }
     output {
       container cost-map-service {
-        uses cost-map;
+        uses alto:cost-map;
       }
     }
   }
@@ -1537,15 +2771,15 @@ module alto-service-rpc {
     input {
       leaf-list pids {
         must "current()";
-        type pid-name;
+        type alto:pid-name;
       }
       leaf-list address-types {
-        type endpoint-address-type;
+        type alto:endpoint-address-type;
       }
     }
     output {
       container filtered-network-map-service {
-        uses network-map;
+        uses alto:network-map;
       }
     }
   }
@@ -1554,21 +2788,21 @@ module alto-service-rpc {
     input {
       container cost-type {
         must "current()";
-        uses cost-type;
+        uses alto:cost-type;
       }
       leaf-list constraints {
-        type constraint;
+        type alto:constraint;
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
       container pids {
         leaf-list srcs {
-          type pid-name;
+          type alto:pid-name;
           description
             "Source endpoint addresses.";
         }
         leaf-list dsts {
-          type pid-name;
+          type alto:pid-name;
           description
             "Destination endpoint addresses.";
         }
@@ -1582,7 +2816,7 @@ module alto-service-rpc {
     }
     output {
       container filtered-cost-map-service {
-        uses cost-map;
+        uses alto:cost-map;
       }
     }
   }
@@ -1596,17 +2830,17 @@ module alto-service-rpc {
           } ReqEndpointProp;";
     input {
       leaf-list properties {
-        type endpoint-property-type;
+        type alto:endpoint-property-type;
         min-elements 1;
       }
       leaf-list endpoints {
-        type typed-endpoint-address;
+        type alto:typed-endpoint-address;
         min-elements 1;
       }
     }
     output {
       container endpoint-property-service {
-        uses endpoint-property-map;
+        uses alto:endpoint-property-map;
       }
     }
   }
@@ -1623,22 +2857,22 @@ module alto-service-rpc {
     input {
       container cost-type {
         must "current()";
-        uses cost-type;
+        uses alto:cost-type;
       }
       leaf-list constraints {
-        type constraint;
+        type alto:constraint;
         description
           "RFC7285 Sec. 11.5.1.3.";
       }
       container endpoints {
         must "current()";
         leaf-list srcs {
-          type typed-endpoint-address;
+          type alto:typed-endpoint-address;
           description
             "Source endpoint addresses.";
         }
         leaf-list dsts {
-          type typed-endpoint-address;
+          type alto:typed-endpoint-address;
           description
             "Destination endpoint addresses.";
         }
@@ -1654,24 +2888,24 @@ module alto-service-rpc {
       container endpoint-cost-service {
         container meta {
           container cost-type {
-            uses cost-type;
+            uses alto:cost-type;
           }
         }
         list endpoint-cost-map {
           leaf src {
-            type typed-endpoint-address;
+            type alto:typed-endpoint-address;
             description
               "Source endpoint address.";
           }
           key "src";
           list dst-costs {
             leaf dst {
-              type typed-endpoint-address;
+              type alto:typed-endpoint-address;
               description
                 "Destination endpoint address.";
             }
             key "dst";
-            uses alto-cost {
+            uses alto:alto-cost {
               description
                 "Cost from source to destination.";
             }
@@ -1697,698 +2931,39 @@ module alto-service-rpc {
   }
 
 }
-
 ]]></artwork></figure>
-      
       </section>
       
-      <section title="Revision 2: Custom Data Instances">
+      <section title="ALTO/YANG: Data Instances Description" anchor="ALTOYANGDIDMODEL">
 <figure><artwork><![CDATA[                            
 module alto-service-did {
   yang-version 1;
   
-  namespace "urn:ietf:params:xml:ns:yang:alto-service";
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-did";
   // TODO: replace with IANA namespace when assigned
 
-  prefix "as";
+  prefix "asd";
 
-  import ietf-inet-types {
-    prefix inet;
+  import alto-service-types {
+    prefix alto;
   }
 
   organization "ALTO WG";
   contact "alto@ietf.org";
 
   description 
-    "This module defines a semantically equivalent data model
-     for the ALTO services defined in RFC7285.";
+    "This module defines the data instance descriptions (DID) of a 
+     semantically equivalent data model for the ALTO services 
+     defined in RFC7285.";
 
-  /* Potential issue for future EXTENSION: YANG 1.0 is unable to
-   * augment a typedef or enum type. e.g., there is not a good way to
-   * add a cost metric or type of address if this document is
-   * fixed. We have marked such places with "EXTENSION." */
-
-  revision 2014-10-27 {
-    description "Revision 2: Custom Data Instances";
+  revision 2014-11-01 {
+    description "Inherit from alto-service-rpc and types.";
   }
-  
+
   revision 2014-10-24 {
-    description "Initial revision: RPC only.";
-  }
-  
-  /********************
-   * TYPE DEFINITIONS *
-   ********************/
-
-  /***********************************************************
-    Definitions for addresses
-
-    ALTO RFC7285 uses the following addresses, as shown in the
-    examples below:
-
-     - Endpoint property service (Sec. 11.4.1.7):
-       "endpoints"  : [ "ipv4:192.0.2.34",
-                        "ipv4:203.0.113.129" ]
-     - Endpoint cost service (Sec. 11.5.1.7):
-       "endpoints" : {
-       "srcs": [ "ipv4:192.0.2.2" ],
-       "dsts": [
-         "ipv4:192.0.2.89",
-         "ipv4:198.51.100.34",
-         "ipv4:203.0.113.45"
-     - Network map (Sec. 11.2.1.7.):
-         "ipv4": [
-           "192.0.2.0/24",
-           "198.51.100.0/25"
-         ],
-         "ipv6": [
-           "2001:db8:0:1::/64",
-           "2001:db8:0:2::/64"
-         ]
-
-   To handle the proceeding, we need the following definitions:
-      ipv4-address (e.g., 192.0.2.0, already defined in rfc6991), 
-      ipv6-address (already defined in rfc6991), 
-      ipv4-prefix (e.g., 192.0.2.0/24, already defined in rfc6991), 
-      ipv6-prefix (defined in rfc6991), 
-      typed-ipv4-address (e.g., ipv4:192.0.2.1, to be defined below) 
-      typed-ipv6-address
-      typed-ipv4-prefix-list (e.g., "ipv4": [
-           "192.0.2.0/24",
-           "198.51.100.0/25"
-         ],
-
-  *******************************************************************/
-
-  /* 
-     First define typed-ipv4-address and typed-ipv6-address, as used
-     by endpoint services.
-
-     The ideal case is to define it as "ipv4:"+ipv4-address, but there
-     is not such a type constructor (YANG EXTENSION).  Hence, the
-     current definition cuts-and-pastes (i.e., repeats verbatim) the
-     definition of ipv4-address and prepend "ipv4:". The downside is
-     that if someone redefines ipv4-address, there could be
-     inconsistency.
-   */
-
-  typedef typed-ipv4-address {
-    type string {
-        pattern
-          'ipv4:(([0-9]|[1-9][0-9]|1[0-9][0-9]|'
-        + '2[0-4][0-9]|25[0-5])\.){3}'
-        + '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-        + '(%[\p{N}\p{L}]+)?';
-      }
+    description "Initial version.";
   }
 
-
-  typedef typed-ipv6-address {
-    type string {
-      pattern 'ipv6:((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
-            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
-            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
-            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
-            + '(%[\p{N}\p{L}]+)?';
-      pattern 'ipv6:(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
-            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
-            + '(%.+)?';
-    }
-  }
-
-  typedef typed-endpoint-address {
-    type union {
-      type typed-ipv4-address;
-      type typed-ipv6-address;
-      // EXTENSION: ADD NEW TYPE HERE.
-    }
-    description
-      "Ref: RFC7285 Sec. 10.4.1 Typed Endpoint Addresses" +
-      "= AddressType:EndpointAddr";
-  }
-
-  /* Next, we define endpoint address group, as used in the definition
-     of ALTO network maps. Specifically, an endpoint address group in
-     ALTO is defined as a key-value store, with address type as key,
-     and an array of prefix as the value of each key:
-
-     EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
-       object-map {
-       AddressType -> endpoint-prefix<0..*>;
-     } EndpointAddrGroup;
-
-     There are two challenges:
- 
-     1) To specify that AddressType is key, we must use the list type,
-     which is the only type that one can specify key. However, the
-     current JSON-YANG encoding generates an array, instead of a
-     key-value map;
-
-     2) Ideally, we want to enforce address type and prefix
-     consistency; for example, an ipv6 prefix in an ipv4 type should
-     not be allowed. However, we encounter problems. We leave this as
-     an OPEN ISSUE.
-  */
-
-  typedef endpoint-address-type {
-    type union {
-      type enumeration {
-        enum ipv4;
-        enum ipv6;
-        // EXTENSION: ADD NEW TYPE HERE
-      }
-    }
-    description
-      "Ref: RFC7285 Sec 2.2.";
-  }
-  
-  typedef endpoint-prefix {
-    type inet:ip-prefix;
-    description
-      "endpoint prefix, identical to ip-prefix defined in RFC6991.";
-  }
-
-  grouping endpoint-address-group {
-    list endpoint-address-group {
-      key address-type;
-      leaf address-type {
-        type endpoint-address-type;
-        mandatory true;
-      }
-      leaf-list endpoint-prefix {
-        type endpoint-prefix;
-      }
-    }
-    description
-      "EndpointAddrGroup. RFC7285 Sec. 10.4.5." +
-      " object-map {
-          AddressType -> endpoint-prefix<0..*>;
-        } EndpointAddrGroup;";
-  }
-
-  /**************************************************************
-   * Definitions for IDs and names
-   *
-   * ALTO defines the following concepts that are names and IDs:
-   *
-   *   pid name (used in network map, cost map),
-   *   resource IDs (used to identify alto network/cost maps),
-   *   version tag (used to indicate uniqueness of resource),
-   *   cost-type-name (used in IRD),
-   *   cost-metric,
-   *   cost-mode
-   *
-   * We group their definitions together below.       
-   **************************************************************/
-
-  typedef valid-id-string {
-    type string {
-      length "1..64";
-      pattern "[0-9a-zA-Z_\-:@\.]+";
-    }
-    description
-      "Type for valid ID strings.";
-  }
-
-  typedef pid-name {
-    type valid-id-string;
-    description
-      "Name for the PID." +
-      "RFC7285, Section 10.1. Note: the '.' separator MUST NOT be" +
-      "used unless specifically indicated in RFC7285 or an" +
-      " extension document.";
-  }
-
-  typedef resource-id {
-    type valid-id-string;
-    description
-      "Resource-ID.";
-  }
-
-  grouping vtag {
-    leaf resource-id {
-      type resource-id;
-      mandatory true;
-    }
-    leaf tag {
-      type string {
-        length "1..64";
-        pattern "[!-~]+";
-      }
-      mandatory true;
-      description
-        "Tag. RFC7285 Sec. 10.3. U+0021-U+007E";
-    }
-    description
-      "Version tag. Both resource-id and tag must be equal
-       byte-for-byte. RFC7285 Sec. 10.3." +
-      " object {
-          ResourceID resource-id;
-          JSONString tag;
-        } VersionTag;";
-  }
-
-  grouping dependent-vtags {
-    list dependent-vtags {
-      uses vtag;
-      min-elements 1;
-    }
-  }
-
- /*************************************
-    Definitions for cost type and cost types
-
-    In ALTO, a cost type consists of two required components:
-
-      cost-metric,
-      cost-mode
-      and an optional description component.
-
-    In the IRD, one can name each cost type. Such info is collected
-    in a hash map called cost types.
-  *************************************/
-
-  typedef cost-metric {
-    type union {
-      type enumeration {
-        enum routingcost {
-          description
-          "Default metric. MUST support. RFC7285 Sec. 6.1.1.1.";
-        }
-        enum hopcount {
-          description
-          "Hopcount metric.";
-        }
-        // EXTENSION: Additional cost-metric will be defined here.
-      }
-      type string {
-        length 1..32;
-        pattern "priv:[0-9a-zA-Z_\-:\.]+";
-      }
-    }
-    description
-      "Cost metric. for type string,
-      'priv:' reserved for Private Use.";
-  }
-
-  typedef cost-mode {
-    type enumeration {
-      enum numerical {
-        description
-          "Numerical cost mode.";
-      }
-      enum ordinal {
-        description
-          "Ordinal cost mode.";
-      }
-      // EXTENSION: Additional cost-mode will be defined here.
-    }
-    description
-      "Cost mode. MUST support at least one of numerical and ordinal";
-  }
-
-  grouping cost-type {
-    leaf cost-mode {
-      type cost-mode;
-      mandatory true;
-      description
-        "Cost mode.";
-    }
-    leaf cost-metric {
-      type cost-metric;
-      mandatory true;
-      description
-        "Cost metric.";
-    }
-    leaf description {
-      type string;
-      description
-        "Optional description field.";
-    }
-    description
-      "Cost type. RFC7285 Sec. 10.7." +
-      " object {
-          CostMetric cost-metric;
-          CostMode   cost-mode;
-          [JSONString description;]
-        } CostType;";
-  }
-
-  typedef cost-type-name {
-    type valid-id-string;
-    // NOTE: not fully specified in RFC7285, default as valid id
-  }
-
-  grouping cost-types {
-    list cost-types {
-      key cost-type-name;
-      leaf cost-type-name {
-        type cost-type-name;
-      }
-      uses cost-type;
-    }
-    description
-      "RFC 7285 Sec. 9.2.2." +
-      "object-map {
-         JSONString -> CostType;
-       } IRDMetaCostTypes;";
-  }
-
-
-  /**************************************
-  * Definitions for endpoint properties *
-  **************************************/
-  typedef global-endpoint-property {
-    type union {
-      type enumeration {
-        enum pid {
-          description "PID property.";
-        }
-        // EXTENSION: other options here
-      }
-      type string {
-        pattern "priv:[\w\-:@]+";
-      }
-    }
-    description
-      "Global endpoint property. RFC7285 Sec. 10.8.2." +
-      "'priv:' for Private Use " + 
-      " length 1..32; ‘.’ is not allowed";
-  }
-
-  /*
-   * Ideally we would want to extend the typedef of resource-id and
-   * global endpoint properties, however, YANG 1.0 does not allow
-   * that, hence we simply copied the regex for resource-id over
-   * verbatim.
-   */
-
-  typedef resource-specific-endpoint-property {
-    type string {
-      length "3..97"; //len(resource-id) + 1 + len(global-property)
-      pattern "(priv:)?[\w\-:@\.]+\.[\w\-:_]+"; // resource-id.property
-    }
-    description
-      "Resource-specific endpoint property.";
-  }
-
-  typedef endpoint-property-type {
-    type union {
-      type resource-specific-endpoint-property;
-      type global-endpoint-property;
-    }
-    description
-      "Endpoint property type. RFC7285 Sec. 10.8.";
-  }
-
-  typedef endpoint-property-value {
-    type string;
-    description
-      "Endpoint property (value).";
-  }
-
- /*************************************
-  * Definitions for response header
-  *************************************/
-
-  typedef media-type {
-    type union {
-      type string {
-        pattern "application/alto\-.*";   
-      }
-      type enumeration {
-        enum alto-directory+json;
-        enum alto-networkmap+json;
-        enum alto-networkmapfilter+json;
-        enum alto-costmap+json;
-        enum alto-costmapfilter+json;
-        enum alto-endpointprop+json;
-        enum alto-endpointpropparams+json;
-        enum alto-endpointcost+json;
-        enum alto-endpointcostparams+json;
-        enum alto-error+json;
-      }
-    }
-  }
-
-  grouping alto-cost {
-    anyxml cost {
-      mandatory true;
-      description
-        "ALTO cost is a JSONValue, which could be
-        an object, array, string, etc. (Ref: RFC 7159 Sec.3.)";
-    }
-  }
-
-  typedef constraint {
-    type string {
-      pattern "(gt|ge|lt|le|eq) [0-9]+";
-    }
-    description
-      "RFC7285 Sec. 11.3.2.3. The second part must be in the" +
-      "same unit as cost-metric, IEEE 754 2008 floating point.";
-  }
-
-  /******************************************
-    Groupings for ALTO information resource
-  *******************************************/
-
-  /* meta */
-  grouping IRD-meta {
-    uses cost-types;
-    leaf default-alto-network-map {
-      type leafref {
-        path "/resources/IRD/resources/resource-id";
-      }
-      mandatory true;
-    }
-  }
-
-  grouping network-map-meta {
-    container vtag {
-      uses vtag;
-    }
-  }
-
-  grouping cost-map-meta {
-    uses dependent-vtags {
-      refine dependent-vtags {
-        max-elements 1;
-      }
-    }
-    container cost-type {
-      uses cost-type;
-    }
-  }
-
-  grouping endpoint-property-meta {
-    uses dependent-vtags;
-  }
-
-  /* accepts (optional) */
-  grouping accepts {
-    leaf-list accepts {
-      type media-type;
-      min-elements 1;
-    }
-  }
-
-  /* capabilities (capabilities) */
-  grouping IRD-capabilities {
-    container capabilities {
-      leaf cost-constraints {
-        type boolean;
-      }
-      leaf-list cost-type-names {
-        type cost-type-name;
-      }
-      leaf-list prop-types {
-        type endpoint-property-type;
-      }
-    }
-  }
-
-  /* uses (optional) */
-  grouping uses {
-    leaf-list uses {
-      type leafref {
-        path "/resources/IRD/resources/resource-id";
-      }
-      min-elements 1;
-    }
-  }
-
-  /* Information Resource Directory Grouping */
-  grouping IRD {
-    container meta {
-      uses IRD-meta;
-    }
-    uses IRD-data;
-  }
-
-  grouping IRD-data {
-    list resources {
-      key resource-id;
-      leaf resource-id {
-        type resource-id;
-        mandatory true;
-      }
-      leaf uri {
-        type inet:uri;
-        mandatory true;
-      }
-      leaf media-type {
-        type media-type;
-        mandatory true;
-      }
-      uses accepts {
-        when "current()";
-      }
-      uses IRD-capabilities {
-        when "current()";
-      }
-      uses uses {
-        when "current()";
-      }
-      description
-        "IRDResourceEntry. RFC7285 9.2.2." +
-        " object {
-            JSONString      uri;
-            JSONString      media-type;
-            [JSONString     accepts;]
-            [Capabilities   capabilities;]
-            [ResourceID     uses<0..*>;]
-          } IRDResourceEntry;" +
-        "IRDResourceEntries. RFC7285 9.2.2." +
-        " object-map {
-            ResourceID  -> IRDResourceEntry;
-          } IRDResourceEntries;" +
-        "InformationResourceDirectory. RFC7285 9.2.2." +
-        " object {
-            IRDResourceEntries resources;
-          } InfoResourceDirectory : ResponseEntityBase;";
-    }
-  }
-
-  /* Network Map Grouping */
-  grouping network-map {
-    container meta {
-      uses network-map-meta;
-    }
-    uses network-map-data;
-  }
-
-  grouping network-map-data {
-    list network-map {
-      key "pid";
-      leaf pid {
-        type pid-name;
-      }
-      uses endpoint-address-group;
-      description
-        "RFC7285 Sec. 11.2.1.6." + 
-        " object-map {
-            PIDName -> EndpointAddrGroup;
-          } NetworkMapData;";
-    }
-    description
-      "Network map. RFC7285 Sec. 11.2.1.6." +
-      "object {
-         NetworkMapData network-map;
-       } InfoResourceNetworkMap : ResponseEntityBase;";
-  }
-
-  /* Cost Map Grouping */
-  grouping cost-map {
-    container meta {
-      uses cost-map-meta;
-    }
-    uses cost-map-data;
-  }
-
-  grouping cost-map-data {
-    list cost-map {
-      leaf src {
-        type pid-name;
-        description
-          "Source PID.";
-      }
-      key "src";
-      list dst-costs {
-        leaf dst {
-          type pid-name;
-          description
-            "Destination PID.";
-        }
-        key "dst";
-        uses alto-cost {
-          description
-            "Cost from source to destination.";
-        }
-        description
-          "The list represents the inner part of the cost matrix." +
-          "DstCosts. RFC7285 Sec. 11.2.3.6." +
-          " object-map {
-              PIDName -> JSONValue;
-            } DstCosts;";
-      }         
-      description
-        "The list represents the outer part of the cost matrix." +
-        "CostMapData. RFC7285 Sec. 11.2.3.6." +
-        " object-map {
-            PIDName -> DstCosts;
-          } CostMapData;";
-    }
-    description
-      "Cost map. RFC7285 Sec. 11.2.3.6." +
-      " object {
-          CostMapData cost-map;
-        } InfoResourceCostMap : ResponseEntityBase;";
-  }
-
-  /* Endpoint Property Map Grouping */
-  grouping endpoint-property-map {
-    container meta {
-      uses endpoint-property-meta;
-    }
-    uses endpoint-property-map-data;
-  }
-
-  grouping endpoint-property-map-data {
-    list endpoint-properties {
-      key endpoint;
-      leaf endpoint {
-        type typed-endpoint-address;
-        mandatory true;
-      }
-      list properties {
-        key property-type;
-        leaf property-type {
-          type endpoint-property-type;
-          mandatory true;
-        }
-        leaf property {
-          type endpoint-property-value;
-          mandatory true;
-        }
-        description
-          "EndpointProps. RFC7285 Sec. 11.4.1.6." +
-          " object {
-              EndpointPropertyType -> JSONValue;
-            } EndpointProps;";
-      }
-      description
-        "EndpointPropertyMapData. Sec. 11.4.1.6." +
-        " object-map {
-            TypedEndpointAddr -> EndpointProps;
-          } EndpointPropertyMapData;";
-    }
-    description
-      "InfoResourceEndpointProperties. Sec. 11.4.1.6." +
-      " object {
-          EndpointPropertyMapData endpoint-properties;
-        } InfoResourceEndpointProperties : ResponseEntityBase;";
-  }
 
   /****************************************************
      DATA INSTANCES of all ALTO information resources
@@ -2405,12 +2980,12 @@ module alto-service-did {
 
     /* Information Resource Directory */
     container IRD {
-      uses IRD;
+      uses alto:IRD;
     }
 
     list network-maps {
       unique "meta/vtag/resource-id meta/vtag/tag";
-      uses network-map;
+      uses alto:network-map;
     }
 
     list cost-maps {
@@ -2419,11 +2994,11 @@ module alto-service-did {
         identify a cost map. However, the unique statement in YANG
         does not allow reference to a list (dependent-vtags).
       */
-      uses cost-map;
+      uses alto:cost-map;
     }
 
     container endpoint-property-map {
-      uses endpoint-property-map;
+      uses alto:endpoint-property-map;
     }
   }
 
@@ -2435,7 +3010,7 @@ module alto-service-did {
   rpc IRD-service {
     output {
       container IRD-service {
-        uses IRD;
+        uses alto:IRD;
       }
     }
   }
@@ -2453,7 +3028,7 @@ module alto-service-did {
     }
     output {
       container network-map-service {
-        uses network-map;
+        uses alto:network-map;
       }
     }
   }
@@ -2471,7 +3046,7 @@ module alto-service-did {
     }
     output {
       container cost-map-service {
-        uses cost-map;
+        uses alto:cost-map;
       }
     }
   }
@@ -2487,15 +3062,15 @@ module alto-service-did {
     input {
       leaf-list pids {
         must "current()";
-        type pid-name;
+        type alto:pid-name;
       }
       leaf-list address-types {
-        type endpoint-address-type;
+        type alto:endpoint-address-type;
       }
     }
     output {
       container filtered-network-map-service {
-        uses network-map;
+        uses alto:network-map;
       }
     }
   }
@@ -2504,21 +3079,21 @@ module alto-service-did {
     input {
       container cost-type {
         must "current()";
-        uses cost-type;
+        uses alto:cost-type;
       }
       leaf-list constraints {
-        type constraint;
+        type alto:constraint;
         description
           "RFC7285 Sec. 11.3.2.3.";
       }
       container pids {
         leaf-list srcs {
-          type pid-name;
+          type alto:pid-name;
           description
             "Source endpoint addresses.";
         }
         leaf-list dsts {
-          type pid-name;
+          type alto:pid-name;
           description
             "Destination endpoint addresses.";
         }
@@ -2532,7 +3107,7 @@ module alto-service-did {
     }
     output {
       container filtered-cost-map-service {
-        uses cost-map;
+        uses alto:cost-map;
       }
     }
   }
@@ -2546,17 +3121,17 @@ module alto-service-did {
           } ReqEndpointProp;";
     input {
       leaf-list properties {
-        type endpoint-property-type;
+        type alto:endpoint-property-type;
         min-elements 1;
       }
       leaf-list endpoints {
-        type typed-endpoint-address;
+        type alto:typed-endpoint-address;
         min-elements 1;
       }
     }
     output {
       container endpoint-property-service {
-        uses endpoint-property-map;
+        uses alto:endpoint-property-map;
       }
     }
   }
@@ -2573,22 +3148,22 @@ module alto-service-did {
     input {
       container cost-type {
         must "current()";
-        uses cost-type;
+        uses alto:cost-type;
       }
       leaf-list constraints {
-        type constraint;
+        type alto:constraint;
         description
           "RFC7285 Sec. 11.5.1.3.";
       }
       container endpoints {
         must "current()";
         leaf-list srcs {
-          type typed-endpoint-address;
+          type alto:typed-endpoint-address;
           description
             "Source endpoint addresses.";
         }
         leaf-list dsts {
-          type typed-endpoint-address;
+          type alto:typed-endpoint-address;
           description
             "Destination endpoint addresses.";
         }
@@ -2604,24 +3179,210 @@ module alto-service-did {
       container endpoint-cost-service {
         container meta {
           container cost-type {
-            uses cost-type;
+            uses alto:cost-type;
           }
         }
         list endpoint-cost-map {
           leaf src {
-            type typed-endpoint-address;
+            type alto:typed-endpoint-address;
             description
               "Source endpoint address.";
           }
           key "src";
           list dst-costs {
             leaf dst {
-              type typed-endpoint-address;
+              type alto:typed-endpoint-address;
               description
                 "Destination endpoint address.";
             }
             key "dst";
-            uses alto-cost {
+            uses alto:alto-cost {
+              description
+                "Cost from source to destination.";
+            }
+            description
+              "The list represents the inner part of the cost matrix." +
+              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
+              " object-map {
+                  TypedEndpointAddr -> JSONValue;
+                } EndpointDstCosts;";
+          }
+          description
+            "The list represents the outer part of the cost matrix." +
+            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
+            " object {
+                EndpointCostMapData endpoint-cost-map;
+              } InfoResourceEndpointCostMap : ResponseEntityBase;
+              object-map {
+                TypedEndpointAddr -> EndpointDstCosts;
+              } EndpointCostMapData;";
+        }
+      }
+    }
+  }
+}
+]]></artwork></figure>
+      </section>
+
+      <section title="ALTO/YANG: NETCONF" anchor="ALTOYANGNETCONFMODEL">
+<figure><artwork><![CDATA[                            
+module alto-service-netconf {
+  yang-version 1;
+  
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-netconf";
+  // TODO: replace with IANA namespace when assigned
+
+  prefix "alto-netconf";
+
+  import alto-service-types {
+    prefix alto;
+  }
+
+  organization "ALTO WG";
+  contact "alto@ietf.org";
+
+  description 
+    "This module defines the netconf version of alto services. This is
+    not compliant/interoperable with RFC7285";
+
+  revision 2014-11-01 {
+    description "Initial version.";
+  }
+
+  /******************************************
+    Groupings for ALTO information resource
+  *******************************************/
+
+  /* Network Map Grouping */
+  grouping network-map {
+    leaf resource-id {
+      type alto:resource-id;
+      mandatory true;
+    }
+    leaf tag {
+      type alto:tag-string;
+      mandatory true;
+    }
+    uses alto:network-map-data;
+  }
+
+  /* Cost Map Grouping */
+  grouping cost-map {
+    leaf resource-id {
+      type alto:resource-id;
+      mandatory true;
+    }
+    leaf tag {
+      type alto:tag-string;
+      mandatory true;
+    }
+    container meta {
+      must "current()";
+      uses alto:cost-map-meta;
+    }
+    uses alto:cost-map-data;
+  }
+
+  grouping resources-netconf {
+    container IRD {
+      uses alto:IRD;
+    }
+
+    list network-maps {
+      key "resource-id";
+      uses network-map;
+    }
+
+    list cost-maps {
+      key "resource-id";
+      uses cost-map;
+    }
+
+    container endpoint-property-map {
+      uses alto:endpoint-property-map;
+    }
+  }
+
+  /****************************************************
+     DATA INSTANCES of all ALTO information resources
+
+     unfiltered network-maps, unfiltered cost-maps are all instances
+     of resources. IRD is also modeled as data.
+
+     The design uses augment as the basic approach to implement
+     inheritance.
+   ****************************************************/
+
+  container resources {
+    config false;
+    uses resources-netconf;
+  }
+
+
+  /************************************
+   * RPCs                             *
+   ************************************/
+
+  rpc endpoint-cost-service {
+    description
+      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
+      " object {
+          CostType          cost-type;
+          [JSONString       constraints<0..*>;]
+          EndpointFilter    endpoints;
+        } ReqEndpointCostMap;";
+    input {
+      container cost-type {
+        must "current()";
+        uses alto:cost-type;
+      }
+      leaf-list constraints {
+        type alto:constraint;
+        description
+          "RFC7285 Sec. 11.5.1.3.";
+      }
+      container endpoints {
+        must "current()";
+        leaf-list srcs {
+          type alto:typed-endpoint-address;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type alto:typed-endpoint-address;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          " EndpointFilter: Endpoint addr. RFC7285 Sec. 11.5.1.3." +
+          " object {
+              [TypedEndpointAddr srcs<0..*>;]
+              [TypedEndpointAddr dsts<0..*>;]
+            } EndpointFilter;";
+      }
+    }
+    output {
+      container endpoint-cost-service {
+        container meta {
+          container cost-type {
+            uses alto:cost-type;
+          }
+        }
+        list endpoint-cost-map {
+          leaf src {
+            type alto:typed-endpoint-address;
+            description
+              "Source endpoint address.";
+          }
+          key "src";
+          list dst-costs {
+            leaf dst {
+              type alto:typed-endpoint-address;
+              description
+                "Destination endpoint address.";
+            }
+            key "dst";
+            uses alto:alto-cost {
               description
                 "Cost from source to destination.";
             }
@@ -2647,9 +3408,226 @@ module alto-service-did {
   }
 
 }
-
 ]]></artwork></figure>
       </section>
+
+      <section title="ALTO/YANG: RESTCONF" anchor="ALTOYANGRESTCONFMODEL">
+<figure><artwork><![CDATA[                            
+module alto-service-restconf {
+  yang-version 1;
+  
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-restconf";
+  // TODO: replace with IANA namespace when assigned
+
+  prefix "alto-restconf";
+
+  import alto-service-types {
+    prefix alto;
+  }
+
+  import alto-service-netconf {
+    prefix alto-netconf;
+  }
+
+  organization "ALTO WG";
+  contact "alto@ietf.org";
+
+  description 
+    "This module defines a data model for the ALTO services
+     using restconf. Note this is not interop with RFC7285.";
+
+  revision 2014-11-01 {
+    description "Initial version.";
+  }
+
+  /************************************
+   * Data Instances                   *
+   ************************************/
+
+  container resources {
+    config false;
+    uses alto-netconf:resources-netconf;
+  }
+
+  /************************************
+   * RPCs                             *
+   ************************************/
+
+  rpc filtered-network-map-service {
+    description
+      "inquiries on filtered network map" +
+      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
+        " object {
+            PIDName pids<0..*>;
+            [AddressType address-types<0..*>;]
+          } ReqFilteredNetworkMap;";
+    input {
+      leaf-list pids {
+        must "current()";
+        type alto:pid-name;
+      }
+      leaf-list address-types {
+        type alto:endpoint-address-type;
+      }
+    }
+    output {
+      container filtered-network-map-service {
+        uses alto:network-map;
+      }
+    }
+  }
+
+  rpc filtered-cost-map-service {
+    input {
+      container cost-type {
+        must "current()";
+        uses alto:cost-type;
+      }
+      leaf-list constraints {
+        type alto:constraint;
+        description
+          "RFC7285 Sec. 11.3.2.3.";
+      }
+      container pids {
+        leaf-list srcs {
+          type alto:pid-name;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type alto:pid-name;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
+          " object {
+              PIDName srcs<0..*>;
+              PIDName dsts<0..*>;
+            } PIDFilter;";
+      }
+    }
+    output {
+      container filtered-cost-map-service {
+        uses alto:cost-map;
+      }
+    }
+  }
+
+  rpc endpoint-property-service {
+    description
+      "inquiries on properties of an endpoint" +
+      " object {
+            EndpointPropertyType  properties<1..*>;
+            TypedEndpointAddr     endpoints<1..*>;
+          } ReqEndpointProp;";
+    input {
+      leaf-list properties {
+        type alto:endpoint-property-type;
+        min-elements 1;
+      }
+      leaf-list endpoints {
+        type alto:typed-endpoint-address;
+        min-elements 1;
+      }
+    }
+    output {
+      container endpoint-property-service {
+        uses alto:endpoint-property-map;
+      }
+    }
+  }
+
+
+  rpc endpoint-cost-service {
+    description
+      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
+      " object {
+          CostType          cost-type;
+          [JSONString       constraints<0..*>;]
+          EndpointFilter    endpoints;
+        } ReqEndpointCostMap;";
+    input {
+      container cost-type {
+        must "current()";
+        uses alto:cost-type;
+      }
+      leaf-list constraints {
+        type alto:constraint;
+        description
+          "RFC7285 Sec. 11.5.1.3.";
+      }
+      container endpoints {
+        must "current()";
+        leaf-list srcs {
+          type alto:typed-endpoint-address;
+          description
+            "Source endpoint addresses.";
+        }
+        leaf-list dsts {
+          type alto:typed-endpoint-address;
+          description
+            "Destination endpoint addresses.";
+        }
+        description
+          " EndpointFilter: Endpoint addr. RFC7285 Sec. 11.5.1.3." +
+          " object {
+              [TypedEndpointAddr srcs<0..*>;]
+              [TypedEndpointAddr dsts<0..*>;]
+            } EndpointFilter;";
+      }
+    }
+    output {
+      container endpoint-cost-service {
+        container meta {
+          container cost-type {
+            uses alto:cost-type;
+          }
+        }
+        list endpoint-cost-map {
+          leaf src {
+            type alto:typed-endpoint-address;
+            description
+              "Source endpoint address.";
+          }
+          key "src";
+          list dst-costs {
+            leaf dst {
+              type alto:typed-endpoint-address;
+              description
+                "Destination endpoint address.";
+            }
+            key "dst";
+            uses alto:alto-cost {
+              description
+                "Cost from source to destination.";
+            }
+            description
+              "The list represents the inner part of the cost matrix." +
+              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
+              " object-map {
+                  TypedEndpointAddr -> JSONValue;
+                } EndpointDstCosts;";
+          }
+          description
+            "The list represents the outer part of the cost matrix." +
+            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
+            " object {
+                EndpointCostMapData endpoint-cost-map;
+              } InfoResourceEndpointCostMap : ResponseEntityBase;
+              object-map {
+                TypedEndpointAddr -> EndpointDstCosts;
+              } EndpointCostMapData;";
+        }
+      }
+    }
+  }
+
+}
+]]></artwork></figure>
+      </section>
+
+
     </section> <!--YANG model code-->
 
     <section title="YANG-Validated JSON Messages for ALTO Examples">

@@ -37,19 +37,21 @@ module: alto-service-netconf
       |  |     +--ro cost-mode      cost-mode
       |  |     +--ro cost-metric    cost-metric
       |  |     +--ro description?   string
-      |  +--ro cost-map* [src dst]
-      |     +--ro src     alto:pid-name
-      |     +--ro dst     alto:pid-name
-      |     +--ro cost    
+      |  +--ro cost-map* [src]
+      |     +--ro src          pid-name
+      |     +--ro dst-costs* [dst]
+      |        +--ro dst     pid-name
+      |        +--ro cost    
       +--ro endpoint-property-map
          +--ro meta
          |  +--ro dependent-vtags*
          |     +--ro resource-id    resource-id
          |     +--ro tag            tag-string
-         +--ro endpoint-properties* [endpoint property-type]
-            +--ro endpoint         alto:typed-endpoint-address
-            +--ro property-type    alto:endpoint-property-type
-            +--ro property         alto:endpoint-property-value
+         +--ro endpoint-properties* [endpoint]
+            +--ro endpoint      typed-endpoint-address
+            +--ro properties* [property-type]
+               +--ro property-type    endpoint-property-type
+               +--ro property         endpoint-property-value
 rpcs:
    +---x endpoint-cost-service    
       +--ro input     
