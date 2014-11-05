@@ -14,6 +14,10 @@ module alto-service-restconf {
     prefix alto-netconf;
   }
 
+  import ietf-inet-types {
+    prefix inet;
+  }
+
   organization "ALTO WG";
   contact "alto@ietf.org";
 
@@ -32,6 +36,27 @@ module alto-service-restconf {
   container resources {
     config false;
     uses alto-netconf:resources-netconf;
+  }
+
+  container incremental-updates {
+    list streams {
+      key "resource-id";
+      leaf resource-id {
+        type alto:resource-id;
+      }
+      list encoding {
+        key type;
+        leaf type {
+          type enumeration {
+            enum json;
+            enum xml;
+          }
+        }
+        leaf events {
+          type inet:uri;
+        }
+      }
+    }
   }
 
   /************************************

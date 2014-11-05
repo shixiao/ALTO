@@ -1,57 +1,63 @@
 module: alto-service-restconf
    +--ro resources
-      +--ro IRD
-      |  +--ro meta
-      |  |  +--ro cost-types* [cost-type-name]
-      |  |  |  +--ro cost-type-name    cost-type-name
-      |  |  |  +--ro cost-mode         cost-mode
-      |  |  |  +--ro cost-metric       cost-metric
-      |  |  |  +--ro description?      string
-      |  |  +--ro default-alto-network-map    resource-id
-      |  +--ro resources* [resource-id]
-      |     +--ro resource-id     resource-id
-      |     +--ro uri             inet:uri
-      |     +--ro media-type      media-type
-      |     +--ro accepts*        media-type
-      |     +--ro capabilities
-      |     |  +--ro cost-constraints?   boolean
-      |     |  +--ro cost-type-names*    cost-type-name
-      |     |  +--ro prop-types*         endpoint-property-type
-      |     +--ro uses*           resource-id
-      +--ro network-maps* [resource-id]
-      |  +--ro resource-id    alto:resource-id
-      |  +--ro tag            alto:tag-string
-      |  +--ro network-map* [pid]
-      |     +--ro pid                       pid-name
-      |     +--ro endpoint-address-group* [address-type]
-      |        +--ro address-type       endpoint-address-type
-      |        +--ro endpoint-prefix*   endpoint-prefix
-      +--ro cost-maps* [resource-id]
-      |  +--ro resource-id    alto:resource-id
-      |  +--ro tag            alto:tag-string
-      |  +--ro meta
-      |  |  +--ro dependent-vtags*
-      |  |  |  +--ro resource-id    resource-id
-      |  |  |  +--ro tag            tag-string
-      |  |  +--ro cost-type
-      |  |     +--ro cost-mode      cost-mode
-      |  |     +--ro cost-metric    cost-metric
-      |  |     +--ro description?   string
-      |  +--ro cost-map* [src]
-      |     +--ro src          pid-name
-      |     +--ro dst-costs* [dst]
-      |        +--ro dst     pid-name
-      |        +--ro cost    
-      +--ro endpoint-property-map
-         +--ro meta
-         |  +--ro dependent-vtags*
-         |     +--ro resource-id    resource-id
-         |     +--ro tag            tag-string
-         +--ro endpoint-properties* [endpoint]
-            +--ro endpoint      typed-endpoint-address
-            +--ro properties* [property-type]
-               +--ro property-type    endpoint-property-type
-               +--ro property         endpoint-property-value
+   |  +--ro IRD
+   |  |  +--ro meta
+   |  |  |  +--ro cost-types* [cost-type-name]
+   |  |  |  |  +--ro cost-type-name    cost-type-name
+   |  |  |  |  +--ro cost-mode         cost-mode
+   |  |  |  |  +--ro cost-metric       cost-metric
+   |  |  |  |  +--ro description?      string
+   |  |  |  +--ro default-alto-network-map    resource-id
+   |  |  +--ro resources* [resource-id]
+   |  |     +--ro resource-id     resource-id
+   |  |     +--ro uri             inet:uri
+   |  |     +--ro media-type      media-type
+   |  |     +--ro accepts*        media-type
+   |  |     +--ro capabilities
+   |  |     |  +--ro cost-constraints?   boolean
+   |  |     |  +--ro cost-type-names*    cost-type-name
+   |  |     |  +--ro prop-types*         endpoint-property-type
+   |  |     +--ro uses*           resource-id
+   |  +--ro network-maps* [resource-id]
+   |  |  +--ro resource-id    alto:resource-id
+   |  |  +--ro tag            alto:tag-string
+   |  |  +--ro network-map* [pid]
+   |  |     +--ro pid                       pid-name
+   |  |     +--ro endpoint-address-group* [address-type]
+   |  |        +--ro address-type       endpoint-address-type
+   |  |        +--ro endpoint-prefix*   endpoint-prefix
+   |  +--ro cost-maps* [resource-id]
+   |  |  +--ro resource-id    alto:resource-id
+   |  |  +--ro tag            alto:tag-string
+   |  |  +--ro meta
+   |  |  |  +--ro dependent-vtags*
+   |  |  |  |  +--ro resource-id    resource-id
+   |  |  |  |  +--ro tag            tag-string
+   |  |  |  +--ro cost-type
+   |  |  |     +--ro cost-mode      cost-mode
+   |  |  |     +--ro cost-metric    cost-metric
+   |  |  |     +--ro description?   string
+   |  |  +--ro cost-map* [src]
+   |  |     +--ro src          pid-name
+   |  |     +--ro dst-costs* [dst]
+   |  |        +--ro dst     pid-name
+   |  |        +--ro cost    
+   |  +--ro endpoint-property-map
+   |     +--ro meta
+   |     |  +--ro dependent-vtags*
+   |     |     +--ro resource-id    resource-id
+   |     |     +--ro tag            tag-string
+   |     +--ro endpoint-properties* [endpoint]
+   |        +--ro endpoint      typed-endpoint-address
+   |        +--ro properties* [property-type]
+   |           +--ro property-type    endpoint-property-type
+   |           +--ro property         endpoint-property-value
+   +--rw incremental-updates
+      +--rw streams* [resource-id]
+         +--rw resource-id    alto:resource-id
+         +--rw encoding* [type]
+            +--rw type      enumeration
+            +--rw events?   inet:uri
 rpcs:
    +---x filtered-network-map-service    
    |  +--ro input     

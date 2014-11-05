@@ -852,7 +852,22 @@ rpcs:
           <src>PID1</src>
           <dst-costs>
             <dst>PID1</dst>
-            <cost>0</cost>
+            <cost>1</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>5</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>10</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID2</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>5</cost>
           </dst-costs>
           <dst-costs>
             <dst>PID2</dst>
@@ -860,7 +875,18 @@ rpcs:
           </dst-costs>
           <dst-costs>
             <dst>PID3</dst>
-            <cost>5</cost>
+            <cost>15</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID3</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>20</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>15</cost>
           </dst-costs>
         </cost-map>
       </cost-maps>
@@ -910,7 +936,7 @@ rpcs:
         <tag>tus10ce8b0740a1938e3f8eb1d4785da65eca2</tag>
         <meta>        
           <dependent-vtags>
-            <resource-id>my-default-network-map</resource-id>
+            <resource-id>myNetMap1</resource-id>
             <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
           </dependent-vtags>
           <cost-type>
@@ -922,7 +948,22 @@ rpcs:
           <src>PID1</src>
           <dst-costs>
             <dst>PID1</dst>
-            <cost>0</cost>
+            <cost>1</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>5</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>10</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID2</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>5</cost>
           </dst-costs>
           <dst-costs>
             <dst>PID2</dst>
@@ -930,7 +971,18 @@ rpcs:
           </dst-costs>
           <dst-costs>
             <dst>PID3</dst>
-            <cost>5</cost>
+            <cost>15</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID3</src>
+          <dst-costs>
+            <dst>PID1</dst>
+            <cost>20</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>15</cost>
           </dst-costs>
         </cost-map>
       </cost-maps>
@@ -1218,7 +1270,7 @@ rpcs:
               One can observe that in the template, client must list all combinations of src and dst to retrieve the cost, which is very inefficient when the number of src and dst grows.
             </t>
             <t>
-              An example of the query, for src: PID1, PID2 and dst: PID3, PID4 of a cost map with resource-id myCostMap1, is the following:
+              An example of the query, for src: PID1, PID3 and dst: PID2, PID3 of a cost map with resource-id myCostMap1, is the following:
             </t>
 <figure><artwork><![CDATA[
 <rpc message-id=SEQ-NUM
@@ -1234,22 +1286,22 @@ rpcs:
           <cost-map>
             <src>PID1</src>
             <dst-costs>
-              <dst>PID3</dst>
+              <dst>PID2</dst>
               <cost/>
             </dst-costs>
             <dst-costs>
-              <dst>PID4</dst>
+              <dst>PID3</dst>
               <cost/>
             </dst-costs>
           </cost-map>
           <cost-map>
-            <src>PID2</src>
+            <src>PID3</src>
             <dst-costs>
-              <dst>PID3</dst>
+              <dst>PID2</dst>
               <cost/>
             </dst-costs>
             <dst-costs>
-              <dst>PID4</dst>
+              <dst>PID3</dst>
               <cost/>
             </dst-costs>          
           </cost-map>
@@ -1273,8 +1325,8 @@ rpcs:
         <tag>tus10ce8b0740a1938e3f8eb1d4785da65eca2</tag>
         <meta>
           <dependent-vtags>
-            <resource-id>my-default-network-map</resource-id>
-            <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+            <resource-id>myNetMap1</resource-id>
+            <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
           </dependent-vtags>
           <cost-type>
             <cost-mode>numerical</cost-mode>
@@ -1284,24 +1336,20 @@ rpcs:
         <cost-map>
           <src>PID1</src>
           <dst-costs>
-            <dst>PID3</dst>
-            <cost>1</cost>
+            <dst>PID2</dst>
+            <cost>5</cost>
           </dst-costs>
           <dst-costs>
-            <dst>PID4</dst>
-            <cost>3</cost>
+            <dst>PID3</dst>
+            <cost>10</cost>
           </dst-costs>
         </cost-map>
         <cost-map>
-          <src>PID2</src>
+          <src>PID3</src>
           <dst-costs>
-            <dst>PID3</dst>
-            <cost>2</cost>
+            <dst>PID2</dst>
+            <cost>15</cost>
           </dst-costs>
-          <dst-costs>
-            <dst>PID4</dst>
-            <cost>5</cost>
-          </dst-costs>        
         </cost-map>
       </cost-maps>
     </resources>
@@ -1346,7 +1394,7 @@ rpcs:
               Despite that one needs to specify the src PIDs multiple times, there is no need to provide a cartesian product of src PIDs and dst PIDs, which is more efficient compared to the subtree filtering approach.
             </t>
             <t>
-              An example of the query, for src: PID1, PID2 and dst: PID3, PID4 of a cost map with resource-id myCostMap1, is the following:
+              An example of the query, for src: PID1, PID3 and dst: PID2, PID3 of a cost map with resource-id myCostMap1, is the following:
             </t>
 <figure><artwork><![CDATA[
 <rpc message-id=SEQ-NUM
@@ -1359,10 +1407,10 @@ rpcs:
         | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:tag 
         | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:meta 
         | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:cost-map
-        [t:src="PID1" or t:src="PID2"]/t:src
+        [t:src="PID1" or t:src="PID3"]/t:src
         | /t:resources/t:cost-maps[t:resource-id=myCostMap1]/t:cost-map
-        [t:src="PID1" or t:src="PID2"]/t:dst-costs
-        [t:dst="PID3" or t:dst="PID4"]" />
+        [t:src="PID1" or t:src="PID3"]/t:dst-costs
+        [t:dst="PID2" or t:dst="PID3"]" />
   </get>
 </rpc>
 ]]></artwork></figure>
@@ -1379,8 +1427,8 @@ rpcs:
       <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
       <meta>
         <dependent-vtags>
-          <resource-id>my-default-network-map</resource-id>
-          <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+          <resource-id>myNetMap1</resource-id>
+          <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
         </dependent-vtags>
         <cost-type>
           <cost-mode>numerical</cost-mode>
@@ -1388,28 +1436,24 @@ rpcs:
         </cost-type>
       </meta>
       <cost-maps>
-          <cost-map>
-            <src>PID1</src>
-            <dst-costs>
-              <dst>PID3</dst>
-              <cost>1</cost>
-            </dst-costs>
-            <dst-costs>
-              <dst>PID4</dst>
-              <cost>3</cost>
-            </dst-costs>
-          </cost-map>
-          <cost-map>
-            <src>PID2</src>
-            <dst-costs>
-              <dst>PID3</dst>
-              <cost>2</cost>
-            </dst-costs>
-            <dst-costs>
-              <dst>PID4</dst>
-              <cost>5</cost>
-            </dst-costs>        
-          </cost-map>
+        <cost-map>
+          <src>PID1</src>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>5</cost>
+          </dst-costs>
+          <dst-costs>
+            <dst>PID3</dst>
+            <cost>10</cost>
+          </dst-costs>
+        </cost-map>
+        <cost-map>
+          <src>PID3</src>
+          <dst-costs>
+            <dst>PID2</dst>
+            <cost>15</cost>
+          </dst-costs>
+        </cost-map>
       </cost-maps>
     </resources>
   </data>
@@ -1515,7 +1559,7 @@ rpcs:
           <endpoint-properties>
             <endpoint>ipv4:192.0.2.34</endpoint>
             <properties>
-              <property-type>my-default-network-map.pid</property-type>
+              <property-type>myNetMap1.pid</property-type>
             </properties>
             <properties>
               <property-type>priv:ietf-example-prop</property-type>
@@ -1524,7 +1568,7 @@ rpcs:
           <endpoint-properties>
             <endpoint>ipv4:203.0.113.129</endpoint>
             <properties>
-              <property-type>my-default-network-map.pid</property-type>
+              <property-type>myNetMap1.pid</property-type>
             </properties>
             <properties>
               <property-type>priv:ietf-example-prop</property-type>
@@ -1548,38 +1592,26 @@ rpcs:
         <endpoint-property-map>
           <meta>
             <dependent-vtags>
-              <resource-id>my-default-network-map</resource-id>
-              <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+              <resource-id>myNetMap1</resource-id>
+              <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
             </dependent-vtags>
           </meta>
           <endpoint-properties>
             <endpoint>ipv4:192.0.2.34</endpoint>
             <properties>
-              <property-type>
-                my-default-network-map.pid
-              </property-type>
+              <property-type>myNetMap1.pid</property-type>
               <property>PID1</property>
             </properties>
             <properties>
-              <property-type>
-                priv:ietf-example-prop
-              </property-type>
+              <property-type>priv:ietf-example-prop</property-type>
               <property>1</property>
             </properties>
           </endpoint-properties>
           <endpoint-properties>
             <endpoint>ipv4:203.0.113.129</endpoint>
             <properties>
-              <property-type>
-                my-default-network-map.pid
-              </property-type>
-              <property>PID2</property>
-            </properties>
-            <properties>
-              <property-type>
-                priv:ietf-example-prop
-              </property-type>
-              <property>2</property>
+              <property-type>myNetMap1.pid</property-type>
+              <property>PID3</property>
             </properties>
           </endpoint-properties>
         </endpoint-property-map>
@@ -1631,7 +1663,7 @@ rpcs:
         | /t:resources/t:endpoint-property-map/t:endpoint-properties
         [t:endpoint="ipv4:192.0.2.34" 
         or t:endpoint="ipv4:203.0.113.129"]
-        /t:properties[t:property-type="my-default-network-map.pid" 
+        /t:properties[t:property-type="myNetMap1.pid" 
         or t:property-type="priv:ietf-example-prop"]" />
   </get>
 </rpc>
@@ -1647,14 +1679,14 @@ rpcs:
         <endpoint-property-map>
           <meta>
             <dependent-vtags>
-              <resource-id>my-default-network-map</resource-id>
-              <tag>75ed013b3cb58f896e839582504f622838ce670f</tag>
+              <resource-id>myNetMap1</resource-id>
+              <tag>da65eca2tus10ce8b0740a1938e3f8eb1d4785</tag>
             </dependent-vtags>
           </meta>
           <endpoint-properties>
             <endpoint>ipv4:192.0.2.34</endpoint>
             <properties>
-              <property-type>my-default-network-map.pid</property-type>
+              <property-type>myNetMap1.pid</property-type>
               <property>PID1</property>
             </properties>
             <properties>
@@ -1665,12 +1697,8 @@ rpcs:
           <endpoint-properties>
             <endpoint>ipv4:203.0.113.129</endpoint>
             <properties>
-              <property-type>my-default-network-map.pid</property-type>
-              <property>PID2</property>
-            </properties>
-            <properties>
-              <property-type>priv:ietf-example-prop</property-type>
-              <property>2</property>
+              <property-type>myNetMap1.pid</property-type>
+              <property>PID3</property>
             </properties>
           </endpoint-properties>
         </endpoint-property-map>
@@ -1858,7 +1886,7 @@ rpcs:
 
         <section title="Full Network Map Service Using RESTCONF">
           <t>
-            First consider the full network map service. Mapping Syntax: To request a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request.
+            First consider the full network map service. Mapping Syntax: To request a network map with resource-id INPUT-NETWORK-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request:
           </t>
 <figure><artwork><![CDATA[
 GET /restconf/data/alto-service-restconf:resources \
@@ -1931,7 +1959,7 @@ Content-Type: application/yang.data+json
 
         <section title="Full Cost Map Service Using RESTCONF">
           <t>
-            Then consider the full cost map service. Mapping Syntax: To request a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request.
+            Then consider the full cost map service. Mapping Syntax: To request a cost map with resource-id INPUT-COST-MAP-RESOURCE-ID, the RESTCONF client sends the following HTTP request:
           </t>
 <figure><artwork><![CDATA[
 GET /restconf/data/alto-service-restconf:resources \
@@ -1968,7 +1996,7 @@ Content-Type: application/yang.data+json
     "tag" : "tus10ce8b0740a1938e3f8eb1d4785da65eca2",
     "meta": {
       "dependent-vtags": {
-        "resource-id": "my-default-network-map",
+        "resource-id": "myNetMap1",
         "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
       },
       "cost-type": {
@@ -2095,12 +2123,27 @@ Content-Type: application/yang.data+json
     "tag" : "da65eca2tus10ce8b0740a1938e3f8eb1d4785",
     "network-map" : [
       {
-        "pid" : "PID1",
-        ...
+        "pid": "PID1",
+        "endpoint-address-group": {
+          "address-type": "ipv4",
+          "endpoint-prefix": [
+            "192.0.2.0/24",
+            "198.51.100.0/25"
+          ]
+        }
       },
       {
-        "pid" : "PID3",
-        ...
+        "pid": "PID3",
+        "endpoint-address-group": [
+          {
+            "address-type": "ipv4",
+            "endpoint-prefix": ["0.0.0.0/0"]
+          },
+          {
+            "address-type": "ipv6",
+            "endpoint-prefix": ["::/0"]
+          }
+        ]
       }
     ]
   }
@@ -2112,13 +2155,13 @@ Content-Type: application/yang.data+json
 
           <section title="Example: Filtered Cost Map Service with Proposed select Extension">
             <t>
-              To request the costs from sources PID1 and PID3 to destinations PID1 and PID2 of the cost map whose resource-id is myCostMap1, the RESTCONF client may send the following request:
+              To request the costs from sources PID1 and PID3 to destinations PID2 and PID3 of the cost map whose resource-id is myCostMap1, the RESTCONF client may send the following request:
             </t>
 <figure><artwork><![CDATA[
 GET /restconf/data/resources/cost-maps=myCostMap1 \
   ?select=resource-id;tag;meta; \
-  cost-map=PID1(src;dst-costs=PID1;dst-costs=PID2); \
-  cost-map=PID3(src;dst-costs=PID1;dst-costs=PID2) \
+  cost-map=PID1(src;dst-costs=PID2;dst-costs=PID3); \
+  cost-map=PID3(src;dst-costs=PID2;dst-costs=PID3) \
   &content=all HTTP/1.1
 Host: alto.example.com
 Accept: application/yang.data+json,
@@ -2148,17 +2191,25 @@ Content-Type: application/yang.data+json
     },
     "cost-map" : [
       {
-        "src" : "PID1",
-        "dst-cost": [
-          {"dst":PID1, "cost":xx},
-          {"dst":PID2, "cost":xx}
+        "src": "PID1",
+        "dst-costs": [
+          {
+            "dst": "PID2",
+            "cost": "5"
+          },
+          {
+            "dst": "PID3",
+            "cost": "10"
+          }
         ]
       },
       {
-        "pid" : "PID3",
-        "dst-cost": [
-          {"dst":PID1, "cost":xx},
-          {"dst":PID2, "cost":xx}
+        "src": "PID3",
+        "dst-costs": [
+          {
+            "dst": "PID2",
+            "cost": "15"
+          }
         ]
       }
     ]
@@ -2167,8 +2218,21 @@ Content-Type: application/yang.data+json
 ]]></artwork></figure>
 
           </section>
+<!--
+          <section title="Comparison Between Extension and Other Mechanisms">
 
+<figure><artwork><![CDATA[
+┌─────────┬───────────┐
+│         │           │
+├─────────┼───────────┤
+│         │           │
+└─────────┴───────────┘
+]]></artwork></figure>
+
+          </section>
+-->
         </section> <!--potential extension -->
+
       </section>
 
     </section> <!-- Model Structure Section -->
