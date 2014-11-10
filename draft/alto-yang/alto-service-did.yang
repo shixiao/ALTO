@@ -4,7 +4,7 @@ module alto-service-did {
   namespace "urn:ietf:params:xml:ns:yang:alto-service-did";
   // TODO: replace with IANA namespace when assigned
 
-  prefix "asd";
+  prefix "as-did";
 
   import alto-service-types {
     prefix alto;
@@ -26,6 +26,89 @@ module alto-service-did {
     description "Initial version.";
   }
 
+  /******************************************
+    Groupings for ALTO information resource
+  *******************************************/
+
+  grouping network-map-data {
+    list map {
+      key "pid";
+      leaf pid {
+        type alto:pid-name;
+      }
+      uses alto:endpoint-address-group;
+    }
+  }
+
+  /* Network Map Grouping */
+  grouping network-map {
+    leaf resource-id {
+      type alto:resource-id;
+      mandatory true;
+    }
+    leaf tag {
+      type alto:tag-string;
+      mandatory true;
+    }
+    uses network-map-data;
+  }
+
+  grouping cost-map-data {
+    list map {
+      leaf src {
+        type alto:pid-name;
+      }
+      key "src";
+      list dst-costs {
+        leaf dst {
+          type alto:pid-name;
+        }
+        key "dst";
+        uses alto:alto-cost;
+      }
+    }
+  }
+
+  /* Cost Map Grouping */
+  grouping cost-map {
+    leaf resource-id {
+      type alto:resource-id;
+      mandatory true;
+    }
+    leaf tag {
+      type alto:tag-string;
+      mandatory true;
+    }
+    container meta {
+      must "current()";
+      uses alto:cost-map-meta;
+    }
+    uses cost-map-data;
+  }
+
+  grouping alto-resources {
+    container IRD {
+      uses alto:IRD;
+    }
+
+    container network-maps {
+      list network-map {
+        key "resource-id";
+        uses network-map;
+      }
+    }
+
+    container cost-maps {
+      list cost-map {
+        key "resource-id";
+        uses cost-map;
+      }
+    }
+
+    container endpoint-property-map {
+      uses alto:endpoint-property-map;
+    }
+  }
 
   /****************************************************
      DATA INSTANCES of all ALTO information resources
@@ -39,248 +122,7 @@ module alto-service-did {
 
   container resources {
     config false;
-
-    /* Information Resource Directory */
-    container IRD {
-      uses alto:IRD;
-    }
-
-    list network-maps {
-      unique "meta/vtag/resource-id meta/vtag/tag";
-      uses alto:network-map;
-    }
-
-    list cost-maps {
-      /*
-        The dependent-vtags and cost-types in the meta uniquely
-        identify a cost map. However, the unique statement in YANG
-        does not allow reference to a list (dependent-vtags).
-      */
-      uses alto:cost-map;
-    }
-
-    container endpoint-property-map {
-      uses alto:endpoint-property-map;
-    }
-  }
-
-
-  /************************************
-   * RPCs                             *
-   ************************************/
-
-  rpc IRD-service {
-    output {
-      container IRD-service {
-        uses alto:IRD;
-      }
-    }
-  }
-
-  rpc network-map-service {
-    input {
-      leaf uri {
-        type leafref {
-          path "/resources/IRD/resources/uri";
-        }
-        mandatory true;
-        description
-          "The uri of the request for the full network map.";
-      }
-    }
-    output {
-      container network-map-service {
-        uses alto:network-map;
-      }
-    }
-  }
-
-  rpc cost-map-service {
-    input {
-      leaf uri {
-        type leafref {
-          path "/resources/IRD/resources/uri";
-        }
-        mandatory true;
-        description
-          "The uri of the request for the full network map.";
-      }
-    }
-    output {
-      container cost-map-service {
-        uses alto:cost-map;
-      }
-    }
-  }
-
-  rpc filtered-network-map-service {
-    description
-      "inquiries on filtered network map" +
-      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
-        " object {
-            PIDName pids<0..*>;
-            [AddressType address-types<0..*>;]
-          } ReqFilteredNetworkMap;";
-    input {
-      leaf-list pids {
-        must "current()";
-        type alto:pid-name;
-      }
-      leaf-list address-types {
-        type alto:endpoint-address-type;
-      }
-    }
-    output {
-      container filtered-network-map-service {
-        uses alto:network-map;
-      }
-    }
-  }
-
-  rpc filtered-cost-map-service {
-    input {
-      container cost-type {
-        must "current()";
-        uses alto:cost-type;
-      }
-      leaf-list constraints {
-        type alto:constraint;
-        description
-          "RFC7285 Sec. 11.3.2.3.";
-      }
-      container pids {
-        leaf-list srcs {
-          type alto:pid-name;
-          description
-            "Source endpoint addresses.";
-        }
-        leaf-list dsts {
-          type alto:pid-name;
-          description
-            "Destination endpoint addresses.";
-        }
-        description
-          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
-          " object {
-              PIDName srcs<0..*>;
-              PIDName dsts<0..*>;
-            } PIDFilter;";
-      }
-    }
-    output {
-      container filtered-cost-map-service {
-        uses alto:cost-map;
-      }
-    }
-  }
-
-  rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint" +
-      " object {
-            EndpointPropertyType  properties<1..*>;
-            TypedEndpointAddr     endpoints<1..*>;
-          } ReqEndpointProp;";
-    input {
-      leaf-list properties {
-        type alto:endpoint-property-type;
-        min-elements 1;
-      }
-      leaf-list endpoints {
-        type alto:typed-endpoint-address;
-        min-elements 1;
-      }
-    }
-    output {
-      container endpoint-property-service {
-        uses alto:endpoint-property-map;
-      }
-    }
-  }
-
-
-  rpc endpoint-cost-service {
-    description
-      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
-      " object {
-          CostType          cost-type;
-          [JSONString       constraints<0..*>;]
-          EndpointFilter    endpoints;
-        } ReqEndpointCostMap;";
-    input {
-      container cost-type {
-        must "current()";
-        uses alto:cost-type;
-      }
-      leaf-list constraints {
-        type alto:constraint;
-        description
-          "RFC7285 Sec. 11.5.1.3.";
-      }
-      container endpoints {
-        must "current()";
-        leaf-list srcs {
-          type alto:typed-endpoint-address;
-          description
-            "Source endpoint addresses.";
-        }
-        leaf-list dsts {
-          type alto:typed-endpoint-address;
-          description
-            "Destination endpoint addresses.";
-        }
-        description
-          " EndpointFilter: Endpoint addr. RFC7285 Sec. 11.5.1.3." +
-          " object {
-              [TypedEndpointAddr srcs<0..*>;]
-              [TypedEndpointAddr dsts<0..*>;]
-            } EndpointFilter;";
-      }
-    }
-    output {
-      container endpoint-cost-service {
-        container meta {
-          container cost-type {
-            uses alto:cost-type;
-          }
-        }
-        list endpoint-cost-map {
-          leaf src {
-            type alto:typed-endpoint-address;
-            description
-              "Source endpoint address.";
-          }
-          key "src";
-          list dst-costs {
-            leaf dst {
-              type alto:typed-endpoint-address;
-              description
-                "Destination endpoint address.";
-            }
-            key "dst";
-            uses alto:alto-cost {
-              description
-                "Cost from source to destination.";
-            }
-            description
-              "The list represents the inner part of the cost matrix." +
-              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
-              " object-map {
-                  TypedEndpointAddr -> JSONValue;
-                } EndpointDstCosts;";
-          }
-          description
-            "The list represents the outer part of the cost matrix." +
-            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
-            " object {
-                EndpointCostMapData endpoint-cost-map;
-              } InfoResourceEndpointCostMap : ResponseEntityBase;
-              object-map {
-                TypedEndpointAddr -> EndpointDstCosts;
-              } EndpointCostMapData;";
-        }
-      }
-    }
+    uses alto-resources;
   }
 
 }

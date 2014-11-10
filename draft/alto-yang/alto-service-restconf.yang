@@ -10,12 +10,8 @@ module alto-service-restconf {
     prefix alto;
   }
 
-  import alto-service-netconf {
-    prefix alto-netconf;
-  }
-
-  import ietf-inet-types {
-    prefix inet;
+  import alto-service-did {
+    prefix alto-did;
   }
 
   organization "ALTO WG";
@@ -35,28 +31,7 @@ module alto-service-restconf {
 
   container resources {
     config false;
-    uses alto-netconf:resources-netconf;
-  }
-
-  container incremental-updates {
-    list streams {
-      key "resource-id";
-      leaf resource-id {
-        type alto:resource-id;
-      }
-      list encoding {
-        key type;
-        leaf type {
-          type enumeration {
-            enum json;
-            enum xml;
-          }
-        }
-        leaf events {
-          type inet:uri;
-        }
-      }
-    }
+    uses alto-did:alto-resources;
   }
 
   /************************************
@@ -64,13 +39,6 @@ module alto-service-restconf {
    ************************************/
 
   rpc filtered-network-map-service {
-    description
-      "inquiries on filtered network map" +
-      "ReqFilteredNetworkMap. RFC7285 Sec. 11.3.1.3." +
-        " object {
-            PIDName pids<0..*>;
-            [AddressType address-types<0..*>;]
-          } ReqFilteredNetworkMap;";
     input {
       leaf-list pids {
         must "current()";
@@ -95,26 +63,14 @@ module alto-service-restconf {
       }
       leaf-list constraints {
         type alto:constraint;
-        description
-          "RFC7285 Sec. 11.3.2.3.";
       }
       container pids {
         leaf-list srcs {
           type alto:pid-name;
-          description
-            "Source endpoint addresses.";
         }
         leaf-list dsts {
           type alto:pid-name;
-          description
-            "Destination endpoint addresses.";
         }
-        description
-          "PIDFilter: Endpoint addresses. RFC7285 Sec. 11.3.2.3." +
-          " object {
-              PIDName srcs<0..*>;
-              PIDName dsts<0..*>;
-            } PIDFilter;";
       }
     }
     output {
@@ -125,12 +81,6 @@ module alto-service-restconf {
   }
 
   rpc endpoint-property-service {
-    description
-      "inquiries on properties of an endpoint" +
-      " object {
-            EndpointPropertyType  properties<1..*>;
-            TypedEndpointAddr     endpoints<1..*>;
-          } ReqEndpointProp;";
     input {
       leaf-list properties {
         type alto:endpoint-property-type;
@@ -148,15 +98,7 @@ module alto-service-restconf {
     }
   }
 
-
   rpc endpoint-cost-service {
-    description
-      "ReqEndpointCostMap. RFC7285 Sec. 11.5.1.3." +
-      " object {
-          CostType          cost-type;
-          [JSONString       constraints<0..*>;]
-          EndpointFilter    endpoints;
-        } ReqEndpointCostMap;";
     input {
       container cost-type {
         must "current()";
@@ -164,27 +106,15 @@ module alto-service-restconf {
       }
       leaf-list constraints {
         type alto:constraint;
-        description
-          "RFC7285 Sec. 11.5.1.3.";
       }
       container endpoints {
         must "current()";
         leaf-list srcs {
           type alto:typed-endpoint-address;
-          description
-            "Source endpoint addresses.";
         }
         leaf-list dsts {
           type alto:typed-endpoint-address;
-          description
-            "Destination endpoint addresses.";
         }
-        description
-          " EndpointFilter: Endpoint addr. RFC7285 Sec. 11.5.1.3." +
-          " object {
-              [TypedEndpointAddr srcs<0..*>;]
-              [TypedEndpointAddr dsts<0..*>;]
-            } EndpointFilter;";
       }
     }
     output {
@@ -197,37 +127,15 @@ module alto-service-restconf {
         list endpoint-cost-map {
           leaf src {
             type alto:typed-endpoint-address;
-            description
-              "Source endpoint address.";
           }
           key "src";
           list dst-costs {
             leaf dst {
               type alto:typed-endpoint-address;
-              description
-                "Destination endpoint address.";
             }
             key "dst";
-            uses alto:alto-cost {
-              description
-                "Cost from source to destination.";
-            }
-            description
-              "The list represents the inner part of the cost matrix." +
-              "EndpointDstCosts. RFC7285 Sec. 11.5.1.6." +
-              " object-map {
-                  TypedEndpointAddr -> JSONValue;
-                } EndpointDstCosts;";
+            uses alto:alto-cost;
           }
-          description
-            "The list represents the outer part of the cost matrix." +
-            "EndpointCostMapData. RFC7285 Sec. 11.5.1.6." +
-            " object {
-                EndpointCostMapData endpoint-cost-map;
-              } InfoResourceEndpointCostMap : ResponseEntityBase;
-              object-map {
-                TypedEndpointAddr -> EndpointDstCosts;
-              } EndpointCostMapData;";
         }
       }
     }

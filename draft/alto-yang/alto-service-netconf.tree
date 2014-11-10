@@ -18,30 +18,32 @@ module: alto-service-netconf
       |     |  +--ro cost-type-names*    cost-type-name
       |     |  +--ro prop-types*         endpoint-property-type
       |     +--ro uses*           resource-id
-      +--ro network-maps* [resource-id]
-      |  +--ro resource-id    alto:resource-id
-      |  +--ro tag            alto:tag-string
-      |  +--ro network-map* [pid]
-      |     +--ro pid                       pid-name
-      |     +--ro endpoint-address-group* [address-type]
-      |        +--ro address-type       endpoint-address-type
-      |        +--ro endpoint-prefix*   endpoint-prefix
-      +--ro cost-maps* [resource-id]
-      |  +--ro resource-id    alto:resource-id
-      |  +--ro tag            alto:tag-string
-      |  +--ro meta
-      |  |  +--ro dependent-vtags*
-      |  |  |  +--ro resource-id    resource-id
-      |  |  |  +--ro tag            tag-string
-      |  |  +--ro cost-type
-      |  |     +--ro cost-mode      cost-mode
-      |  |     +--ro cost-metric    cost-metric
-      |  |     +--ro description?   string
-      |  +--ro cost-map* [src]
-      |     +--ro src          pid-name
-      |     +--ro dst-costs* [dst]
-      |        +--ro dst     pid-name
-      |        +--ro cost    
+      +--ro network-maps
+      |  +--ro network-map* [resource-id]
+      |     +--ro resource-id    alto:resource-id
+      |     +--ro tag            alto:tag-string
+      |     +--ro map* [pid]
+      |        +--ro pid                       alto:pid-name
+      |        +--ro endpoint-address-group* [address-type]
+      |           +--ro address-type       endpoint-address-type
+      |           +--ro endpoint-prefix*   endpoint-prefix
+      +--ro cost-maps
+      |  +--ro cost-map* [resource-id]
+      |     +--ro resource-id    alto:resource-id
+      |     +--ro tag            alto:tag-string
+      |     +--ro meta
+      |     |  +--ro dependent-vtags*
+      |     |  |  +--ro resource-id    resource-id
+      |     |  |  +--ro tag            tag-string
+      |     |  +--ro cost-type
+      |     |     +--ro cost-mode      cost-mode
+      |     |     +--ro cost-metric    cost-metric
+      |     |     +--ro description?   string
+      |     +--ro map* [src]
+      |        +--ro src          alto:pid-name
+      |        +--ro dst-costs* [dst]
+      |           +--ro dst     alto:pid-name
+      |           +--ro cost    
       +--ro endpoint-property-map
          +--ro meta
          |  +--ro dependent-vtags*

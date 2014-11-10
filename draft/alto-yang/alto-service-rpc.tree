@@ -21,8 +21,6 @@ rpcs:
    |           |  +--ro prop-types*         endpoint-property-type
    |           +--ro uses*           resource-id
    +---x network-map-service             
-   |  +--ro input     
-   |  |  +--ro uri    inet:uri
    |  +--ro output    
    |     +--ro network-map-service
    |        +--ro meta
@@ -35,8 +33,6 @@ rpcs:
    |              +--ro address-type       endpoint-address-type
    |              +--ro endpoint-prefix*   endpoint-prefix
    +---x cost-map-service                
-   |  +--ro input     
-   |  |  +--ro uri    inet:uri
    |  +--ro output    
    |     +--ro cost-map-service
    |        +--ro meta

@@ -4,22 +4,22 @@ module alto-service-rpc {
   namespace "urn:ietf:params:xml:ns:yang:alto-service-rpc";
   // TODO: replace with IANA namespace when assigned
 
-  prefix "asr";
+  prefix "as-rpc";
 
   import alto-service-types {
     prefix alto;
-  }
-
-  import ietf-inet-types {
-    prefix inet;
   }
 
   organization "ALTO WG";
   contact "alto@ietf.org";
 
   description 
-    "This module defines the RPCs for a semantically equivalent data model
-     for the ALTO services defined in RFC7285.";
+    "This module defines the RPCs for a semantically equivalent
+    data model for the ALTO services defined in RFC7285.";
+
+  revision 2014-11-09 {
+    description "Change rpc inputs for full/filtered map services.";
+  }
 
   revision 2014-11-01 {
     description "Importing from alto-service-types.";
@@ -42,14 +42,6 @@ module alto-service-rpc {
   }
 
   rpc network-map-service {
-    input {
-      leaf uri {
-        type inet:uri;
-        mandatory true;
-        description
-          "The uri of the request for the full network map.";
-      }
-    }
     output {
       container network-map-service {
         uses alto:network-map;
@@ -58,14 +50,6 @@ module alto-service-rpc {
   }
 
   rpc cost-map-service {
-    input {
-      leaf uri {
-        type inet:uri;
-        mandatory true;
-        description
-          "The uri of the request for the full network map.";
-      }
-    }
     output {
       container cost-map-service {
         uses alto:cost-map;
@@ -242,5 +226,4 @@ module alto-service-rpc {
       }
     }
   }
-
 }

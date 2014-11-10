@@ -10,6 +10,10 @@ module alto-service-netconf {
     prefix alto;
   }
 
+  import alto-service-did {
+    prefix as-did;
+  }
+
   organization "ALTO WG";
   contact "alto@ietf.org";
 
@@ -21,59 +25,6 @@ module alto-service-netconf {
     description "Initial version.";
   }
 
-  /******************************************
-    Groupings for ALTO information resource
-  *******************************************/
-
-  /* Network Map Grouping */
-  grouping network-map {
-    leaf resource-id {
-      type alto:resource-id;
-      mandatory true;
-    }
-    leaf tag {
-      type alto:tag-string;
-      mandatory true;
-    }
-    uses alto:network-map-data;
-  }
-
-  /* Cost Map Grouping */
-  grouping cost-map {
-    leaf resource-id {
-      type alto:resource-id;
-      mandatory true;
-    }
-    leaf tag {
-      type alto:tag-string;
-      mandatory true;
-    }
-    container meta {
-      must "current()";
-      uses alto:cost-map-meta;
-    }
-    uses alto:cost-map-data;
-  }
-
-  grouping resources-netconf {
-    container IRD {
-      uses alto:IRD;
-    }
-
-    list network-maps {
-      key "resource-id";
-      uses network-map;
-    }
-
-    list cost-maps {
-      key "resource-id";
-      uses cost-map;
-    }
-
-    container endpoint-property-map {
-      uses alto:endpoint-property-map;
-    }
-  }
 
   /****************************************************
      DATA INSTANCES of all ALTO information resources
@@ -87,9 +38,8 @@ module alto-service-netconf {
 
   container resources {
     config false;
-    uses resources-netconf;
+    uses as-did:alto-resources;
   }
-
 
   /************************************
    * RPCs                             *
