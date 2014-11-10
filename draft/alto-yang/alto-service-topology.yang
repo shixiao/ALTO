@@ -1,0 +1,98 @@
+module alto-service-topology {
+  yang-version 1;
+  
+  namespace "urn:ietf:params:xml:ns:yang:alto-service-did";
+  // TODO: replace with IANA namespace when assigned
+
+  prefix "asd";
+
+  import alto-service-types {
+    prefix alto;
+  }
+
+  organization "ALTO WG";
+  contact "alto@ietf.org";
+
+  description 
+    "This module defines the data instance descriptions (DID) of a 
+     semantically equivalent data model for the ALTO services 
+     defined in RFC7285.";
+
+  revision 2014-11-07 {
+    description "prototype";
+  }
+
+  typedef node-id {
+    type alto:valid-id-string;
+  }
+
+  typedef edge-id {
+    type alto:valid-id-string;
+  }
+
+  grouping node-edge-map {
+    list nodes {
+      key node-id;
+      leaf node-id {
+        type node-id;
+      }
+      list node-properties {
+        key property-name;
+        leaf property-name {
+          type string;
+        }
+        leaf property-value {
+          type string;
+        }
+      }
+    }
+
+    list edges {
+      key "edge-id";
+      leaf edge-id {
+        type edge-id;
+      }
+
+      leaf src {
+        type union {
+          type alto:pid-name;
+          type node-id;
+        }
+        mandatory true;
+      }
+      leaf dst {
+        type union {
+          type alto:pid-name;
+          type node-id;
+        }
+        mandatory true;
+      }
+
+      list cost {
+        min-elements 1;
+        key cost-metric;
+        leaf cost-metric {
+          type alto:cost-metric;
+        }
+        anyxml value;
+      }
+    }
+  }
+
+  container resources {
+    config false;
+    container topology-maps {
+      list topology-map {
+        key resource-id;
+        leaf resource-id {
+          type alto:resource-id;
+        }
+        leaf tag {
+          type alto:tag-string;
+        }
+        uses node-edge-map;
+      }
+    }
+  }
+
+}

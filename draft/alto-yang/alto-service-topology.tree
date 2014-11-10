@@ -1,0 +1,18 @@
+module: alto-service-topology
+   +--ro resources
+      +--ro topology-maps
+         +--ro topology-map* [resource-id]
+            +--ro resource-id    alto:resource-id
+            +--ro tag?           alto:tag-string
+            +--ro nodes* [node-id]
+            |  +--ro node-id            node-id
+            |  +--ro node-properties* [property-name]
+            |     +--ro property-name     string
+            |     +--ro property-value?   string
+            +--ro edges* [edge-id]
+               +--ro edge-id    edge-id
+               +--ro src        union
+               +--ro dst        union
+               +--ro cost* [cost-metric]
+                  +--ro cost-metric    alto:cost-metric
+                  +--ro value          
