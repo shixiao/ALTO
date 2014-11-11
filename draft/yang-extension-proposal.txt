@@ -1,0 +1,83 @@
+
+ "network-map" : {
+   "PID1" : {
+     "ipv4" : [
+       "192.0.2.0/24",
+       "198.51.100.0/25"
+     ]
+   },
+   "PID2" : {
+     "ipv4" : [
+       "198.51.100.128/25"
+     ]
+   },
+   "PID3" : {
+     "ipv4" : [
+       "0.0.0.0/0"
+     ],
+     "ipv6" : [
+       "::/0"
+     ]
+   }
+ }
+
+
+container network-map {
+  config false;
+  abstract container map {
+    name pid {
+      type pid-name;
+    }
+    abstract leaf-list endpoint-address-group {
+      name address-type {
+        type address-type;
+      }
+      leaf endpoints {
+        type endpoint-address;
+      }
+    }
+  }
+}
+
+abstract leaf {
+  name {
+    type string;
+  }
+  type int32;
+}
+
+
+;; defined in YANG RFC6020
+string-restrictions = ;; these stmts can appear in any order
+                      [length-stmt stmtsep]
+                      *(pattern-stmt stmtsep)
+
+;; proposed extensions
+name-keyword = 'name'
+abstract-keyword = 'abstract'
+
+;; the type must validate a JSON string
+name-type-stmt = type-stmt
+
+name-stmt = name-keyword optsep
+            "{" stmtsep
+              ;; the type must be a string type.
+              type-stmt stmtsep
+            "}"
+
+abstract-leaf-stmt = abstract-keyword sep leaf-keyword sep identifier-arg-str optsep
+                       "{" stmtsep
+                           ;; these stmts can appear in any order
+                           name-stmt stmtsep
+                           [when-stmt stmtsep]
+                           *(if-feature-stmt stmtsep)
+                           type-stmt stmtsep
+                           [units-stmt stmtsep]
+                           *(must-stmt stmtsep)
+                           [default-stmt stmtsep]
+                           [config-stmt stmtsep]
+                           [mandatory-stmt stmtsep]
+                           [status-stmt stmtsep]
+                           [description-stmt stmtsep]
+                           [reference-stmt stmtsep]
+                       "}"

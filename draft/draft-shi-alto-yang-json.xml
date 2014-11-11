@@ -1,0 +1,997 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<?rfc toc="yes"?>
+<?rfc iprnotified="no" ?>
+<?rfc symrefs="yes"?>
+<?rfc compact="yes" ?>
+<?rfc subcompact="no" ?>
+<rfc category="info"
+     docName="draft-shi-alto-yang-json-01" 
+     ipr="trust200902">
+  <front>
+    <title>Modeling JSON Messages Using YANG</title>
+    <author initials="X." surname="Shi" fullname="Xiao Shi">
+      <organization abbrev="Yale University">Yale University</organization>
+      <address>
+        <postal>
+          <street>51 Prospect Street</street>
+          <city>New Haven</city>
+          <region>CT</region>
+          <code>06511</code>
+          <country>USA</country>
+        </postal>
+        <email>xiao.shi@yale.edu</email>
+      </address>
+    </author>
+    <author fullname="Y. Richard Yang" initials="Y." surname="Yang">
+      <organization>Yale University</organization>
+      <address>
+      <postal>
+        <street>51 Prospect St</street>
+        <city>New Haven</city>
+        <code>CT</code>
+        <country>USA</country>
+      </postal>
+      <email>yang.r.yang@gmail.com</email>
+      </address>
+    </author>
+    <date month="November" year="2014"/>
+    <area>Networks</area>
+    <workgroup>ALTO Working Group</workgroup>
+    <keyword>ALTO</keyword>
+    <abstract>
+      <t>
+        JavaScript Object Notation (JSON) has been a popular choice as the message encoding for many network protocols. Meanwhile, there are broad interests in the networking community to use the YANG data modeling language <xref target="RFC6020"/> to formally specify datastore and protocol messages and to use YANG-related tools. Although YANG itself is XML based, there have been efforts to encode YANG modeled data using JSON <xref target="draft-ietf-netmod-yang-json" />.
+      </t>
+      <t>
+        This document explores the conditions under which the messages of a JSON based protocol can have a compact, syntactically equivalent YANG model. In particular, this document shows that any JSON protocol message with stand-alone non-object JSON values, certain JSON arrays of elements of mixed types, or non-keyword keys in key-value pairs cannot have a compact, syntactically equivalent YANG model. It also applies these conditions to the ALTO and CDNi protocol messages as examples.
+      </t>
+    </abstract>
+  </front>
+  
+  <middle>
+    <section title="Introduction">
+      <t>
+        JavaScript Object Notation (JSON) has been a popular choice as the message encoding for many network protocols such as the Application-Layer Traffic Optimization (ALTO) protocol <xref target="RFC7285"/>, the Content Delivery Networks Interconnection (CDNi) protocol <xref target="RFC6707"/>, the Port Control Protocol (PCP) <xref target="RFC6887"/>, etc.
+      </t>
+
+      <t>
+        Meanwhile, there are broad interests in the networking community to use the YANG data modeling language <xref target="RFC6020"/> to formally specify server datastore and protocol messages, so that one can use YANG related tools such as the OpenDayLight Controller. Although YANG itself is XML based, there have been efforts to encode YANG modeled data using JSON <xref target="draft-ietf-netmod-yang-json"/>
+      </t>
+      <t>
+        This document explores the conditions under which the messages of a JSON based protocol can have a compact, syntactically equivalent YANG model, and provides a conversion process from the JSON message to the YANG model. In particular, this document shows that any JSON protocol message with stand-alone non-object JSON values, certain JSON arrays of elements of mixed types, or non-keyword keys in key-value pairs cannot have a compact, syntactically equivalent YANG model. It also applies these conditions to the ALTO and CDNi protocol messages as examples. For protocols that do not have syntactically equivalent YANG models, we also explore the possibility of a semantically equivalent YANG model.
+      </t>
+    </section>
+
+    <section title="Terminology">
+      <t>
+        We define the following terms to be used in this document.
+      </t>
+      <t>
+        "Specify" a JSON protocol message: build a YANG data model to validate a JSON message instance.
+      </t>
+      <t>
+        compact: a YANG model is compact if it does not enumerate all possible identifier names (identifier-arg) in a YANG data definition statement (data-def-stmt). For XML encoding, the identifier names are XML tags; for JSON encoding, the identifier names appear as JSON keys in JSON key/value pairs.
+      </t>
+      <t>
+        syntactically equivalent: a protocol has a syntactically equivalent YANG model if and only if the YANG validated messages are exactly the same as the protocol messages, i.e., the YANG modeled messages can interop with the protocol.
+      </t>
+    </section>
+
+    <section title="Claim">
+      <t>
+        Assume that we follow the specifications of JSON as specified in <xref target="RFC7159"/>, the YANG modeling languate as specified in <xref target="RFC6020"/>. and the JSON encoding of data modeled in YANG as specified in <xref target="draft-ietf-netmod-yang-json"/>.
+      </t>
+      <t>
+        A JSON based protocol message can have a compact, syntactically equivalent YANG model if and only if:
+      </t>
+      <t>(1) the message encoding condition is met;</t>
+      <t>(2) the uri condition is met.</t>
+
+      <t>
+        We also assume the following about the ordering difference between JSON and XML encodings:
+      </t>
+      <t>
+        A JSON object is a set of key/value pairs, and a major flexibility of JSON is that the key-value pairs are unordered. On the other hand, YANG is based on XML. Hence YANG encoding is ordered due to the inherent order of XML encoding. To avoid trivial compatibilitiy issues, a preprocessor will reorder the keys in JSON to match a YANG model according to <xref target="draft-ietf-netmod-yang-json"/>.
+      </t>
+
+      <section title="Message Encoding Condition">
+        <section title="Conditions">
+          <t>The JSON message encoding condition is the following:</t>
+          <t><list style="format (%d)">
+          <t>The message MUST be a JSON object.</t>
+          <t>The arrays MUST be either all objects, or all non-object non-array types, i.e. false, true, number, string;</t>
+          <t>The JSON message MUST NOT contain a non-keyword key or a null value in a JSON object key-value pair; in other words, the keys must be already defined in the protocol.</t>
+          </list></t>
+        </section>
+        <section title="Application of the Message Encoding Condition">
+          <section title="ALTO Network Map Example">
+
+<figure><artwork><![CDATA[                            
+{
+  "meta" : {
+    "vtag": {
+      "resource-id": "my-default-network-map",
+       "tag": "da65eca2eb7a10ce8b059740b0b2e3f8eb1d4785"
+    }
+  },
+  "network-map" : {
+    "PID1" : {
+      "ipv4" : [
+        "192.0.2.0/24",
+        "198.51.100.0/25"
+      ]
+    },
+    "PID2" : {
+      "ipv4" : [
+        "198.51.100.128/25"
+      ]
+    },
+    "PID3" : {
+      "ipv4" : [
+        "0.0.0.0/0"
+      ],
+      "ipv6" : [
+        "::/0"
+      ]
+    }
+  }
+}
+]]></artwork></figure>
+
+<t>Some of the keys (e.g. "PID1", "PID2", "PID3") in this JSON object are not pre-defined keywords, which violated Condition (3). Hence it cannot have a compact, syntactically equivalent YANG Model.</t>
+
+          </section>
+          <section title="CDNi Metadata Example">
+<figure><artwork><![CDATA[                            
+{
+  "hosts": [
+    {
+      "host": "video.example.com",
+      "_links": {
+        "host-metadata" : {
+          "type": "application/cdni.HostMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234"
+        }
+      }
+    },
+    {
+      "host": "images.example.com",
+      "_links": {
+        "host-metadata" : {
+          "type": "application/cdni.HostMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host5678"
+        }
+      }
+    }
+  ]
+}
+]]></artwork></figure>
+<t>This JSON object, as specified in Section 6.4.2 in <xref target="CDNiMetadata"/>, satisfies all three message encoding conditions. Hence it is possible to model it using YANG.</t>
+          </section>
+        </section>
+      </section>
+
+      <section title="The URI Condition">
+        <t>
+          Some of the YANG related protocols might have URI constraints, e.g., RESTCONF. There might be also be future protocols that put on additional restraints. In addition, it is a restraint on the data (the uri in the JSON message), instead of on the data model.
+        </t>
+        <t>
+          In case these constraints are in place, to resolve the issue, the uri in the JSON message could be conformed to constraint-compliant uri; alternatively, the server could set up a gateway translation for uri. Hence, for now we focus only on the message encoding condition and leave this condition open.
+        </t>
+      </section>
+    </section>
+
+    <section title="Proof of syntactic equivalence conditions">
+      <section title="The necessity of the message encoding condition">
+        <t>We prove the necessity of the message encoding condition by proving its contrapositive.</t>
+        <section title="Condition (1)">
+          <t>Although there are no strict rules to convert from JSON to XML, a stand-alone non-object JSON value
+          would not have an XML tag, which fails because of the same reason for Condition (3).</t>
+        </section>
+        <section title="Condition (2)">
+          <t>YANG cannot model stand alone arrays as non of the YANG statements 
+            maps to an array according to <xref target="draft-ietf-netmod-yang-json"/>.</t>
+          <t>There are two statements which generate a name/array pair in YANG, the leaf-list statement
+            and the list statement. For a leaf-list, the element type must be a YANG datatype (Section. 6 of <xref target="draft-ietf-netmod-yang-json"/>);
+            for a list, the array elements must be JSON objects. Hence, there cannot be a mix.</t>
+          <t>
+            A more formal definition of encodeable YANG arrays is the following:
+          </t>
+
+<figure><artwork><![CDATA[
+yang-array := object-array | primitive-array
+object-array := <an array, all of whose elements are objects>
+primitive-array := <an array, all of whose elements are primitive>
+primitive := boolean | number | string
+]]></artwork></figure>
+
+        </section>
+        <section title="Condition (3)">
+          <t>
+            For a YANG model, only some identifiers (identifier-arg-str in the ABNF grammar of YANG) defined in the model can appear as XML tags (i.e., JSON keys).
+          </t>
+          <t>
+            If one of the keys in the key-value pair in the JSON document is not defined in the protocol, there are two ways to model it in YANG:
+          </t>
+          <t>
+            (A) by using the anyxml statement, which allows arbitrary XML content. However, using the anyxml statement defeats the purpose of modeling the data as it allows arbitrary XML content, and will not help the subsequent parsing process.
+          </t>
+          <t>
+            (B) by enumerating the key space, e.g. in the ALTO network map example, we can enumerate all the possible PID names in the model to model the Network Map Service message. However, this is an unpractically large key space and violates our goal of having a compact model.
+          </t>
+        </section>
+        <section title="Conclusion">
+          <t>The above three conditions are necessary to model a JSON message in YANG.</t>
+        </section>
+      </section>
+      <section title="The sufficiency of the message encoding condition">
+        <t>
+          We prove this by providing a translation procedure from a JSON message that is compliant with the protocol we are trying to model, to a custom java class that can be used for Jackson data binding, then to a YANG model. Note that the middle step of translating to and from the custom parser class is not necessary, but it is useful. This also implies which data binding/JSON parser we use does not matter.</t>
+        <section title="Motivation of using Jackson data binding">
+          <t>JSON data binding is the process of binding data structures 
+            (objects, arrays, etc.) in JSON to the appropriate data 
+            structures in the server (e.g. java classes, database 
+            tables, etc.) in parsing the JSON text. In order to 
+            process JSON messages in a meaningful manner, data 
+            binding is necessary. Even if the binding is not explicit, 
+            the server would need to do it eventually. 
+            For example, one can read JSON content in a stream without
+             binding it to the java classes, but eventually in order
+            to make sense of the data, the server would eventually 
+            have to organize it, which is analogous to data 
+            binding upfront. Popular choices for JSON parsing and
+             data binding include jackson and gson.</t>
+          <t>We use Jackson full data binding as our approach. 
+            Full data binding binds JSON content into plain 
+            old java objects (POJOs), i.e. this custom parser 
+            class can neither extend nor implement any other class. 
+            Jackson uses ObjectMapper with the custom parser class 
+            to parse JSON content into this class.</t>
+          <t>The no inheritance assumption means that all custom parser classes
+            are base classes. Nevertheless, this assumption is also not
+            necessary--we can simply make any derived classes a new 
+            based class.</t>
+        </section>
+        <section title="The message encoding condition in Jackson terms">
+          <t>For now, we make a stronger assumption than Condition (2):
+            we assume all arrays contain elements that are homogeneous non-array JSON values.
+            We handle the case of heterogeneous objects and heterogeneous non-object non-array types later.</t>
+
+          <t>The message encoding condition (3) is that all keys in 
+            each key-value pair in the JSON text must be pre-defined 
+            keywords. As the keys will become either class names and 
+            instance variable names, or be keys in the java maps, 
+            it is easy to see that this condition is equivalent to:
+            there exists a full data binding in Jackson custom parser 
+            class without using any map structures (Map&lt;String, ?&gt;).” </t>
+        </section>
+        <section title="Proof">
+          <section title="Generate Jackson Parser from JSON Message">
+          <t>We provide a recursive binding process from a JSON object
+           to the Jackson custom parser class to be used by Jackson ObjectMapper.</t>
+
+<figure><artwork><![CDATA[                            
+Type determine_type(value) {
+  if (type(value) is string or number or boolean or null) {
+    return the corresponding java primitive type;
+  }
+  if (value is a JSON object) {
+    return build_parser_class(value).class;
+  }
+  if (value is an array) {
+    return ArrayList<T> where T=determine_type(value[0]);
+  }
+  // should not reach here.
+}
+
+Class build_parser_class(JSONObject obj) {
+  create custom class C;
+  for each key/value pair in the obj {
+    add instance variable v in C; 
+    the name of variable v <- key;
+    the type of variable v <- determine_type(value);
+  }
+  return C.class;
+}
+]]></artwork></figure>
+
+          <t>To ensure the naming in the YANG model is consistent with the JSON message, 
+          We follow the naming process: change everything into CamelCase (i.e. remove dashes, etc.);
+          for instance variables, use “my” prefix, (e.g. myVariable, myNetworkMap, etc.); 
+          for the custom class name, if the object is an element of the array, use “Element” suffix; if a class already exists, we add a number after it which we then remove at the next stage.</t>
+          </section>
+          <section title="Generate YANG Model from Jackson Parser">
+
+            <t>Given a Jackson Parser Java Class, the following algorithm generates a YANG model:</t>
+
+<figure><artwork><![CDATA[                            
+YANGModel build_yang_model(Class C) {
+  for each instance variable (Type, Name) {
+    if (Type is primitive type: string, number, boolean, null) {
+      add the following to the YANG module:
+      “leaf Name { type <YANG equivalent of Type>; }”
+    }
+    if (Type is an ArrayList<TypeElement>) {
+      if (TypeElement is primitive type) {
+        add the following to the YANG module:
+        “leaf-list Name { type <YANG equivalent of TypeElement>; }”
+      } else {
+        // TypeElement is a custom parser class
+        add the following to the YANG module:
+        “list Name { build_yang_model(TypeElement.class) }”
+      }
+    }
+    if (Type is a custom parser class) {
+      add the following to the YANG module:
+      “container Name { build_yang_model(Type.class) }”        
+    }
+  }
+}
+]]></artwork></figure>
+
+          </section>
+
+
+          <section title="Handling heterogeneous arrays">
+            <t>Due to Java's strong typing, handling heterogeneous arrays is
+             difficult, but not impossible. For simplicity, we provide the YANG model
+             directly for heterogeneous arrays and provide guidelines for Jackson parsing.</t>
+
+            <section title="Arrays of entirely primitive types">
+            <t>If the array is consisted of entirely non-object, non-value types type_1, type_2, ..., type_n,
+              the corresponding YANG model is a leaf-list with a derived type.</t>
+
+<figure><artwork><![CDATA[                            
+typedef element-type {
+  type union {
+    type type_1;
+    type type_2;
+    ...
+    type type_m;
+  }
+}
+
+leaf-list key-name {
+  type element-type;
+}
+]]></artwork></figure>
+        
+            <t>In Jackson, one may parse such arrays as String[] and then convert to whichever types needed.</t>
+            </section>
+            <section title="Example">
+<figure><artwork><![CDATA[                            
+foo : [
+  12,
+  "abc",
+  true
+]
+
+leaf-list foo {
+  type union {
+    type int32;
+    type string;
+    type boolean;
+  }
+}
+]]></artwork></figure>
+            </section>
+            <section title="Arrays of entirely JSON objects">
+            <t>If the array is consisted of entirely JSON object, we 
+              create a YANG grouping for each object (by following the
+              same process as build_parser_class and build_yang_object above). 
+              Then use list, choice, and case statements.</t>
+
+<figure><artwork><![CDATA[                            
+list key-name {
+  choice elements {
+    case element-object-1 {
+      uses grouping-1;
+    }
+    case element-object-2 {
+      uses grouping-2;
+    }
+    ...
+    case element-object-n {
+      uses grouping-n;
+    }
+  }
+}
+]]></artwork></figure>
+        
+            <t>In Jackson, one may use annotations or custom deserializers to 
+              parse such structures.</t>
+            </section>
+          </section>
+            <section title="Example">
+<figure><artwork><![CDATA[                            
+foo : [
+  {
+    "bar" : 12,
+    "baz" : "abc"
+  },
+  {
+    "name" : "Cyrus T. Elk",
+    "year" : 1938
+  }
+]
+
+grouping grouping-1 {
+  leaf bar {
+    type int32;
+  }
+  leaf baz {
+    type string;
+  }
+}
+
+grouping grouping-2 {
+  leaf name {
+    type string;
+  }
+  leaf year {
+    type int32;
+  }
+}
+
+list foo {
+  choice element-types {
+    case element-type-1 {
+      uses grouping-1;
+    }
+    case element-type-2 {
+      uses grouping-2;
+    }
+  }
+}
+]]></artwork></figure>
+            </section>
+          </section>
+        </section>
+        <section title="Examples">
+          <section title="ALTO cost map example">
+          <t>Take the cost map response from the ALTO protocol <xref target="RFC7285"/> as an example:</t>
+
+<figure><artwork><![CDATA[                            
+{
+  "meta" : {
+    "dependent-vtags" : [
+      {"resource-id": "my-default-network-map",
+       "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+      }
+    ],
+    "cost-type" : {"cost-mode"  : "numerical",
+                   "cost-metric": "routingcost"
+    }
+  },
+  "cost-map" : {
+    "PID1": { "PID1": 1,  "PID2": 5,  "PID3": 10 },
+    "PID2": { "PID1": 5,  "PID2": 1,  "PID3": 15 },
+    "PID3": { "PID1": 20, "PID2": 15  }
+  }
+}
+]]></artwork></figure>
+
+          <t>This JSON object does not have a syntactically equivalent model in YANG because some of its keys are variables,
+            e.g., the "PID1", "PID2", etc.</t>
+          <t>If we change this cost map object to the following, we will be able to model it.</t>
+
+<figure><artwork><![CDATA[                            
+{
+  "meta" : {
+    "dependent-vtags" : [
+      {"resource-id": "my-default-network-map",
+       "tag": "3ee2cb7e8d63d9fab71b9b34cbf764436315542e"
+      }
+    ],
+    "cost-type" : {"cost-mode"  : "numerical",
+                   "cost-metric": "routingcost"
+    }
+  },
+  "cost-map" : [
+    {
+      "src":"PID1",
+      "dst-costs" : [
+        {
+          "dst": "PID1",
+          "cost" : 1
+        },
+        {
+          "dst": "PID2",
+          "cost": 5
+        },
+        {
+          "dst": "PID3",
+          "cost": 10
+        }
+      ]
+    },
+    {
+      "src":"PID2",
+      "dst-costs" : [
+        {
+          "dst": "PID1",
+          "cost" : 5
+        },
+        {
+          "dst": "PID2",
+          "cost": 1
+        },
+        {
+          "dst": "PID3",
+          "cost": 15
+        }
+      ]
+    },
+    {
+      "src":"PID3",
+      "dst-costs" : [
+        {
+          "dst": "PID1",
+          "cost" : 20
+        },
+        {
+          "dst": "PID2",
+          "cost": 15
+        }
+      ]
+    }
+  ]
+}
+]]></artwork></figure>
+
+          <t>Result of build_parser_class(obj):</t>
+
+<figure><artwork><![CDATA[                            
+Class Message {
+  Meta myMeta;
+  ArrayList<CostMapElement> myCostMap;
+}
+Class Meta {
+  ArrayList<DependentVtagsElement> myDependentVtags;
+  CostType myCostType;
+}
+Class DependentVtagsElement {
+  String myResourceId;
+  String myTag;
+}
+Class CostType {
+  String myCostMode;
+  String myCostMetric;
+}
+Class CostMapElement {
+  String mySrc;
+  ArrayList<DstCostsElement> myDstCosts;
+}
+Class DstCostsElement {
+  String myDst;
+  int myCost;
+}
+]]></artwork></figure>
+
+
+<t>Generated YANG model:</t>
+<figure><artwork><![CDATA[                            
+container meta {
+  list dependent-vtags {
+    leaf resource-id {
+      type string;
+    }
+    leaf tag {
+      type string;
+    }
+  }
+  container cost-type {
+    leaf cost-mode {
+      type string;
+    }
+    leaf cost-metric {
+      type string;
+    }
+  }
+}
+list cost-map {
+  leaf src {
+    type string;
+  }
+  list dst-costs {
+    leaf dst {
+      type string;
+    }
+    leaf cost {
+      type int64;
+    }
+  }
+}
+]]></artwork></figure>
+
+<t>This YANG model does validate the JSON cost map object with JSON encoding defined in <xref target="draft-ietf-netmod-yang-json"/>.
+</t>
+            </section>
+
+            <section title="CDNi metadata example">
+              <t>The original JSON message is the following:</t>
+<figure><artwork><![CDATA[                            
+{
+  "metadata": [
+    {
+      "generic-metadata-type":
+        "application/cdni.SourceMetadata.v1+json",
+      "generic-metadata-value": {
+        "sources": [
+          {
+            "_links": {
+              "auth": {
+                "auth-type": "application/cdni.Auth.v1+json",
+                "href": "http://metadata.ucdn.example/auth1234"
+              }
+            },
+            "endpoint": "acq1.ucdn.example",
+            "protocol": "ftp"
+          },
+          {
+            "_links": {
+              "auth": {
+                "auth-type": "application/cdni.Auth.v1+json",
+                "href": "http://metadata.ucdn.example/auth1234"
+              }
+            },
+            "endpoint": "acq2.ucdn.example",
+            "protocol": "http"
+          }
+        ]
+      }
+    },
+    {
+      "generic-metadata-type":
+        "application/cdni.LocationACL.v1+json",
+      "generic-metadata-value": {
+        "locations": [
+          {
+            "locations": [
+              {
+                "footprint-type": "IPv4CIDR",
+                "footprint-value": "192.168.0.0/16"
+              }
+            ],
+            "action": "deny"
+          }
+        ]
+      }
+    },
+    {
+      "generic-metadata-type":
+        "application/cdni.ProtocolACL.v1+json",
+      "generic-metadata-value": {
+        "protocols": [
+          {
+            "protocols": [
+              "ftp"
+            ],
+            "action": "deny"
+          }
+        ]
+      }
+    }
+  ],
+  "paths": [
+    {
+      "path-pattern": {
+        "pattern": "/video/trailers/*"
+      },
+      "_links": {
+        "path-metadata": {
+          "type": "application/cdni.PathMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234/pathABC"
+        }
+      }
+    },
+    {
+      "path-pattern": {
+        "pattern": "/video/movies/*"
+      },
+      "_links": {
+        "path-metadata": {
+          "type": "application/cdni.PathMetadata.v1+json",
+          "href": "http://metadata.ucdn.example/host1234/pathDCE"
+        }
+      }
+    }
+  ]
+}
+]]></artwork></figure>
+
+          <t>Result of build_parser_class(obj):</t>
+
+<figure><artwork><![CDATA[                            
+
+Class Message {
+  ArrayList<MetaDataElement> myMetaData;
+  ArrayList<PathsElement> myPaths;
+}
+Class MetaDataElement {
+  String myGenericMetadataType;
+  GenericMetadataValue myGenericMetadataValue;
+}
+Class GenericMetadataValue {
+  ArrayList<SourcesElement> mySources;
+  ArrayList<LocationsElement> myLocations;
+  ArrayList<ProtocolsElement> myProtocols;
+}
+Class SourcesElement {
+  _Links my_Links;
+  String myEndpoint;
+  String myProtocol;
+}
+Class _Links {
+  Auth myAuth;
+}
+Class Auth {
+  String myAuthType;
+  String myHref;
+}
+Class LocationsElement {
+  ArrayList<LocationsElement2> myLocations;
+  String myAction;
+}
+Class LocationsElement2 {
+  String myFootprintType;
+  String myFootprintValue;
+}
+Class ProtocolsElement {
+  ArrayList<String> myProtocols;
+  String myAction;
+}
+Class PathsElement {
+  PathPattern myPathPattern;
+  _Links2 my_Links;
+}
+Class PathPattern {
+  String myPattern;
+}
+Class _Links2 {
+  PathMetadata myPathMetadata;
+}
+Class PathMetadata {
+  String myType;
+  String myHref;
+}
+]]></artwork></figure>
+
+
+<t>Generated YANG model:</t>
+<figure><artwork><![CDATA[                            
+list metadata {
+  leaf generic-metadata-type {
+    type string;
+  }
+  container generic-metadata-value {
+    list sources {
+      container _links {
+        container auth {
+          leaf auth-type {
+            type string;
+          }
+          leaf href {
+            type string;
+          }
+        }
+      }
+      leaf endpoint {
+        type string;
+      }
+      leaf protocol {
+        type string;
+      }
+    }
+    list locations {
+      list locations {
+        leaf footprint-type {
+          type string;
+        }
+        leaf footprint-value {
+          type string;
+        }
+      }
+      leaf action {
+        type string;
+      }
+    }
+    list protocols {
+      leaf-list protocols {
+        type string;
+      }
+      leaf action {
+        type string;
+      }
+    }
+  }
+}
+list paths {
+  container path-pattern {
+    leaf pattern {
+      type string;
+    }
+  }
+  container _links {
+    container path-metadata {
+      leaf type {
+        type string;
+      }
+      leaf href {
+        type string;
+      }
+    }
+  }
+}
+]]></artwork></figure>
+
+<t>This YANG model does validate the JSON cost map object with JSON encoding defined in <xref target="draft-ietf-netmod-yang-json"/>.
+</t>
+
+            </section>
+          </section>
+          <section title="Concluding remarks">
+            <t>This process proves that the message encoding condition 
+              is a sufficient condition for the JSON object to have a compact, syntactically equivalent YANG model.</t>
+
+            <t>Note the model generated is very crude and lose almost 
+              all constraints and all inheritance features (if any), 
+              because it focuses on the syntax and is essentially 
+              converted from an JSON object compliant with a protocol 
+              instead of from the protocol itself. Hence this result 
+              is more useful in determining which JSON based protocols 
+              cannot have a syntactically equivalent YANG model, than 
+              in generating a usable YANG model.</t>
+
+      </section>
+    </section>
+
+    <section title="Semantic Equivalence">
+      <t>For JSON based protocols that don’t satisfy the message encoding condition, it is still possible to have a semantically equivalent YANG model. All that is required for the protocol compliant clients and the YANG model compliant server to interoperate is an adapter which does the following:</t>
+      <t> 1) translate FROM YANG server compliant response msg TO alto compliant response msg;</t>
+      <t> 2) translate FROM alto compliant request msg TO YANG server compliant request msg;</t>
+
+      <section title="Claim">
+        <t>This adapter needs to be protocol-aware.</t>
+
+        <t>Ideally, given any YANG model, we would like to be able to automatically (or at least mechanically) generate this message adapter, which means not looking at the protocol or its compliant msgs. However, without knowing the specific protocol that we are working with (i.e. human intervention, i.e. looking at the protocol compliant msgs), such an adapter cannot be auto-generated.</t>
+      </section>
+
+      <section title="Proof by Indistinguishability">
+        <t>Suppose both the YANG server compliant msg m_y and the actually protocol compliant msg m_p are in JSON (or have been encoded into JSON). Looking at the differences between the two messages, call these differences {d1, d2, ..., dn}. The goal for the auto-generated adapter would be to identify and eliminate these differences. Construct a new JSON msg m' where all but one difference di is the same as m_p and di is the same as the m_y. Without looking at the protocol (or m_p), the auto-generated adapter would not be able to distinguish between m' and m_p in its translation process, which means, it won't be able to tell whether it should change di or not. Hence, such an adapter must be protocol-aware.</t>
+        <t>A good example is the dependent-vtag in the ALTO protocol:</t>
+<figure><artwork><![CDATA[                            
+"dependent-vtag" : [
+  {
+    "resource-id" : "my-network-map",
+    "tag" : "abcd1234"
+  }
+]
+]]></artwork></figure>
+
+        <t>It was specified this way in the alto protocol. However, it could conceivably be the case that it was originally the following map structure, and was converted into the above encoding because of the map->list+key issue. (This case is actually one of the few differences in the m_y and m_p where the adapter does not need to convert it back to a map structure.)</t>
+
+<figure><artwork><![CDATA[                            
+"dependent-vtag" : {
+  "my-network-map" : {
+    "tag" : "abcd1234"
+  }
+}
+]]></artwork></figure>
+        <t>Without knowing the protocol or protocol messages, it is impossible to distinguish.</t>
+      </section>
+    </section>
+
+    <section title="Ramifications">
+      <t>We now understand the basic condition for a JSON based protocol to have a YANG Model. For the protocols that don’t meet this condition, there can be a semantic equivalent YANG model, but there won’t be a generic process of generating the adapter for all protocols.</t>
+    </section>
+    
+    <section title="Security Considerations">
+      <t>
+        This document does not introduce security or privacy concerns.
+      </t>
+    </section>
+
+    <section anchor="IANA" title="IANA Considerations">
+      <t>
+        This document does not have IANA considerations.
+      </t>
+    </section>
+    
+  </middle>
+  
+  <back>
+    <references>
+    
+      <!--
+      <reference anchor="RFC5226">
+        <front>
+          <title>Guidelines for Writing an IANA Considerations Section in RFCs</title>
+          <author initials="T." surname="Narten" fullname="T. Narten"/>
+          <author initials="H." surname="Alvestrand" fullname="H. Alvestrand"/>
+          <date month="May" year="2008"/>
+        </front>
+        <seriesInfo name="RFC" value="5226" />
+        <seriesInfo name="BCP" value="26" />
+      </reference>
+      -->
+      
+      <reference anchor="RFC6707">
+        <front>
+          <title>Content Distribution Network Interconnection (CDNi) Problem Statement</title>
+          <author initials="B." surname="Niven-Jenkins" fullname="B. Niven-Jenkins"/>
+          <author initials="F." surname="Le Faucheur" fullname="F. Le Faucheur"/>
+          <author initials="N." surname="Bitar" fullname="N. Bitar"/>
+          <date month="September" year="2012"/>
+        </front>
+        <seriesInfo name="RFC" value="6707" />
+      </reference>
+      <reference anchor="CDNiMetadata">
+        <front>
+          <title>CDN Interconnection Metadata</title>
+          <author initials="B." surname="Niven-Jenkins" fullname="B. Niven-Jenkins"/>
+          <author initials="R." surname="Murray" fullname="R. Murray"/>
+          <author initials="M." surname="Caulfield" fullname="M. Caulfield"/>
+          <author initials="K." surname="Leung" fullname="K. Leung"/>
+          <author initials="K." surname="Ma" fullname="K. Ma"/>
+          <date month="July" year="2014"/>
+        </front>
+      </reference>
+      <reference anchor="RFC7159">
+        <front>
+          <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+          <author initials="T." surname="Bray" fullname="T. Bray"/>
+          <date month="March" year="2014"/>
+        </front>
+        <seriesInfo name="RFC" value="7159" />
+      </reference>
+      <reference anchor="RFC7285">
+        <front>
+          <title>Application-Layer Traffic Optimization (ALTO) Protocol</title>
+          <author initials="R." surname="Almi" fullname="R. Alimi"/>
+          <author initials="R." surname="Penno" fullname="R. Penno"/>
+          <author initials="Y." surname="Yang" fullname="Y. Yang"/>
+          <author initials="S." surname="Kiesel" fullname="S. Kiesel"/>
+          <author initials="S." surname="Previdi" fullname="S. Previdi"/>
+          <author initials="W." surname="Roome" fullname="W. Roome"/>
+          <author initials="S." surname="Shalunov" fullname="S. Shalunov"/>
+          <author initials="R." surname="Woundy" fullname="R. Woundy"/>
+          <date month="September" year="2014"/>
+        </front>
+        <seriesInfo name="RFC" value="7285" />
+      </reference>
+      <reference anchor="RFC6887">
+        <front>
+          <title>Port Control Protocol</title>
+          <author initials="D." surname="Wing" role="editor" fullname="D. Wing"/>
+          <author initials="S." surname="Cheshire" fullname="S. Cheshire"/>
+          <author initials="M." surname="Boucadair" fullname="M. Boucadair"/>
+          <author initials="R." surname="Penno" fullname="R. Penno"/>
+          <author initials="P." surname="Selkirk" fullname="P. Selkirk"/>
+          <date month="April" year="2013"/>
+        </front>
+        <seriesInfo name="RFC" value="6887" />
+      </reference>
+
+      <reference anchor="RFC6020">
+        <front>
+          <title>YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)</title>
+          <author initials="M." surname="Bjorklund" role="editor" fullname="M. Bjorklund"/>
+          <date month="October" year="2010"/>
+        </front>
+        <seriesInfo name="RFC" value="6020" />
+      </reference>
+
+      <reference anchor="draft-ietf-netmod-yang-json">
+        <front>
+          <title>JSON Encoding of Data Modeled with YANG</title>
+          <author initials="L." surname="Lhotka" fullname="L. Lhotka"/>
+          <date month="October" year="2014"/>
+        </front>
+        <seriesInfo name="Internet Draft" value="draft-ietf-netmod-yang-json"/>
+      </reference>
+    </references>
+  </back>
+</rfc>
